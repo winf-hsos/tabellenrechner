@@ -3894,6 +3894,177 @@ const enterToNext = (e) => {
 /*  Hauptkomponente                                                   */
 /* ================================================================== */
 
+/* ---------------- Alles durchspielen ---------------- */
+
+/** Historieneintrag des DFB-Pokals (Sieger, Runden, Torschützen). */
+function cupHistoryEntry(d) {
+  const c = d.cup;
+  const last = c.rounds[c.rounds.length - 1];
+  const champ = last.name === "Finale" && last.games[0] ? cupWinner(last.games[0]) : null;
+  return {
+    scorers: scorerList(cupGames(c), squadIndex(LEAGUE_IDS.map((x) => d.active[x]))).slice(0, 10),
+    id: `cup-${c.label}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    type: "cup", leagueId: "cup", leagueName: "DFB-Pokal",
+    label: c.label, closedAt: new Date().toISOString(),
+    winner: champ ? champ.name : "—",
+    rounds: c.rounds.map((r) => ({
+      name: r.name,
+      games: r.games.map((g) => ({ h: g.h.name, a: g.a.name, hg: g.hg, ag: g.ag, pen: g.pen })),
+    })),
+  };
+}
+
+/** Wurde dieser Wettbewerb in dieser Saison schon archiviert? */
+function archivedThisSeason(d, leagueId, label) {
+  return (d.history || []).some((h) => h.leagueId === leagueId && h.label === label);
+}
+
+/**
+ * Spielt alles zu Ende, was in der laufenden Saison noch offen ist: die fünf Ligen, den
+ * DFB-Pokal und die drei Europapokale. Reine Funktion auf dem Datenstand; schon eingetragene
+ * Ergebnisse bleiben, bereits archivierte Wettbewerbe werden nicht noch einmal gespielt.
+ */
+function playAllCompetitions(d) {
+  const drawShare = DRAW_SHARE[d.drawBias || 0] != null ? DRAW_SHARE[d.drawBias || 0] : 0;
+  const surprise = d.surpriseBias == null ? 1 : Number(d.surpriseBias);
+  const sim = (sh, sa, neutral, tH, tA) => simulateMatch(sh, sa, neutral, drawShare, surprise, tH, tA);
+  const out = { ...d, active: { ...d.active }, history: [...(d.history || [])] };
+
+  // Ligen
+  LEAGUE_IDS.forEach((id) => {
+    const s = d.active[id];
+    const results = { ...s.results };
+    makeFixtures(s.teams.length, s.seed).forEach((round, i) => round.forEach(([h, a], gi) => {
+      if (parsedResult(results, i, gi)) return;
+      const [hg, ag] = sim(s.strengths[h], s.strengths[a], false, formationTilt(s.squads[h].f), formationTilt(s.squads[a].f));
+      results[`${i}:${gi}`] = { h: String(hg), a: String(ag), sc: makeGoals(s.squads[h], s.squads[a], hg, ag) };
+    }));
+    out.active[id] = { ...s, results };
+  });
+  const label = d.active.bl1.label;
+
+  // DFB-Pokal: die acht Amateure sind die ersten der 4. Liga.
+  let cup = d.cup;
+  if (!cup && !archivedThisSeason(d, "cup", label)) {
+    const bl4 = out.active.bl4;
+    const tab = computeTable(bl4.teams, makeFixtures(bl4.teams.length, bl4.seed), bl4.results);
+    const amateurs = tab.slice(0, 8).map((r) => ({ name: r.name, strength: Number(bl4.strengths[bl4.teams.indexOf(r.name)]) || 22 }));
+    cup = newCup(out.active, amateurs, label);
+  }
+  if (cup) {
+    const rounds = cup.rounds.map((r) => ({ ...r }));
+    for (let guard = 0; guard < CUP_ROUNDS.length; guard++) {
+      const cur = rounds[rounds.length - 1];
+      cur.games = cur.games.map((g) => {
+        if (cupWinner(g)) return g;
+        const [hg, ag] = sim(g.h.strength, g.a.strength, cur.name === "Finale", formationTilt(g.h.form), formationTilt(g.a.form));
+        return {
+          ...g, hg: String(hg), ag: String(ag),
+          sc: makeGoals(g.h.squad, g.a.squad, hg, ag),
+          pen: hg === ag ? shootout(g.h.strength, g.a.strength) : null,
+        };
+      });
+      if (cur.name === "Finale" || rounds.length >= CUP_ROUNDS.length) break;
+      const winners = cur.games.map((g) => cupWinner(g));
+      rounds.push({ name: CUP_ROUNDS[rounds.length], games: drawPairs(winners, cup.seed + rounds.length * 31) });
+    }
+    out.cup = { ...cup, rounds };
+    out.history = [cupHistoryEntry(out), ...out.history];
+  }
+
+  // Europapokal
+  const runs = { ...d.euro.runs };
+  EURO_COMPS.forEach((c) => {
+    let r = runs[c.id];
+    if (!r) {
+      if (archivedThisSeason(d, c.id, label) || !euroListOk(d.euro.teams[c.id])) return;
+      const teams = d.euro.teams[c.id].map((t) => {
+        const strength = euroStrength(t, out.active);
+        const name = t.name.trim();
+        return { name, de: !!t.de, strength, squad: euroSquadFor({ ...t, name }, strength, out.active) };
+      });
+      const seed = Math.floor(Math.random() * 1e9);
+      r = { label, seed, teams, fixtures: euroDraw(teams, seed), results: {}, ko: [], rank: null };
+    }
+    const res = { ...r.results };
+    r.fixtures.forEach((round, i) => round.forEach(([h, a], gi) => {
+      if (parsedResult(res, i, gi)) return;
+      const [hg, ag] = sim(r.teams[h].strength, r.teams[a].strength, false, 0, 0);
+      res[`${i}:${gi}`] = { h: String(hg), a: String(ag), sc: makeGoals(r.teams[h].squad, r.teams[a].squad, hg, ag) };
+    }));
+    let run = { ...r, results: res };
+    const simTie = (rd, t) => {
+      const A = run.teams[t.h];
+      const B = run.teams[t.a];
+      const twoLeg = rd.name !== "Finale";
+      const [h1, a1] = sim(A.strength, B.strength, !twoLeg, 0, 0);
+      const nt = { ...t, l1: { h: String(h1), a: String(a1), sc: makeGoals(A.squad, B.squad, h1, a1) }, pen: null };
+      if (twoLeg) {
+        const [h2, a2] = sim(B.strength, A.strength, false, 0, 0);
+        nt.l2 = { h: String(h2), a: String(a2), sc: makeGoals(B.squad, A.squad, h2, a2) };
+      }
+      const g = tieAgg(nt, twoLeg);
+      if (g[0] === g[1]) nt.pen = shootout(A.strength, B.strength);
+      return nt;
+    };
+    const drawNext = () => {
+      const rnd = mulberry32((run.seed + 17 + run.ko.length * 31) >>> 0);
+      if (!run.ko.length) {
+        const tb = euroTable(run);
+        const rank = {};
+        tb.forEach((x) => { rank[x.idx] = x.pos; });
+        run = { ...run, rank, ko: [{ name: EURO_KO[0], ties: euroPlayoffTies(tb, rnd) }] };
+        return;
+      }
+      const last = run.ko[run.ko.length - 1];
+      const ties = run.ko.length === 1
+        ? euroR16Ties(euroTable(run), last.ties.map((t) => (tieWinner(t, true) === "h" ? t.h : t.a)))
+        : euroNextTies(last, run.rank);
+      run = { ...run, ko: [...run.ko, { name: EURO_KO[run.ko.length], ties }] };
+    };
+    if (!run.ko.length) drawNext();
+    for (let guard = 0; guard < EURO_KO.length + 1; guard++) {
+      const last = run.ko[run.ko.length - 1];
+      const ties = last.ties.map((t) => (tieWinner(t, last.name !== "Finale") ? t : simTie(last, t)));
+      run = { ...run, ko: [...run.ko.slice(0, -1), { ...last, ties }] };
+      if (last.name === "Finale") break;
+      drawNext();
+    }
+    runs[c.id] = run;
+  });
+  out.euro = { ...d.euro, runs };
+  return out;
+}
+
+/** Entscheidung der Relegation per Hin- und Rückspiel: "up" = der Klub aus der unteren Liga setzt sich durch. */
+function relegationUp(sLow, sHigh, sim) {
+  const [a1, b1] = sim(sLow, sHigh, false, 0, 0);
+  const [b2, a2] = sim(sHigh, sLow, false, 0, 0);
+  const low = a1 + a2;
+  const high = b1 + b2;
+  if (low !== high) return low > high ? "up" : "stay";
+  return shootout(sLow, sHigh) === "h" ? "up" : "stay";
+}
+
+/** Relegationsduelle und Nachrücker für den automatischen Saisonwechsel. */
+function autoPromotionPlan(d) {
+  const drawShare = DRAW_SHARE[d.drawBias || 0] != null ? DRAW_SHARE[d.drawBias || 0] : 0;
+  const surprise = d.surpriseBias == null ? 1 : Number(d.surpriseBias);
+  const sim = (sh, sa, neutral, tH, tA) => simulateMatch(sh, sa, neutral, drawShare, surprise, tH, tA);
+  const order = {};
+  const strength = {};
+  LEAGUE_IDS.forEach((id) => {
+    const s = d.active[id];
+    order[id] = computeTable(s.teams, makeFixtures(s.teams.length, s.seed), s.results).map((r) => r.name);
+    s.teams.forEach((n, i) => { strength[n] = Number(s.strengths[i]) || 1; });
+  });
+  return {
+    duelA: relegationUp(strength[order.bl2[2]], strength[order.bl1[15]], sim),
+    duelB: relegationUp(strength[order.bl3[2]], strength[order.bl2[15]], sim),
+    newcomers: topAufsteiger(d.regional || [], 4),
+  };
+}
+
 /** Die längsten Serien ohne Niederlage (Liste aus `unbeatenRuns`). */
 function UnbeatenBox({ runs }) {
   const top = (runs || []).filter((r) => r.len >= 2).slice(0, 3);
@@ -4437,22 +4608,22 @@ export default function Tabellenrechner() {
   }, [cup]);
 
   const closeCup = () => {
-    setData((d) => {
-      const c = d.cup;
-      const entry = {
-        scorers: scorerList(cupGames(c), squadIndex(LEAGUE_IDS.map((x) => d.active[x]))).slice(0, 10),
-        id: `cup-${c.label}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        type: "cup", leagueId: "cup", leagueName: "DFB-Pokal",
-        label: c.label, closedAt: new Date().toISOString(),
-        winner: cupChampion ? cupChampion.name : "—",
-        rounds: c.rounds.map((r) => ({
-          name: r.name,
-          games: r.games.map((g) => ({ h: g.h.name, a: g.a.name, hg: g.hg, ag: g.ag, pen: g.pen })),
-        })),
-      };
-      return { ...d, cup: null, history: [entry, ...d.history] };
-    });
+    setData((d) => ({ ...d, cup: null, history: [cupHistoryEntry(d), ...d.history] }));
     setCupRound(0);
+    setModal(null);
+    setTab("hist");
+  };
+
+  /** Alle Wettbewerbe zu Ende spielen, ins Archiv legen und die nächste Saison beginnen. */
+  const playAll = () => {
+    const played = playAllCompetitions(data);
+    const plan = autoPromotionPlan(played);
+    setData(() => played);
+    applyPromotion(plan.duelA, plan.duelB, plan.newcomers);
+    setData((d) => ({ ...d, cup: null }));
+    setMd(ZERO_MD);
+    setCupRound(0);
+    setOpenHist(null);
     setModal(null);
     setTab("hist");
   };
@@ -4526,6 +4697,8 @@ export default function Tabellenrechner() {
             </div>
             <div className="lr-top-r">
               <div className="lr-status">{status}</div>
+              <button className="lr-btn lr-btn-sm" id="playall-open" onClick={() => setModal({ type: "playall" })}
+                title="Alle Wettbewerbe zu Ende spielen und in die Historie legen">Saison durchspielen</button>
               <button className="lr-btn lr-btn-sm" id="reset-open" onClick={() => setModal({ type: "reset" })}>Zurücksetzen</button>
             </div>
           </div>
@@ -5092,6 +5265,23 @@ export default function Tabellenrechner() {
           <div className="lr-modal-foot">
             <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
             <button className="lr-btn lr-btn-p" onClick={neuBeginnen}>Neu beginnen</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal && modal.type === "playall" && (
+        <Modal onClose={() => setModal(null)}>
+          <h2>Saison durchspielen</h2>
+          <p>
+            Alle noch offenen Spiele der fünf Ligen, des DFB-Pokals und der drei Europapokale werden
+            ausgewürfelt (bereits eingetragene Ergebnisse bleiben). Anschließend kommen alle Wettbewerbe
+            in die Historie, die Relegationen werden per Hin- und Rückspiel entschieden, und die
+            nächste Saison beginnt mit Auf- und Abstieg und neuen Stärken.
+          </p>
+          <p>Das lässt sich nicht rückgängig machen. Vorher unter Historie „Sichern“ eine Kopie anlegen.</p>
+          <div className="lr-modal-foot">
+            <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
+            <button className="lr-btn lr-btn-p" id="playall-go" onClick={playAll}>Alles durchspielen</button>
           </div>
         </Modal>
       )}
