@@ -125,6 +125,8 @@ ok(amateurInputs.length === 8, "acht Amateure");
 console.log("Amateure:", amateurInputs.map((i) => i.value).join(", "));
 const amNames = amateurInputs.map((i) => i.value);
 ok(amNames.every((n) => !["bl1","bl2","bl3"].some((id) => d.active[id].teams.includes(n))), "Amateure spielen nicht in den Profiligen");
+ok(amNames.every((n) => d.active.bl4.teams.includes(n)), "Amateure stammen alle aus der 4. Liga");
+ok(new Set(amNames).size === 8, "acht verschiedene Amateure");
 await click(btn("1. Runde auslosen")); await flush();
 d = saved();
 const g1 = d.cup.rounds[0].games;

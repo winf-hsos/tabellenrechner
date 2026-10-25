@@ -4547,8 +4547,8 @@ export default function Tabellenrechner() {
               </div>
               <p className="lr-empty">
                 64 Mannschaften: alle 18 aus der Bundesliga, alle 18 aus der 2. Bundesliga,
-                alle 20 aus der 3. Liga und acht Landespokalsieger, deren Namen und Stärke du
-                selbst festlegst. In der ersten Runde bekommt jeder Amateur einen Profi und
+                alle 20 aus der 3. Liga und die acht Ersten der 4. Liga, deren Namen und Stärke du
+                bei Bedarf änderst. In der ersten Runde bekommt jeder Amateur einen Profi und
                 Heimrecht, danach hat immer der Klub aus der tieferen Liga Heimvorteil. Bei
                 Gleichstand entscheidet das Elfmeterschießen, das Finale zählt als neutraler Platz.
               </p>
@@ -4844,7 +4844,7 @@ export default function Tabellenrechner() {
       )}
 
       {modal && modal.type === "cupstart" && (
-        <CupStartModal onClose={() => setModal(null)} onStart={startCup} regional={data.regional} unten={[data.active.bl4, data.active.bl5]} />
+        <CupStartModal onClose={() => setModal(null)} onStart={startCup} unten={[data.active.bl4]} />
       )}
 
       {modal && modal.type === "cupclose" && cup && (
@@ -6222,7 +6222,7 @@ function RegionalModal({ regional, onClose, onSave }) {
       <h2>Regionalliga-Topf</h2>
       <p>
         Das sind die Vereine unterhalb der 5. Liga. Nach jeder Saison rücken vier von ihnen in
-        die 5. Liga nach, und für den DFB-Pokal werden Landespokalsieger gezogen. Wer aus der
+        die 5. Liga nach, und aus ihm kommen die Absteiger der 5. Liga und neue Klubs. Wer aus der
         5. Liga absteigt, landet automatisch wieder hier — mit seinem Kader, damit er bei einer
         Rückkehr vollständig ist.
       </p>
@@ -6255,23 +6255,16 @@ function RegionalModal({ regional, onClose, onSave }) {
   );
 }
 
-function CupStartModal({ onClose, onStart, regional, unten }) {
-  // Kandidaten für die Landespokalsieger: 4. Liga, 5. Liga und Regionalliga-Topf.
-  const vierte = (unten || []).filter(Boolean).flatMap((bl4) => bl4.teams.map((name, i) => ({ name, staffel: LOWER_STAFFEL[name] || (REGIONAL_CLUBS.find((c) => c.name === name) || {}).staffel || "—", strength: Number(bl4.strengths[i]) || 22 })));
-  const gesamt = [...vierte, ...(regional || [])];
-  const pool = gesamt.length ? gesamt : null;
+function CupStartModal({ onClose, onStart, unten }) {
+  // Die acht Amateurplätze gehen an die acht Bestplatzierten der 4. Liga.
+  const bl4 = (unten || []).filter(Boolean)[0];
   const ziehen = () => {
-    if (!pool) return DEFAULT_AMATEURS.map((n, i) => ({ name: n, strength: String(24 - i) }));
-    // Je Staffel möglichst einer, danach aufgefüllt — wie echte Landespokalsieger.
-    const rnd = mulberry32(Math.floor(Math.random() * 1e9));
-    const misch = [...pool].sort(() => rnd() - 0.5);
-    const gewaehlt = [];
-    STAFFELN.forEach((st) => {
-      const c = misch.find((x) => x.staffel === st && gewaehlt.indexOf(x) < 0);
-      if (c) gewaehlt.push(c);
-    });
-    misch.forEach((c) => { if (gewaehlt.length < 8 && gewaehlt.indexOf(c) < 0) gewaehlt.push(c); });
-    return gewaehlt.slice(0, 8).map((c) => ({ name: c.name, strength: String(c.strength) }));
+    if (!bl4 || !bl4.teams.length) return DEFAULT_AMATEURS.map((n, i) => ({ name: n, strength: String(24 - i) }));
+    const rows = computeTable(bl4.teams, makeFixtures(bl4.teams.length, bl4.seed), bl4.results);
+    const stark = (name) => Number((bl4.strengths || [])[bl4.teams.indexOf(name)]) || 22;
+    // Vor dem ersten Spieltag gibt es noch keine Tabelle: dann entscheidet die Stärke.
+    const order = rows.every((r) => r.sp === 0) ? [...rows].sort((x, y) => stark(y.name) - stark(x.name)) : rows;
+    return order.slice(0, 8).map((r) => ({ name: r.name, strength: String(stark(r.name)) }));
   };
   const [amateurs, setAmateurs] = useState(ziehen);
   const bad = amateurs.some((a) => !a.name.trim() || a.strength === "");
@@ -6281,14 +6274,14 @@ function CupStartModal({ onClose, onStart, regional, unten }) {
       <h2>DFB-Pokal auslosen</h2>
       <p>
         Die 56 Klubs der drei Profiligen sind gesetzt, mit ihren aktuellen Stärkewerten. Dazu
-        kommen acht Landespokalsieger, gezogen aus der 4. Liga, der 5. Liga und dem Regionalliga-Topf —
+        kommen die acht Bestplatzierten der 4. Liga (vor dem ersten Spieltag die acht stärksten) —
         überschreiben kannst du sie trotzdem.
       </p>
       <div className="lr-pl-sec">
-        <span>Acht Vereine aus 4. Liga, 5. Liga und Regionalligen</span>
-        <button className="lr-btn lr-btn-sm" onClick={() => setAmateurs(ziehen())}>neu ziehen</button>
+        <span>Die acht Ersten der 4. Liga</span>
+        <button className="lr-btn lr-btn-sm" onClick={() => setAmateurs(ziehen())}>zurücksetzen</button>
       </div>
-      <div className="lr-team-head"><span>Landespokalsieger</span><span>Stärke</span></div>
+      <div className="lr-team-head"><span>Regionalligist</span><span>Stärke</span></div>
       {amateurs.map((a, i) => (
         <div className="lr-team-row" key={i}>
           <input className="lr-team-in" value={a.name} aria-label={`Amateurklub ${i + 1}`}
