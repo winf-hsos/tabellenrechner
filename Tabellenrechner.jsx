@@ -511,6 +511,37 @@ function slotHeaders(baseDate, gameCount) {
 /*  Tabellenberechnung                                                */
 /* ================================================================== */
 
+/**
+ * Längste Serie ohne Niederlage je Mannschaft, nach Spieltagen. Ein noch offenes Spiel
+ * beendet die Serie, damit nichts hochgerechnet wird. `laeuft`: die Serie hält bis zum
+ * letzten gespielten Spieltag der Liga an.
+ */
+function unbeatenRuns(teams, fixtures, results) {
+  let lastMd = -1;
+  fixtures.forEach((md, i) => md.forEach((_, gi) => { if (parsedResult(results, i, gi)) lastMd = i; }));
+  const cur = teams.map(() => ({ len: 0, from: 0 }));
+  const best = teams.map(() => ({ len: 0, from: 0, to: 0 }));
+  for (let i = 0; i <= lastMd; i++) {
+    const ok = new Array(teams.length).fill(null);
+    fixtures[i].forEach(([h, a], gi) => {
+      const r = parsedResult(results, i, gi);
+      if (!r) return;
+      ok[h] = r[0] >= r[1];
+      ok[a] = r[1] >= r[0];
+    });
+    ok.forEach((unbesiegt, t) => {
+      if (unbesiegt !== true) { cur[t] = { len: 0, from: 0 }; return; }
+      if (!cur[t].len) cur[t].from = i + 1;
+      cur[t].len++;
+      if (cur[t].len > best[t].len) best[t] = { len: cur[t].len, from: cur[t].from, to: i + 1 };
+    });
+  }
+  return best
+    .map((b, t) => ({ name: teams[t], ...b, laeuft: b.len > 0 && cur[t].len === b.len && b.to === lastMd + 1 }))
+    .filter((b) => b.len > 0)
+    .sort((x, y) => y.len - x.len || x.from - y.from || x.name.localeCompare(y.name, "de"));
+}
+
 function parsedResult(results, mdIdx, gameIdx) {
   const r = results[`${mdIdx}:${gameIdx}`];
   if (!r) return null;
@@ -3418,6 +3449,13 @@ const CSS = `
 .lr-live-tab th { text-align: right; font-weight: 400; color: var(--chalk-dim); padding: 4px 6px; }
 .lr-live-tab th:nth-child(2), .lr-live-tab td:nth-child(2) { text-align: left; }
 .lr-live-tab td { padding: 4px 6px; text-align: right; border-top: 1px solid var(--line); }
+.lr-unb { margin-top: 16px; padding: 12px 14px; border: 1px solid var(--line-2); border-radius: 4px; }
+.lr-unb-h { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--chalk-dim); margin-bottom: 6px; }
+.lr-unb-row { display: grid; grid-template-columns: 22px 1fr auto; gap: 2px 8px; align-items: center; padding: 5px 0; font-size: 13px; }
+.lr-unb-row + .lr-unb-row { border-top: 1px solid var(--line); }
+.lr-unb-n { color: var(--chalk-dim); }
+.lr-unb-t { display: flex; align-items: center; min-width: 0; }
+.lr-unb-row small { grid-column: 2 / 4; color: var(--chalk-dim); }
 .lr-top-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 
 .lr-tabs { display: flex; gap: 2px; margin-top: 22px; flex-wrap: wrap; }
@@ -3843,6 +3881,25 @@ const enterToNext = (e) => {
 /*  Hauptkomponente                                                   */
 /* ================================================================== */
 
+/** Die längsten Serien ohne Niederlage (Liste aus `unbeatenRuns`). */
+function UnbeatenBox({ runs }) {
+  const top = (runs || []).filter((r) => r.len >= 2).slice(0, 3);
+  if (!top.length) return null;
+  return (
+    <div className="lr-unb" id="unbeaten-box">
+      <div className="lr-unb-h">Längste Serie ohne Niederlage</div>
+      {top.map((r, i) => (
+        <div className="lr-unb-row" key={r.name}>
+          <span className="lr-unb-n">{i + 1}.</span>
+          <span className="lr-unb-t"><Logo name={r.name} />{r.name}</span>
+          <b>{r.len} Spiele</b>
+          <small>{r.from === r.to ? `${r.from}. Spieltag` : `${r.from}.–${r.to}. Spieltag`}{r.laeuft ? " · läuft noch" : ""}</small>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Tabellenrechner() {
   const [data, setData] = useState(null);
   const allLogos = useMemo(() => ({ ...DEFAULT_LOGOS, ...((data && data.logos) || {}) }), [data && data.logos]);
@@ -4140,6 +4197,7 @@ export default function Tabellenrechner() {
       id: `${leagueId}-${s.label}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       type: "league", leagueId, leagueName: LEAGUE_BY_ID[leagueId].name,
       label: s.label, closedAt: new Date().toISOString(), table,
+      unbeaten: unbeatenRuns(s.teams, f, s.results).slice(0, 3),
       scorers: scorerList(seasonGames(s, f), squadIndex([s])).slice(0, 10),
     };
   };
@@ -4613,6 +4671,7 @@ export default function Tabellenrechner() {
             <section>
               <h2 className="lr-sec-h">Tabelle</h2>
               <Table rows={rows} leagueId={league.id} strengths={season.strengths} />
+              <UnbeatenBox runs={unbeatenRuns(season.teams, fixtures, season.results)} />
             </section>
           </div>
         </div>
@@ -6766,6 +6825,12 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
                 ) : (
                   <Table rows={h.table} leagueId={h.leagueId} compact />
                 )}
+                {h.type === "league" && h.unbeaten && h.unbeaten.length ? (
+                  <div className="lr-duel-h" style={{ marginTop: 12 }}>
+                    Längste Serie ohne Niederlage: {h.unbeaten[0].name}, {h.unbeaten[0].len} Spiele
+                    ({h.unbeaten[0].from === h.unbeaten[0].to ? `${h.unbeaten[0].from}. Spieltag` : `${h.unbeaten[0].from}.–${h.unbeaten[0].to}. Spieltag`})
+                  </div>
+                ) : null}
                 {h.scorers && h.scorers.length ? (
                   <div style={{ marginTop: 12 }}>
                     <div className="lr-duel-h">
