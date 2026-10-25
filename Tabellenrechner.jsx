@@ -9,7 +9,7 @@ const LEAGUES = [
     id: "bl1",
     name: "Bundesliga",
     accent: "#E4514A",
-    range: [93, 66],
+    range: [95, 70],
     teams: [
       "FC Bayern München", "Bayer 04 Leverkusen", "Borussia Dortmund", "RB Leipzig",
       "Eintracht Frankfurt", "VfB Stuttgart", "SC Freiburg", "Borussia Mönchengladbach",
@@ -22,7 +22,7 @@ const LEAGUES = [
     id: "bl2",
     name: "2. Bundesliga",
     accent: "#5C93F0",
-    range: [63, 46],
+    range: [80, 60],
     teams: [
       "Hannover 96", "1. FC Kaiserslautern", "Hertha BSC", "1. FC Nürnberg",
       "VfL Bochum", "Karlsruher SC", "Dynamo Dresden", "Holstein Kiel",
@@ -35,7 +35,7 @@ const LEAGUES = [
     id: "bl3",
     name: "3. Liga",
     accent: "#E0A03C",
-    range: [44, 28],
+    range: [74, 56],
     teams: [
       "MSV Duisburg", "Hansa Rostock", "SC Verl", "Alemannia Aachen",
       "SV Wehen Wiesbaden", "SV Waldhof Mannheim", "FC Viktoria Köln", "FC Ingolstadt 04",
@@ -48,7 +48,7 @@ const LEAGUES = [
     id: "bl4",
     name: "4. Liga",
     accent: "#9E7BE0",
-    range: [32, 19],
+    range: [65, 52],
     // Nach Stärke geordnet: der erste ist der Favorit.
     teams: [
       "Erzgebirge Aue", "VfB Oldenburg", "Rot-Weiß Oberhausen", "Hallescher FC",
@@ -63,7 +63,7 @@ const LEAGUES = [
     id: "bl5",
     name: "5. Liga",
     accent: "#4FC3D0",
-    range: [22, 12],
+    range: [60, 45],
     teams: [
       "BFC Dynamo", "KSV Hessen Kassel", "Sportfreunde Siegen", "FC Bocholt",
       "BSG Chemie Leipzig", "FC 08 Homburg", "SV Atlas Delmenhorst", "Bremer SV",
@@ -183,6 +183,25 @@ function topAufsteiger(pool, anzahl) {
 /** Der Topf zu Beginn: ohne die Klubs, die schon in der 4. oder 5. Liga spielen. */
 const REGIONAL_START = REGIONAL_CLUBS.filter(
   (c) => LEAGUE_BY_ID.bl4.teams.indexOf(c.name) < 0 && LEAGUE_BY_ID.bl5.teams.indexOf(c.name) < 0);
+
+/** Stärkebereiche beim Zurücksetzen: Regionalliga-Topf und die drei Europapokale (ausländische Teilnehmer). */
+const REGIONAL_RANGE = [55, 45];
+const EURO_RANGE = { cl: [99, 65], el: [88, 60], ecl: [85, 55] };
+
+/** Werte linear so strecken, dass der größte `hi` und der kleinste `lo` wird; die Abstände bleiben im Verhältnis. */
+function rescaleTo(values, hi, lo) {
+  if (!values.length) return values;
+  const mx = Math.max(...values);
+  const mn = Math.min(...values);
+  if (mx === mn) return values.map(() => Math.round((hi + lo) / 2));
+  return values.map((v) => Math.round(lo + ((v - mn) / (mx - mn)) * (hi - lo)));
+}
+
+/** Startbesetzung des Regionalliga-Topfs mit Stärken im Bereich REGIONAL_RANGE. */
+function startPool() {
+  const vals = rescaleTo(REGIONAL_START.map((c) => Number(c.strength) || 0), REGIONAL_RANGE[0], REGIONAL_RANGE[1]);
+  return REGIONAL_START.map((c, i) => ({ ...c, strength: vals[i] }));
+}
 
 const DEFAULT_AMATEURS = [
   "Landespokalsieger Nord", "Landespokalsieger Nordost", "Landespokalsieger West",
@@ -2723,7 +2742,7 @@ function freshData() {
     active[l.id] = newSeason(l.teams, werte, "2026/27", defaultStart(l.id, "2026/27"));
   });
   return { active, cup: null, history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
-    regional: REGIONAL_START.map((c) => ({ ...c })) };
+    regional: startPool() };
 }
 
 /** Alte Speicherstände nachrüsten, damit nichts verloren geht. */
@@ -2745,7 +2764,7 @@ function normalize(d0) {
   out.regional = Array.isArray(d.regional) && d.regional.length
     ? d.regional.map((c) => ({ name: String(c.name), staffel: c.staffel || "—",
         strength: Number(c.strength) || 22, squad: c.squad || null }))
-    : REGIONAL_START.map((c) => ({ ...c }));
+    : startPool();
   const applied = Array.isArray(d.realSquads) ? [...d.realSquads] : [];
   const nachzutragen = REAL_NAMES.filter((n) => applied.indexOf(n) < 0);
   out.realSquads = [...applied, ...nachzutragen];
@@ -3077,9 +3096,10 @@ const EURO_FOREIGN = {
 };
 
 function euroStartTeams(id) {
+  const werte = rescaleTo(EURO_FOREIGN[id].map((x) => x[1]), EURO_RANGE[id][0], EURO_RANGE[id][1]);
   return [
     ...EURO_START_DE[id].map((name) => ({ name, de: true, strength: 70 })),
-    ...EURO_FOREIGN[id].map(([name, strength]) => ({ name, de: false, strength })),
+    ...EURO_FOREIGN[id].map(([name], i) => ({ name, de: false, strength: werte[i] })),
   ];
 }
 
