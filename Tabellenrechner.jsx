@@ -316,11 +316,11 @@ const FORM_LABEL = ["selten", "normal", "oft"];
 const SATURATION = 0.5;
 
 /**
- * Torerwartung einer durchschnittlichen Partie: knapp 3,0 Tore. Der Heimvorteil ist
- * bewusst klein gehalten — er soll die Stärke der Mannschaften nicht überdecken,
- * Auswärtssiege sind entsprechend häufig.
+ * Torerwartung einer durchschnittlichen Partie: gut 2,8 Tore. Die Heimtore liegen um
+ * 10 % unter dem früheren Wert (1,52 -> 1,37) und damit knapp unter den Auswärtstoren:
+ * Heimspiele bringen keinen Vorteil mehr, Auswärtssiege sind entsprechend häufig.
  */
-const BASE_H = 1.52, BASE_A = 1.44, BASE_N = 1.48;
+const BASE_H = 1.37, BASE_A = 1.44, BASE_N = 1.48;
 
 /** Normalverteilte Zufallszahl (Box-Muller). */
 function gauss(sd) {
