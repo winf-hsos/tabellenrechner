@@ -2686,6 +2686,19 @@ function nextLabel(label) {
   return `${y}/${String((y + 1) % 100).padStart(2, "0")}`;
 }
 
+/** Nach jeder Saison ändert sich die Stärke jeder Mannschaft um höchstens diesen Betrag. */
+const DRIFT_MAX = 5;
+
+function driftValue(v) {
+  const delta = Math.floor(Math.random() * (2 * DRIFT_MAX + 1)) - DRIFT_MAX;
+  return Math.max(1, Math.min(99, Math.round(Number(v) || 0) + delta));
+}
+
+/** Kader auf eine neue Teamstärke (höchstens ±DRIFT_MAX) verschieben. */
+function driftSquad(squad) {
+  return squad ? scaleSquadTo(squad, driftValue(squadStrength(squad))) : squad;
+}
+
 function newSeason(teams, strengths, label, start, squads) {
   const kader = squads && squads.length === teams.length ? squads : makeSquads(teams, strengths);
   return {
@@ -4209,7 +4222,7 @@ export default function Tabellenrechner() {
       return {
         ...d,
         history: [entry, ...d.history],
-        active: { ...d.active, [league.id]: newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads) },
+        active: { ...d.active, [league.id]: newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads.map(driftSquad)) },
       };
     });
     setMd((m) => ({ ...m, [league.id]: 0 }));
@@ -4271,15 +4284,20 @@ export default function Tabellenrechner() {
         strength: strengthOf[n] || 22,
         squad: squadOf[n] || null,
       }));
-      const regional = [...pool.filter((c) => newcomers.indexOf(c.name) < 0), ...runter];
+      const regional = [...pool.filter((c) => newcomers.indexOf(c.name) < 0), ...runter].map((c) => (
+        c.squad ? { ...c, squad: driftSquad(c.squad), strength: squadStrength(driftSquad(c.squad)) } : { ...c, strength: driftValue(c.strength) }));
       const st = (names) => names.map((n) => strengthOf[n] || 30);
-      const sq = (names) => names.map((n) => squadOf[n] || makeSquad(n, strengthOf[n] || 30));
+      const sq = (names) => names.map((n) => driftSquad(squadOf[n] || makeSquad(n, strengthOf[n] || 30)));
 
       return {
         ...d,
         cup: d.cup,
         history,
-        euro: { teams: euroApplyQualifiers(d.euro.teams, euroQ), runs: { cl: null, el: null, ecl: null } },
+        euro: {
+          teams: Object.fromEntries(Object.entries(euroApplyQualifiers(d.euro.teams, euroQ)).map(([id, list]) => [
+            id, list.map((t) => (t.de ? t : { ...t, strength: driftValue(t.strength) }))])),
+          runs: { cl: null, el: null, ecl: null },
+        },
         regional,
         active: {
           bl1: newSeason(bl1Teams, st(bl1Teams), nextLabel(d.active.bl1.label), shiftYear(d.active.bl1.start, 1), sq(bl1Teams)),
@@ -6176,6 +6194,7 @@ function CloseModal({ league, season, rows, playedGames, totalGames, onClose, on
         {playedGames < totalGames
           ? `Es fehlen noch ${totalGames - playedGames} Spiele. Die Abschlusstabelle wird trotzdem so gespeichert, wie sie gerade steht.`
           : "Alle Spiele sind eingetragen."}
+        {" "}Danach ändert sich die Stärke jeder Mannschaft um höchstens ±5.
       </p>
       <div style={{ borderTop: "1px solid rgba(233,229,216,0.22)", paddingTop: 14 }}>
         <div style={{ fontSize: 13, marginBottom: 12 }}>
@@ -6228,7 +6247,8 @@ function PromotionModal({ data, onClose, onConfirm }) {
       <h2>Alle Ligen abschließen</h2>
       <p>
         Die fünf Abschlusstabellen wandern in die Historie, danach werden die Ligen neu
-        besetzt. Stärkewerte nehmen die Mannschaften mit in ihre neue Liga. In der 3., 4. und
+        besetzt. Stärkewerte nehmen die Mannschaften mit in ihre neue Liga, jede Stärke ändert sich dabei
+        um höchstens ±5. In der 3., 4. und
         5. Liga steigen jeweils die ersten vier auf und die letzten vier ab.
       </p>
 

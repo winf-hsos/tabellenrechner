@@ -89,6 +89,8 @@ await click(btn("3. Liga"));
 const b3 = rowsText();
 const bl3Down = b3.slice(16).map((x) => d.active.bl3.teams.find((n) => x.includes(n)));
 const poolBefore = d.regional.length;
+const vorher = {};
+{ const dv = saved(); ["bl1","bl2","bl3","bl4","bl5"].forEach((id) => dv.active[id].teams.forEach((n, i) => { vorher[n] = dv.active[id].strengths[i]; })); }
 
 // Abschluss mit Auf- und Abstieg
 await click([...document.querySelectorAll(".lr-tab")].find((b) => b.textContent.startsWith("Historie")));
@@ -104,6 +106,14 @@ d = saved();
 const sizes2 = ["bl1","bl2","bl3","bl4","bl5"].map((id) => d.active[id].teams.length);
 ok(sizes2.join() === "18,18,20,22,16", "nach Aufstieg " + sizes2);
 const all2 = names(d);
+{
+  const diffs = [];
+  ["bl1","bl2","bl3","bl4","bl5"].forEach((id) => d.active[id].teams.forEach((n, i) => { if (n in vorher) diffs.push(d.active[id].strengths[i] - vorher[n]); }));
+  ok(diffs.length > 60 && diffs.every((x) => Math.abs(x) <= 5), `Stärke ändert sich höchstens um 5 (${diffs.length} Teams, max ${Math.max(...diffs.map(Math.abs))})`);
+  ok(diffs.filter((x) => x !== 0).length > diffs.length / 2 && diffs.some((x) => x > 0) && diffs.some((x) => x < 0), "Stärken sinken und steigen, die meisten ändern sich");
+  const alle = ["bl1","bl2","bl3","bl4","bl5"].flatMap((id) => d.active[id].strengths);
+  ok(alle.every((x) => x >= 1 && x <= 99), "alle Stärken zwischen 1 und 99");
+}
 ok(new Set(all2).size === all2.length, "nach Aufstieg keine Doppelten");
 ok(top4n.every((n) => d.active.bl3.teams.includes(n)), "Top-4 der 4. Liga jetzt in der 3. Liga: " + top4n);
 ok(bl3Down.every((n) => d.active.bl4.teams.includes(n)), "Letzte 4 der 3. Liga jetzt in der 4. Liga: " + bl3Down);
