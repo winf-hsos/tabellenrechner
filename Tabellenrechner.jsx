@@ -3398,6 +3398,26 @@ const CSS = `
 .lr-title { font-size: 30px; line-height: 1.05; }
 .lr-sub { color: var(--chalk-dim); font-size: 13px; margin-top: 6px; max-width: 48ch; line-height: 1.5; }
 .lr-status { font-size: 12px; color: var(--chalk-dim); }
+.lr-modal:has(> .lr-live) { max-width: 940px; }
+.lr-live-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.lr-live-min { font-weight: 700; min-width: 86px; }
+.lr-live-track { flex: 1; height: 6px; background: var(--line-2); border-radius: 3px; overflow: hidden; }
+.lr-live-track > div { height: 100%; background: var(--accent); transition: width .2s linear; }
+.lr-live-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+@media (max-width: 760px) { .lr-live-grid { grid-template-columns: 1fr; } }
+.lr-live-game { display: grid; grid-template-columns: 1fr 52px 1fr; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.lr-live-game[data-goal="1"] { background: rgba(216,178,76,0.12); }
+.lr-live-t { display: flex; align-items: center; min-width: 0; }
+.lr-live-t.r { justify-content: flex-end; text-align: right; }
+.lr-live-t .lr-logo { margin: 0 6px; }
+.lr-live-sc { text-align: center; font-size: 16px; }
+.lr-live-feed { max-height: 230px; overflow-y: auto; }
+.lr-live-ev { display: grid; grid-template-columns: 34px 1fr; gap: 2px 8px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.lr-live-ev small { grid-column: 2; color: var(--chalk-dim); }
+.lr-live-tab { width: 100%; border-collapse: collapse; font-size: 13px; }
+.lr-live-tab th { text-align: right; font-weight: 400; color: var(--chalk-dim); padding: 4px 6px; }
+.lr-live-tab th:nth-child(2), .lr-live-tab td:nth-child(2) { text-align: left; }
+.lr-live-tab td { padding: 4px 6px; text-align: right; border-top: 1px solid var(--line); }
 .lr-top-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 
 .lr-tabs { display: flex; gap: 2px; margin-top: 22px; flex-wrap: wrap; }
@@ -4070,6 +4090,18 @@ export default function Tabellenrechner() {
     });
   };
 
+  /** Alle offenen Spiele des Spieltags vorab auswürfeln und als Liveticker abspielen. */
+  const startLive = () => {
+    const games = [];
+    currentMd.forEach(([h, a], gi) => {
+      if (parsedResult(season.results, mdIdx, gi)) return;
+      const [hg, ag] = simulateMatch(season.strengths[h], season.strengths[a], false, drawShare, surprise,
+        formationTilt(season.squads[h].f), formationTilt(season.squads[a].f));
+      games.push({ gi, h, a, hg, ag, sc: liveGoals(makeGoals(season.squads[h], season.squads[a], hg, ag), hg, ag) });
+    });
+    if (games.length) setModal({ type: "live", games, mdIdx, leagueId: league.id });
+  };
+
   const clearMatchday = () => {
     updateSeason(league.id, (s) => {
       const r = { ...s.results };
@@ -4507,6 +4539,9 @@ export default function Tabellenrechner() {
               </select>
             </label>
             <button className="lr-btn lr-btn-sm" onClick={() => simulateMatchday("one")}>Spieltag simulieren</button>
+            <button className="lr-btn lr-btn-sm" id="live-open" onClick={startLive}
+              disabled={!currentMd.some((_, gi) => !parsedResult(season.results, mdIdx, gi))}
+              title="Den Spieltag als Liveticker verfolgen (zwei Minuten pro Spiel)">Liveticker</button>
             <button className="lr-btn lr-btn-sm" onClick={() => simulateMatchday("all")}>Rest der Saison</button>
             <button className="lr-btn lr-btn-sm" onClick={fillSeasonGoals}>Alle Torschützen auslosen</button>
             <button className="lr-btn lr-btn-sm" onClick={clearMatchday}>Leeren</button>
@@ -4924,6 +4959,19 @@ export default function Tabellenrechner() {
             }}>Verwerfen</button>
           </div>
         </Modal>
+      )}
+
+      {modal && modal.type === "live" && season && (
+        <LiveTicker games={modal.games} season={season} fixtures={fixtures} mdIdx={modal.mdIdx}
+          onClose={() => setModal(null)}
+          onFinish={() => {
+            updateSeason(modal.leagueId, (s) => {
+              const r = { ...s.results };
+              modal.games.forEach((g) => { r[`${modal.mdIdx}:${g.gi}`] = { h: String(g.hg), a: String(g.ag), sc: g.sc }; });
+              return { ...s, results: r };
+            });
+            setModal(null);
+          }} />
       )}
 
       {modal && modal.type === "goals" && currentMd[modal.gi] && (
@@ -6351,6 +6399,136 @@ function CupStartModal({ onClose, onStart, unten }) {
           onClick={() => onStart(amateurs.map((a) => ({ name: a.name.trim(), strength: Number(a.strength) })))}>
           1. Runde auslosen
         </button>
+      </div>
+    </Modal>
+  );
+}
+
+/* ---------------- Liveticker ---------------- */
+
+/** Ein Spiel dauert im Ticker zwei Minuten Echtzeit (= 90 Spielminuten). */
+const LIVE_SECONDS = 120;
+
+/** Fehlende Torschützen mit Minute auffüllen, damit der Ticker immer zum Endstand passt. */
+function liveGoals(sc, hg, ag) {
+  const out = (sc || []).map((g) => ({ ...g, m: g.m || 1 + Math.floor(Math.random() * 90) }));
+  [["h", hg], ["a", ag]].forEach(([t, n]) => {
+    for (let k = out.filter((g) => g.t === t).length; k < n; k++) out.push({ t, p: "", m: 1 + Math.floor(Math.random() * 90) });
+  });
+  return out.sort((x, y) => x.m - y.m);
+}
+
+function LiveTicker({ games, season, fixtures, mdIdx, onClose, onFinish }) {
+  const [elapsed, setElapsed] = useState(0);
+  const [running, setRunning] = useState(false);
+  const last = useRef(0);
+
+  useEffect(() => {
+    if (!running) return undefined;
+    last.current = Date.now();
+    const id = setInterval(() => {
+      const now = Date.now();
+      const dt = (now - last.current) / 1000;
+      last.current = now;
+      setElapsed((e) => Math.min(LIVE_SECONDS, e + dt));
+    }, 200);
+    return () => clearInterval(id);
+  }, [running]);
+
+  const done = elapsed >= LIVE_SECONDS;
+  useEffect(() => { if (done) setRunning(false); }, [done]);
+  const minute = done ? 90 : Math.floor((elapsed / LIVE_SECONDS) * 90);
+
+  // Torfolge je Spiel mit laufendem Zwischenstand.
+  const events = useMemo(() => games.flatMap((g, gi) => {
+    let h = 0, a = 0;
+    return [...g.sc].sort((x, y) => x.m - y.m).map((e) => {
+      if (e.t === "h") h++; else a++;
+      return { m: e.m, gi, e, score: `${h}:${a}` };
+    });
+  }).sort((x, y) => x.m - y.m), [games]);
+
+  const stand = (gi) => {
+    const sofar = events.filter((x) => x.gi === gi && x.m <= minute);
+    const h = sofar.filter((x) => x.e.t === "h").length;
+    return { h, a: sofar.length - h };
+  };
+
+  const res = { ...season.results };
+  if (minute >= 1) games.forEach((g, gi) => { const st = stand(gi); res[`${mdIdx}:${g.gi}`] = { h: String(st.h), a: String(st.a) }; });
+  const rows = computeTable(season.teams, fixtures, res);
+  const shown = events.filter((x) => x.m <= minute).reverse();
+  const clock = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+
+  return (
+    <Modal onClose={elapsed > 0 && !done ? () => {} : onClose}>
+      <div className="lr-live">
+        <h2>Liveticker — {mdIdx + 1}. Spieltag</h2>
+        <p>
+          Alle offenen Spiele laufen gleichzeitig, ein Spiel dauert zwei Minuten. Die Ergebnisse
+          werden erst gespeichert, wenn du sie am Ende übernimmst.
+        </p>
+        <div className="lr-live-bar">
+          <span className="lr-live-min" id="live-min">{done ? "Abpfiff" : `${minute}. Minute`}</span>
+          <div className="lr-live-track"><div style={{ width: `${(elapsed / LIVE_SECONDS) * 100}%` }} /></div>
+          <span className="lr-status">{clock(elapsed)} / {clock(LIVE_SECONDS)}</span>
+        </div>
+        <div className="lr-live-grid">
+          <div>
+            <div className="lr-pl-sec"><span>Spiele</span></div>
+            {games.map((g, gi) => {
+              const st = stand(gi);
+              const treffer = events.some((x) => x.gi === gi && x.m <= minute && x.m > minute - 3);
+              return (
+                <div className="lr-live-game" key={g.gi} data-goal={treffer && !done ? "1" : "0"}>
+                  <span className="lr-live-t r"><span>{season.teams[g.h]}</span><Logo name={season.teams[g.h]} /></span>
+                  <b className="lr-live-sc">{minute < 1 ? "–" : `${st.h}:${st.a}`}</b>
+                  <span className="lr-live-t"><Logo name={season.teams[g.a]} /><span>{season.teams[g.a]}</span></span>
+                </div>
+              );
+            })}
+            <div className="lr-pl-sec" style={{ marginTop: 14 }}><span>Torfolge</span></div>
+            <div className="lr-live-feed" id="live-feed">
+              {!shown.length && <p className="lr-empty">Noch kein Tor gefallen.</p>}
+              {shown.map((x, i) => (
+                <div key={i} className="lr-live-ev">
+                  <b>{x.m}'</b>
+                  <span>Tor {season.teams[x.e.t === "h" ? games[x.gi].h : games[x.gi].a]}{x.e.p ? ` — ${x.e.p}` : ""}</span>
+                  <small>{season.teams[games[x.gi].h]} {x.score} {season.teams[games[x.gi].a]}</small>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="lr-pl-sec"><span>Tabelle live</span></div>
+            <table className="lr-live-tab">
+              <thead><tr><th>#</th><th>Mannschaft</th><th>Sp</th><th>Diff</th><th>Pkt</th></tr></thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={r.name}>
+                    <td>{i + 1}</td>
+                    <td><Logo name={r.name} />{r.name}</td>
+                    <td>{r.sp}</td>
+                    <td>{r.diff > 0 ? `+${r.diff}` : r.diff}</td>
+                    <td><b>{r.pkt}</b></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div className="lr-modal-foot">
+          <button className="lr-btn" onClick={onClose}>Abbrechen</button>
+          {!done && (
+            <button className="lr-btn" id="live-skip" onClick={() => { setElapsed(LIVE_SECONDS); setRunning(false); }}>Sofort beenden</button>
+          )}
+          {!done && (
+            <button className="lr-btn lr-btn-p" id="live-start" onClick={() => setRunning((r) => !r)}>
+              {running ? "Pause" : elapsed > 0 ? "Weiter" : "Anpfiff"}
+            </button>
+          )}
+          {done && <button className="lr-btn lr-btn-p" id="live-take" onClick={onFinish}>Ergebnisse übernehmen</button>}
+        </div>
       </div>
     </Modal>
   );
