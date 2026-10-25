@@ -2790,6 +2790,25 @@ async function loadState() {
   }
 }
 
+const UI_KEY = STORAGE_KEY + ":ui";
+
+/** Ansichtsstand (Tab, Spieltag, Pokalrunde, Europa-Auswahl) getrennt vom Datenstand. */
+async function loadUi() {
+  try {
+    if (!window.storage) return null;
+    const r = await window.storage.get(UI_KEY);
+    return r && r.value ? JSON.parse(r.value) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function persistUi(ui) {
+  try {
+    if (window.storage) await window.storage.set(UI_KEY, JSON.stringify(ui));
+  } catch (e) { /* Ansichtsstand ist nicht kritisch */ }
+}
+
 async function persist(data) {
   try {
     if (!window.storage) return false;
@@ -3379,6 +3398,7 @@ const CSS = `
 .lr-title { font-size: 30px; line-height: 1.05; }
 .lr-sub { color: var(--chalk-dim); font-size: 13px; margin-top: 6px; max-width: 48ch; line-height: 1.5; }
 .lr-status { font-size: 12px; color: var(--chalk-dim); }
+.lr-top-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 
 .lr-tabs { display: flex; gap: 2px; margin-top: 22px; flex-wrap: wrap; }
 .lr-tab {
@@ -3818,12 +3838,22 @@ export default function Tabellenrechner() {
   const [openHist, setOpenHist] = useState(null);
   const saveTimer = useRef(null);
   const firstRun = useRef(true);
+  const latest = useRef({ data: null, ui: null });
 
   useEffect(() => {
     let alive = true;
-    loadState().then((s) => {
+    Promise.all([loadState(), loadUi()]).then(([s, ui]) => {
       if (!alive) return;
       setData(s || freshData());
+      if (s && ui) {
+        // Nur übernehmen, was zum gespeicherten Stand passt.
+        if (typeof ui.tab === "string" && ui.tab) setTab(ui.tab);
+        if (ui.md && typeof ui.md === "object") setMd({ ...ZERO_MD, ...ui.md });
+        if (Number.isFinite(ui.cupRound)) setCupRound(ui.cupRound);
+        if (typeof ui.euSel === "string") setEuSel(ui.euSel);
+        if (ui.euPh && typeof ui.euPh === "object") setEuPh((o) => ({ ...o, ...ui.euPh }));
+        if (ui.euMd && typeof ui.euMd === "object") setEuMd((o) => ({ ...o, ...ui.euMd }));
+      }
       setReady(true);
       if (LOAD_FAILED) setStatus("Gespeicherter Stand war nicht lesbar, eine Kopie wurde als Rettung abgelegt");
     });
@@ -3835,12 +3865,28 @@ export default function Tabellenrechner() {
     if (firstRun.current) { firstRun.current = false; return; }
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
+      persistUi({ tab, md, cupRound, euSel, euPh, euMd });
       const ok = await persist(data);
       setStatus(ok ? "Gespeichert" : "Nicht gespeichert — unter Historie „Sichern“ eine Kopie anlegen");
       if (ok) setTimeout(() => setStatus(""), 1800);
     }, 500);
     return () => clearTimeout(saveTimer.current);
-  }, [data, ready]);
+  }, [data, ready, tab, md, cupRound, euSel, euPh, euMd]);
+
+  // Beim Schließen oder Wechseln der Seite sofort speichern, ohne die 500 ms abzuwarten.
+  latest.current = { data: ready ? data : null, ui: { tab, md, cupRound, euSel, euPh, euMd } };
+  useEffect(() => {
+    const flush = () => {
+      const { data: d, ui } = latest.current;
+      if (!d || LOAD_FAILED) return; // nach einem Ladefehler nichts überschreiben, bis der Nutzer etwas ändert
+      persist(d);
+      persistUi(ui);
+    };
+    const onHide = () => { if (document.visibilityState === "hidden") flush(); };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onHide);
+    return () => { window.removeEventListener("pagehide", flush); document.removeEventListener("visibilitychange", onHide); };
+  }, []);
 
   const drawBias = data && data.drawBias != null ? data.drawBias : 0;
   const drawShare = DRAW_SHARE[drawBias] != null ? DRAW_SHARE[drawBias] : 0;
@@ -4370,7 +4416,10 @@ export default function Tabellenrechner() {
                 Saisonabschluss mit Auf- und Abstieg — und alles bleibt in der Historie.
               </p>
             </div>
-            <div className="lr-status">{status}</div>
+            <div className="lr-top-r">
+              <div className="lr-status">{status}</div>
+              <button className="lr-btn lr-btn-sm" id="reset-open" onClick={() => setModal({ type: "reset" })}>Zurücksetzen</button>
+            </div>
           </div>
 
           <nav className="lr-tabs">
@@ -4926,8 +4975,9 @@ export default function Tabellenrechner() {
         <Modal onClose={() => setModal(null)}>
           <h2>Alles zurücksetzen</h2>
           <p>
-            Löscht laufende Saisons, den Pokal und die komplette Historie und startet neu mit
-            der Saison 2026/27. Vorher am besten exportieren.
+            Löscht laufende Saisons, den Pokal und die komplette Historie samt dem im Browser
+            gespeicherten Stand und startet neu mit der Saison 2026/27. Eigene Logos gehen
+            ebenfalls verloren. Vorher unter Historie „Sichern“ eine Kopie anlegen.
           </p>
           <div className="lr-modal-foot">
             <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
@@ -4935,6 +4985,10 @@ export default function Tabellenrechner() {
               setData(freshData());
               setMd(ZERO_MD);
               setCupRound(0);
+              setEuSel("cl");
+              setEuPh({ cl: 0, el: 0, ecl: 0 });
+              setEuMd({ cl: 0, el: 0, ecl: 0 });
+              setTab("bl1");
               setOpenHist(null);
               setModal(null);
             }}>Alles zurücksetzen</button>
