@@ -1,0 +1,32 @@
+{
+  "Erzgebirge Aue": {
+    "TW": ["Martin Männel", "Max Uhlig"],
+    "ABW": ["Bastian Strietzel", "Patrick Kapp", "Jonas Kehl", "Stylianos Kokovas", "Maxim Burghardt", "Leon Prosche"],
+    "MF": ["Tim Maciejewski", "Simon Skarlatidis", "Finn Heidrich", "Ali Loune", "Willi Kamm", "Devin Angleberger"],
+    "ST": ["Linus Queißer", "Marcel Bär", "Aurel Loubongo", "Christoph Pauling"]
+  },
+  "Hallescher FC": {
+    "TW": ["Sven Müller", "Luca Bendel"],
+    "ABW": ["Vin Kastull", "Pascal Schmedemann", "Robert Berger", "Burim Halili", "Felix Langhammer", "Niklas Kastenhofer"],
+    "MF": ["Niclas Stierlin", "Max Kulke", "Niklas Landgraf", "Marius Hauptmann", "Lennard Becker", "Julien Damelang"],
+    "ST": ["Bocar Baro", "Osman Atılgan", "Fabrice Hartmann", "Lucas Ehrlich"]
+  },
+  "Chemnitzer FC": {
+    "TW": ["David Richter", "David Wunsch"],
+    "ABW": ["Dennis Slamar", "Johannes Pistol", "Justin Gröger", "Jan Löhmannsröben", "Roman Eppendorfer", "Leonhard von Schroetter"],
+    "MF": ["David Vogt", "Andreas Geipl", "Tom Baumgart", "Tobias Stockinger", "Samuel Biven", "Amadeus Zamora"],
+    "ST": ["Domenico Alberico", "Jonas Marx", "Ron Berlinski", "Maurizio Grimaldi"]
+  },
+  "FC Carl Zeiss Jena": {
+    "TW": ["Marius Liesegang", "Till Härting"],
+    "ABW": ["Sören Reddemann", "Malik Talabidi", "Marcel Hoppe", "Paul Krämer", "Sebastian Aigner", "Nils Butzen"],
+    "MF": ["Maurice Hehne", "Dion Ajvazi", "Osazee Aghatise", "Moritz Fritz", "Jannes Werner", "Jona Kratzenberg"],
+    "ST": ["Emilio Munser", "Elias Löder", "Kevin Lankford", "Luca Wollschläger"]
+  },
+  "FSV Zwickau": {
+    "TW": ["Lucas Hiemann", "Sebastian Jung"],
+    "ABW": ["Kilian Senkbeil", "Sandro Sengersdorf", "Sonny Ziemer", "Oliver Fobassam", "Ben-Luca Moritz", "Lucas Albert"],
+    "MF": ["Andrey Startsev", "Maximilian Somnitz", "Fynn Seidel", "Daniel Haubner", "Nick Breitenbücher", "Tim Hannemann"],
+    "ST": ["Philipp Harant", "Theo Martens", "Veron Dobruna", "Paul-Philipp Besong"]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "AEK Athen": {
+    "TW": ["Thomas Strakosha", "Alberto Brignoli"],
+    "ABW": ["Harold Moukoudi", "Lazaros Rota", "Domagoj Vida", "Filipe Relvas", "Charalambos Lykogiannis", "Pilios"],
+    "MF": ["Răzvan Marin", "Kaan Kairinen", "Kervin Arriaga", "Lovro Majer", "Mijat Gaćinović", "Petros Mantalos"],
+    "ST": ["Luka Jović", "Barnabás Varga", "Frantzdy Pierrot", "Oleksandr Zubkov"]
+  },
+  "FC Sabah": {
+    "TW": ["Amin Ramazanov", "Stas Pokatilov"],
+    "ABW": ["Steve Solvet", "Aden McCarthy", "Rahman Dashdamirov", "Tymoteusz Puchacz", "Akim Zedadka", "Erivaldo Almeida"],
+    "MF": ["Abdulakh Khaibulaev", "Umarali Rakhmonaliev", "Aleksey Isaev", "Ivan Lepinjica", "Rodrigo Fernandes", "Du Queiroz"],
+    "ST": ["Christian Nwachukwu", "Joy-Lance Mickels", "Orphé Mbina", "Kaheem Parris"]
+  },
+  "Feyenoord Rotterdam": {
+    "TW": ["Tjark Ernst", "Florian Kastenmeier"],
+    "ABW": ["Bart Nieuwkoop", "Tsuyoshi Watanabe", "Gijs Smal", "Jeremiah St. Juste", "Javi López", "Mika Mármol"],
+    "MF": ["Jakub Moder", "Sem Steijn", "Oussama Targhalline", "Charles Vanhoutte", "Luciano Valente", "Zechiël"],
+    "ST": ["Reiss Nelson", "Anis Hadj-Moussa", "Nacho Ferri", "Gonçalo Borges"]
+  },
+  "Bodø/Glimt": {
+    "TW": ["Nikita Haikin", "Julian Faye Lund"],
+    "ABW": ["Villads Nielsen", "Odin Bjørtuft", "Haitam Aleesami", "Fredrik Bjørkan", "Jostein Gundersen", "Fredrik Sjøvold"],
+    "MF": ["Patrick Berg", "Sondre Auklend", "Ulrik Saltnes", "Evjen", "Fet", "Kitolano"],
+    "ST": ["Jens Petter Hauge", "Ole Didrik Blomberg", "Helmersen", "Brynhildsen"]
+  },
+  "AS Rom": {
+    "TW": ["Mile Svilar", "Pierluigi Gollini"],
+    "ABW": ["Evan N'Dicka", "Gianluca Mancini", "Konstantinos Koulierakis", "Leonardo Balerdi", "Wesley", "Nahuel Molina"],
+    "MF": ["Bryan Cristante", "Manu Koné", "Marten de Roon", "Lorenzo Pellegrini", "Niccolò Pisilli", "Paulo Dybala"],
+    "ST": ["Donyell Malen", "Matías Soulé", "Santiago Castro", "Rodrigo Mora"]
+  },
+  "PSV Eindhoven": {
+    "TW": ["Matej Kovář", "Niek Olij"],
+    "ABW": ["Lutsharel Geertruida", "Sergiño Dest", "Ryan Flamingo", "Armando Obispo", "Yarek Gąsiorowski", "Filip Kostić"],
+    "MF": ["Jerdy Schouten", "Kodai Sano", "Sven Mijnans", "Paul Wanner", "Mauro Júnior", "Ayoni Santos"],
+    "ST": ["Ricardo Pepi", "Dennis Man", "Guus Til", "Alassane Pléa"]
+  },
+  "Viking Stavanger": {
+    "TW": ["Arild Østbø", "Ľubomír Belko"],
+    "ABW": ["Viljar Vevatne", "Henrik Heggheim", "Gianni Stensness", "Sondre Bjørshol", "Anders Bærtelsen", "Kristoffer Haugen"],
+    "MF": ["Kristoffer Askildsen", "Joe Bell", "Henrik Bjørdal", "Zlatko Tripić", "Simen Kvia-Egeskog", "Tobias Moi"],
+    "ST": ["Romano Postema", "Veton Berisha", "Erik Botheim", "Peter Christiansen"]
+  },
+  "Fenerbahçe": {
+    "TW": ["Ederson", "Mert Günok"],
+    "ABW": ["Milan Škriniar", "Nathan Aké", "Jayden Oosterwolde", "Nélson Semedo", "Mert Müldür", "Kojo Peprah Oppong"],
+    "MF": ["İsmail Yüksek", "Mattéo Guendouzi", "N'Golo Kanté", "Marco Asensio", "İrfan Can Kahveci", "Eljif Elmaz"],
+    "ST": ["Romelu Lukaku", "Vedat Muriqi", "Mason Greenwood", "Nene Dorgeles"]
+  }
+}

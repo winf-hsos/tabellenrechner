@@ -1,0 +1,26 @@
+{
+  "FC Gütersloh": {
+    "TW": ["Jarno Peters", "Tim Matuschewsky"],
+    "ABW": ["Jannik Borgmann", "Niklas Barthel", "Kevin Hingerl", "Justin Lukas", "David Winke", "Leo Weichert"],
+    "MF": ["Patrik Twardzik", "Aleksandar Kandić", "Björn Rother", "Jan-Lukas Liehr", "Erik Lanfer", "Kevin Hoffmeier"],
+    "ST": ["Niklas Frese", "Phil Beckhoff", "Julius Langfeld", "Paolo Maiella"]
+  },
+  "SV Sandhausen": {
+    "TW": ["Arthur Lyska", "Lukas Schneller"],
+    "ABW": ["Ken Gipson", "Yannick Osée", "Seyhan Yiğit", "Lukas Mazagg", "Kwabe Schulz", "Teoman Akmestanlı"],
+    "MF": ["Marco Kehl-Gómez", "Niklas Tarnat", "Mert Tasdelen", "Florian Engelhardt", "Arianit Ferati", "Max Christiansen"],
+    "ST": ["Felix Lohkemper", "Stefan Maderer", "Maximilian Wagner", "Tasos Leonidis"]
+  },
+  "Kickers Offenbach": {
+    "TW": ["Johannes Brinkies", "Angelo Tramontana"],
+    "ABW": ["Maximilian Rossmann", "Dominik Črljenec", "Ronny Marcos", "Jakob Lewald", "Alexander Sorge", "Noah Lehmann"],
+    "MF": ["Maximilian Wolfram", "Keanu Staude", "Daniel Dejanović", "Robin Krauße", "Adam Loune", "Luka Garić"],
+    "ST": ["Maximilian Schmid", "Benedikt von Hagen", "Jelle Goselink", "Onur Ünlüçifçi"]
+  },
+  "Stuttgarter Kickers": {
+    "TW": ["Felix Dornebusch", "Thomas Bromma"],
+    "ABW": ["David Udogu", "Nico Fundel", "Vincent Schwab", "Elvir Zukaj", "Luca Trslic", "Christoph Meister"],
+    "MF": ["Nico Blank", "Lukas Kiefer", "Christian Mauersberger", "Nevio Schembri", "Maximilian Zaiser", "Melkamu Frauendorf"],
+    "ST": ["Dejan Božić", "David Stojak", "Samuel Unsöld", "Yannick Glessing"]
+  }
+}

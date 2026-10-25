@@ -1,0 +1,2830 @@
+{
+ "Paris Saint-Germain": {
+  "TW": [
+   "Lucas Chevalier",
+   "Matvey Safonov"
+  ],
+  "ABW": [
+   "Achraf Hakimi",
+   "Marquinhos",
+   "Willian Pacho",
+   "Nuno Mendes",
+   "Ilya Zabarnyi",
+   "Lucas Hernández"
+  ],
+  "MF": [
+   "Vitinha",
+   "João Neves",
+   "Fabián Ruiz",
+   "Warren Zaïre-Emery",
+   "Dro Fernández",
+   "Maghnes Akliouche"
+  ],
+  "ST": [
+   "Ousmane Dembélé",
+   "Khvicha Kvaratskhelia",
+   "Désiré Doué",
+   "Ferran Torres"
+  ]
+ },
+ "FC Barcelona": {
+  "TW": [
+   "Joan García",
+   "Wojciech Szczęsny"
+  ],
+  "ABW": [
+   "Pau Cubarsí",
+   "Jules Koundé",
+   "Alejandro Balde",
+   "João Cancelo",
+   "Andreas Christensen",
+   "Eric García"
+  ],
+  "MF": [
+   "Pedri",
+   "Rodri",
+   "Frenkie de Jong",
+   "Dani Olmo",
+   "Fermín López",
+   "Gavi"
+  ],
+  "ST": [
+   "Lamine Yamal",
+   "Raphinha",
+   "Anthony Gordon",
+   "Karim Adeyemi"
+  ]
+ },
+ "Aston Villa": {
+  "TW": [
+   "Zion Suzuki",
+   "Marco Bizot"
+  ],
+  "ABW": [
+   "Pau Torres",
+   "Tyrone Mings",
+   "Victor Lindelöf",
+   "Matty Cash",
+   "Ian Maatsen",
+   "Matteo Ruggeri"
+  ],
+  "MF": [
+   "Boubacar Kamara",
+   "Amadou Onana",
+   "John McGinn",
+   "Leon Goretzka",
+   "João Gomes",
+   "Emiliano Buendía"
+  ],
+  "ST": [
+   "Nicolas Jackson",
+   "Tammy Abraham",
+   "Alejandro Garnacho",
+   "Ibrahim Mbaye"
+  ]
+ },
+ "FC Liverpool": {
+  "TW": [
+   "Alisson Becker",
+   "Giorgi Mamardashvili"
+  ],
+  "ABW": [
+   "Virgil van Dijk",
+   "Jérémy Jacquet",
+   "Ronald Araújo",
+   "Milos Kerkez",
+   "Jeremie Frimpong",
+   "Conor Bradley"
+  ],
+  "MF": [
+   "Dominik Szoboszlai",
+   "Florian Wirtz",
+   "Alexis Mac Allister",
+   "Ryan Gravenberch",
+   "Wataru Endo",
+   "James McConnell"
+  ],
+  "ST": [
+   "Alexander Isak",
+   "Hugo Ekitike",
+   "Cody Gakpo",
+   "Bradley Barcola"
+  ]
+ },
+ "Sporting Lissabon": {
+  "TW": [
+   "Rui Silva",
+   "Diego Callai"
+  ],
+  "ABW": [
+   "Gonçalo Inácio",
+   "Eduardo Quaresma",
+   "Maxi Araújo",
+   "Iván Fresneda",
+   "Georgios Vagiannidis",
+   "Ibrahima Ba"
+  ],
+  "MF": [
+   "Sergi Altimira",
+   "Issa Doumbia",
+   "João Simões",
+   "Silas Andersen",
+   "Pedro Lima",
+   "Flávio Gonçalves"
+  ],
+  "ST": [
+   "Luis Suárez",
+   "Fotis Ioannidis",
+   "Geny Catamo",
+   "Nestory Irankunda"
+  ]
+ },
+ "FC Arsenal": {
+  "TW": [
+   "David Raya",
+   "Kepa Arrizabalaga"
+  ],
+  "ABW": [
+   "William Saliba",
+   "Gabriel Magalhães",
+   "Jurriën Timber",
+   "Riccardo Calafiori",
+   "Ben White",
+   "Ezri Konsa"
+  ],
+  "MF": [
+   "Declan Rice",
+   "Martín Zubimendi",
+   "Mikel Merino",
+   "Martin Ødegaard",
+   "Eberechi Eze",
+   "Bruno Guimarães"
+  ],
+  "ST": [
+   "Bukayo Saka",
+   "Viktor Gyökeres",
+   "Kai Havertz",
+   "Noni Madueke"
+  ]
+ },
+ "Real Madrid": {
+  "TW": [
+   "Thibaut Courtois",
+   "Andriy Lunin"
+  ],
+  "ABW": [
+   "Trent Alexander-Arnold",
+   "Dean Huijsen",
+   "Éder Militão",
+   "Antonio Rüdiger",
+   "Álvaro Carreras",
+   "Marc Cucurella"
+  ],
+  "MF": [
+   "Jude Bellingham",
+   "Federico Valverde",
+   "Aurélien Tchouaméni",
+   "Eduardo Camavinga",
+   "Arda Güler",
+   "Bernardo Silva"
+  ],
+  "ST": [
+   "Kylian Mbappé",
+   "Vinícius Júnior",
+   "Rodrygo",
+   "Endrick"
+  ]
+ },
+ "Betis Sevilla": {
+  "TW": [
+   "Álvaro Valles",
+   "Diego Conde"
+  ],
+  "ABW": [
+   "Natan",
+   "Marc Bartra",
+   "Diego Llorente",
+   "Valentín Gómez",
+   "Fran García",
+   "Héctor Bellerín"
+  ],
+  "MF": [
+   "Isco",
+   "Giovani Lo Celso",
+   "Dani Ceballos",
+   "Marc Roca",
+   "Pablo Fornals",
+   "Álvaro Fidalgo"
+  ],
+  "ST": [
+   "Antony",
+   "Abde Ezzalzouli",
+   "Cucho Hernández",
+   "Troy Parrott"
+  ]
+ },
+ "Schachtar Donezk": {
+  "TW": [
+   "Dmytro Riznyk",
+   "Kiril Fesyun"
+  ],
+  "ABW": [
+   "Mykola Matviyenko",
+   "Valeriy Bondar",
+   "Marlon Santos",
+   "Pedro Henrique",
+   "Vinicius Tobias",
+   "Irakli Azarovi"
+  ],
+  "MF": [
+   "Marlon Gomes",
+   "Dmytro Kryskiv",
+   "Oleh Ocheretko",
+   "Yehor Nazaryna",
+   "Pedrinho",
+   "Isaque"
+  ],
+  "ST": [
+   "Kauã Elias",
+   "Lassina Traoré",
+   "Alisson Santana",
+   "Eguinaldo"
+  ]
+ },
+ "Como 1907": {
+  "TW": [
+   "Jean Butez",
+   "Robert Sánchez"
+  ],
+  "ABW": [
+   "Marc-Oliver Kempf",
+   "Trevoh Chalobah",
+   "Jacobo Ramón",
+   "Álex Valle",
+   "Yan Couto",
+   "Ivan Smolčić"
+  ],
+  "MF": [
+   "Máximo Perrone",
+   "Maxence Caqueret",
+   "Nico Paz",
+   "Martin Baturina",
+   "Samuele Ricci",
+   "Lucas Da Cunha"
+  ],
+  "ST": [
+   "Anastasios Douvikas",
+   "Assane Diao",
+   "Jesús Rodríguez",
+   "Moise Kean"
+  ]
+ },
+ "Manchester United": {
+  "TW": [
+   "Senne Lammens",
+   "Karl Darlow"
+  ],
+  "ABW": [
+   "Diogo Dalot",
+   "Patrick Dorgu",
+   "Lisandro Martínez",
+   "Harry Maguire",
+   "Leny Yoro",
+   "Luke Shaw"
+  ],
+  "MF": [
+   "Bruno Fernandes",
+   "Carlos Baleba",
+   "Youri Tielemans",
+   "Andrey Santos",
+   "Kobbie Mainoo",
+   "Mason Mount"
+  ],
+  "ST": [
+   "Bryan Mbeumo",
+   "Matheus Cunha",
+   "Benjamin Šeško",
+   "Amad Diallo"
+  ]
+ },
+ "FC Villarreal": {
+  "TW": [
+   "Luiz Júnior",
+   "Péter Gulácsi"
+  ],
+  "ABW": [
+   "Juan Foyth",
+   "Renato Veiga",
+   "Santiago Mouriño",
+   "Sergi Cardona",
+   "Logan Costa",
+   "Alex Freeman"
+  ],
+  "MF": [
+   "Alberto Moleiro",
+   "Pape Gueye",
+   "Santi Comesaña",
+   "Ilias Akhomach",
+   "Carlos Maciá",
+   "Nathan Saliba"
+  ],
+  "ST": [
+   "Georges Mikautadze",
+   "Gerard Moreno",
+   "Tani Oluwaseyi",
+   "Tajon Buchanan"
+  ]
+ },
+ "Atlético Madrid": {
+  "TW": [
+   "Jan Oblak",
+   "Juan Musso"
+  ],
+  "ABW": [
+   "Cristian Romero",
+   "Robin Le Normand",
+   "Dávid Hancko",
+   "Alejandro Grimaldo",
+   "Marc Pubill",
+   "Marcos Llorente"
+  ],
+  "MF": [
+   "Koke",
+   "Pablo Barrios",
+   "Morten Hjulmand",
+   "Johnny Cardoso",
+   "Álex Baena",
+   "Lee Kang-in"
+  ],
+  "ST": [
+   "Julián Álvarez",
+   "Alexander Sørloth",
+   "Ademola Lookman",
+   "Jonathan David"
+  ]
+ },
+ "FC Brügge": {
+  "TW": [
+   "Yann Sommer",
+   "Nordin Jackers"
+  ],
+  "ABW": [
+   "Brandon Mechele",
+   "Joel Ordóñez",
+   "Lee Han-beom",
+   "Hugo Siquet",
+   "Kyriani Sabbe",
+   "Matteo Dams"
+  ],
+  "MF": [
+   "Hans Vanaken",
+   "Hugo Vetlesen",
+   "Carlos Forbs",
+   "Freddie Potts",
+   "Jan Virgili",
+   "Cheveyo Tsawa"
+  ],
+  "ST": [
+   "Nicolò Tresoldi",
+   "Romeo Vermant",
+   "Mamadou Diakhon",
+   "Andrej Vasovic"
+  ]
+ },
+ "Manchester City": {
+  "TW": [
+   "Gianluigi Donnarumma",
+   "Marcus Bettinelli"
+  ],
+  "ABW": [
+   "Rúben Dias",
+   "Joško Gvardiol",
+   "Marc Guéhi",
+   "Rayan Aït-Nouri",
+   "Nico O'Reilly",
+   "Abdukodir Khusanov"
+  ],
+  "MF": [
+   "Enzo Fernández",
+   "Elliot Anderson",
+   "Ayyoub Bouaddi",
+   "Mateo Kovačić",
+   "Rayan Cherki",
+   "Phil Foden"
+  ],
+  "ST": [
+   "Erling Haaland",
+   "Jérémy Doku",
+   "Antoine Semenyo",
+   "Iliman Ndiaye"
+  ]
+ },
+ "RC Lens": {
+  "TW": [
+   "Robin Risser",
+   "Régis Gurtner"
+  ],
+  "ABW": [
+   "Ruben Aguilar",
+   "Samson Baidoo",
+   "Matthieu Udol",
+   "Jonathan Gradit",
+   "Souleymane Sagnan",
+   "Nidal Čelik"
+  ],
+  "MF": [
+   "Amadou Haidara",
+   "Andrija Bulatović",
+   "Yacine Titraoui",
+   "Mickaël Cuisance",
+   "Thorgan Hazard",
+   "Florian Thauvin"
+  ],
+  "ST": [
+   "Florian Sotoca",
+   "Odsonne Édouard",
+   "Franjo Ivanović",
+   "Abdallah Sima"
+  ]
+ },
+ "AEK Athen": {
+  "TW": [
+   "Thomas Strakosha",
+   "Alberto Brignoli"
+  ],
+  "ABW": [
+   "Harold Moukoudi",
+   "Lazaros Rota",
+   "Domagoj Vida",
+   "Filipe Relvas",
+   "Charalambos Lykogiannis",
+   "Pilios"
+  ],
+  "MF": [
+   "Răzvan Marin",
+   "Kaan Kairinen",
+   "Kervin Arriaga",
+   "Lovro Majer",
+   "Mijat Gaćinović",
+   "Petros Mantalos"
+  ],
+  "ST": [
+   "Luka Jović",
+   "Barnabás Varga",
+   "Frantzdy Pierrot",
+   "Oleksandr Zubkov"
+  ]
+ },
+ "FC Sabah": {
+  "TW": [
+   "Amin Ramazanov",
+   "Stas Pokatilov"
+  ],
+  "ABW": [
+   "Steve Solvet",
+   "Aden McCarthy",
+   "Rahman Dashdamirov",
+   "Tymoteusz Puchacz",
+   "Akim Zedadka",
+   "Erivaldo Almeida"
+  ],
+  "MF": [
+   "Abdulakh Khaibulaev",
+   "Umarali Rakhmonaliev",
+   "Aleksey Isaev",
+   "Ivan Lepinjica",
+   "Rodrigo Fernandes",
+   "Du Queiroz"
+  ],
+  "ST": [
+   "Christian Nwachukwu",
+   "Joy-Lance Mickels",
+   "Orphé Mbina",
+   "Kaheem Parris"
+  ]
+ },
+ "Feyenoord Rotterdam": {
+  "TW": [
+   "Tjark Ernst",
+   "Florian Kastenmeier"
+  ],
+  "ABW": [
+   "Bart Nieuwkoop",
+   "Tsuyoshi Watanabe",
+   "Gijs Smal",
+   "Jeremiah St. Juste",
+   "Javi López",
+   "Mika Mármol"
+  ],
+  "MF": [
+   "Jakub Moder",
+   "Sem Steijn",
+   "Oussama Targhalline",
+   "Charles Vanhoutte",
+   "Luciano Valente",
+   "Zechiël"
+  ],
+  "ST": [
+   "Reiss Nelson",
+   "Anis Hadj-Moussa",
+   "Nacho Ferri",
+   "Gonçalo Borges"
+  ]
+ },
+ "Bodø/Glimt": {
+  "TW": [
+   "Nikita Haikin",
+   "Julian Faye Lund"
+  ],
+  "ABW": [
+   "Villads Nielsen",
+   "Odin Bjørtuft",
+   "Haitam Aleesami",
+   "Fredrik Bjørkan",
+   "Jostein Gundersen",
+   "Fredrik Sjøvold"
+  ],
+  "MF": [
+   "Patrick Berg",
+   "Sondre Auklend",
+   "Ulrik Saltnes",
+   "Evjen",
+   "Fet",
+   "Kitolano"
+  ],
+  "ST": [
+   "Jens Petter Hauge",
+   "Ole Didrik Blomberg",
+   "Helmersen",
+   "Brynhildsen"
+  ]
+ },
+ "AS Rom": {
+  "TW": [
+   "Mile Svilar",
+   "Pierluigi Gollini"
+  ],
+  "ABW": [
+   "Evan N'Dicka",
+   "Gianluca Mancini",
+   "Konstantinos Koulierakis",
+   "Leonardo Balerdi",
+   "Wesley",
+   "Nahuel Molina"
+  ],
+  "MF": [
+   "Bryan Cristante",
+   "Manu Koné",
+   "Marten de Roon",
+   "Lorenzo Pellegrini",
+   "Niccolò Pisilli",
+   "Paulo Dybala"
+  ],
+  "ST": [
+   "Donyell Malen",
+   "Matías Soulé",
+   "Santiago Castro",
+   "Rodrigo Mora"
+  ]
+ },
+ "PSV Eindhoven": {
+  "TW": [
+   "Matej Kovář",
+   "Niek Olij"
+  ],
+  "ABW": [
+   "Lutsharel Geertruida",
+   "Sergiño Dest",
+   "Ryan Flamingo",
+   "Armando Obispo",
+   "Yarek Gąsiorowski",
+   "Filip Kostić"
+  ],
+  "MF": [
+   "Jerdy Schouten",
+   "Kodai Sano",
+   "Sven Mijnans",
+   "Paul Wanner",
+   "Mauro Júnior",
+   "Ayoni Santos"
+  ],
+  "ST": [
+   "Ricardo Pepi",
+   "Dennis Man",
+   "Guus Til",
+   "Alassane Pléa"
+  ]
+ },
+ "Viking Stavanger": {
+  "TW": [
+   "Arild Østbø",
+   "Ľubomír Belko"
+  ],
+  "ABW": [
+   "Viljar Vevatne",
+   "Henrik Heggheim",
+   "Gianni Stensness",
+   "Sondre Bjørshol",
+   "Anders Bærtelsen",
+   "Kristoffer Haugen"
+  ],
+  "MF": [
+   "Kristoffer Askildsen",
+   "Joe Bell",
+   "Henrik Bjørdal",
+   "Zlatko Tripić",
+   "Simen Kvia-Egeskog",
+   "Tobias Moi"
+  ],
+  "ST": [
+   "Romano Postema",
+   "Veton Berisha",
+   "Erik Botheim",
+   "Peter Christiansen"
+  ]
+ },
+ "Fenerbahçe": {
+  "TW": [
+   "Ederson",
+   "Mert Günok"
+  ],
+  "ABW": [
+   "Milan Škriniar",
+   "Nathan Aké",
+   "Jayden Oosterwolde",
+   "Nélson Semedo",
+   "Mert Müldür",
+   "Kojo Peprah Oppong"
+  ],
+  "MF": [
+   "İsmail Yüksek",
+   "Mattéo Guendouzi",
+   "N'Golo Kanté",
+   "Marco Asensio",
+   "İrfan Can Kahveci",
+   "Eljif Elmaz"
+  ],
+  "ST": [
+   "Romelu Lukaku",
+   "Vedat Muriqi",
+   "Mason Greenwood",
+   "Nene Dorgeles"
+  ]
+ },
+ "Inter Mailand": {
+  "TW": [
+   "Josep Martínez",
+   "Ivan Provedel"
+  ],
+  "ABW": [
+   "Alessandro Bastoni",
+   "Manuel Akanji",
+   "Yann Bisseck",
+   "John Stones",
+   "Federico Dimarco",
+   "Carlos Augusto"
+  ],
+  "MF": [
+   "Nicolò Barella",
+   "Hakan Çalhanoğlu",
+   "Henrikh Mkhitaryan",
+   "Piotr Zieliński",
+   "Petar Sučić",
+   "Curtis Jones"
+  ],
+  "ST": [
+   "Lautaro Martínez",
+   "Marcus Thuram",
+   "Pio Esposito",
+   "Ange-Yoan Bonny"
+  ]
+ },
+ "FC Porto": {
+  "TW": [
+   "Diogo Costa",
+   "Cláudio Ramos"
+  ],
+  "ABW": [
+   "Jakub Kiwior",
+   "Jan Bednarek",
+   "Nehuén Pérez",
+   "Zaidu Sanusi",
+   "Alberto Costa",
+   "Martim Fernandes"
+  ],
+  "MF": [
+   "Victor Froholdt",
+   "Gabri Veiga",
+   "Alan Varela",
+   "Pablo Rosario",
+   "Hwang In-beom",
+   "Seko Fofana"
+  ],
+  "ST": [
+   "Samu Aghehowa",
+   "William Gomes",
+   "Pepê",
+   "Borja Sainz"
+  ]
+ },
+ "Slavia Prag": {
+  "TW": [
+   "Jindřich Staněk",
+   "Nazar Domčak"
+  ],
+  "ABW": [
+   "Igoh Ogbu",
+   "David Zima",
+   "Štěpán Chaloupek",
+   "David Jurásek",
+   "Tomáš Vlček",
+   "Ange N'Guessan"
+  ],
+  "MF": [
+   "Tomáš Holeš",
+   "Lukáš Provod",
+   "Oscar Dorley",
+   "Michal Sadílek",
+   "Toumani Diakité",
+   "David Moses"
+  ],
+  "ST": [
+   "Mojmír Chytil",
+   "Tomáš Chorý",
+   "Ivan Schranz",
+   "Youssoupha Sanyang"
+  ]
+ },
+ "SSC Neapel": {
+  "TW": [
+   "Vanja Milinković-Savić",
+   "Alex Meret"
+  ],
+  "ABW": [
+   "Giovanni Di Lorenzo",
+   "Amir Rrahmani",
+   "Sam Beukema",
+   "Mathías Olivera",
+   "Leonardo Spinazzola",
+   "Rafa Marín"
+  ],
+  "MF": [
+   "Stanislav Lobotka",
+   "Scott McTominay",
+   "Kevin De Bruyne",
+   "André-Frank Zambo Anguissa",
+   "Billy Gilmour",
+   "Antonio Vergara"
+  ],
+  "ST": [
+   "Rasmus Højlund",
+   "David Neres",
+   "Alisson Santos",
+   "Lorenzo Lucca"
+  ]
+ },
+ "LASK": {
+  "TW": [
+   "Lukas Jungwirth",
+   "Tobias Schützenauer"
+  ],
+  "ABW": [
+   "Andrés Andrade",
+   "Xavier Mbuyamba",
+   "Yvan Dibango",
+   "Miguel Freckleton",
+   "George Bello",
+   "Alemão"
+  ],
+  "MF": [
+   "Robert Ljubičić",
+   "Alessandro Schöpf",
+   "Sascha Horvath",
+   "Kasper Jørgensen",
+   "Melayro Bogarde",
+   "Kryštof Daněk"
+  ],
+  "ST": [
+   "Moses Usor",
+   "Samuel Adeniran",
+   "Ramiz Harakaté",
+   "Florian Flecker"
+  ]
+ },
+ "OSC Lille": {
+  "TW": [
+   "Berke Özer",
+   "Orlando Gill"
+  ],
+  "ABW": [
+   "Nathan Ngoy",
+   "Alexsandro",
+   "Tiago Santos",
+   "Calvin Verdonk",
+   "Romain Perraud",
+   "Tanguy Nianzou"
+  ],
+  "MF": [
+   "Nabil Bentaleb",
+   "Benjamin André",
+   "Ethan Mbappé",
+   "Hákon Haraldsson",
+   "Osame Sahraoui",
+   "Ngal'Ayel Mukau"
+  ],
+  "ST": [
+   "Olivier Giroud",
+   "Ayase Ueda",
+   "Dilane Bakwa",
+   "Gaëtan Perrin"
+  ]
+ },
+ "Galatasaray": {
+  "TW": [
+   "Uğurcan Çakır",
+   "Günay Güvenç"
+  ],
+  "ABW": [
+   "Wilfried Singo",
+   "Davinson Sánchez",
+   "Abdülkerim Bardakcı",
+   "Eren Elmalı",
+   "Ismail Jakobs",
+   "Kaan Ayhan"
+  ],
+  "MF": [
+   "Lucas Torreira",
+   "İlkay Gündoğan",
+   "Gabriel Sara",
+   "Mario Lemina",
+   "Yunus Akgün",
+   "Lesley Ugochukwu"
+  ],
+  "ST": [
+   "Victor Osimhen",
+   "Leroy Sané",
+   "Rafael Leão",
+   "Barış Alper Yılmaz"
+  ]
+ },
+ "Slovan Bratislava": {
+  "TW": [
+   "Aleksandar Popović",
+   "Dominik Takáč"
+  ],
+  "ABW": [
+   "Samuel Kozlovský",
+   "Kevin Wimmer",
+   "Svetozar Marković",
+   "Kenan Bajrić",
+   "César Blackman",
+   "Sandro Cruz"
+  ],
+  "MF": [
+   "Danylo Ihnatenko",
+   "Daiki Matsuoka",
+   "Rahim Ibrahim",
+   "Alen Mustafić",
+   "Cristian Martínez",
+   "Peter Pokorný"
+  ],
+  "ST": [
+   "Andraž Šporar",
+   "Alasana Yirajang",
+   "Roman Čerepkai",
+   "Alexej Maroš"
+  ]
+ },
+ "AGF Aarhus": {
+  "TW": [
+   "Jesper Hansen",
+   "Mads Hedenstad"
+  ],
+  "ABW": [
+   "Daníel Grétarsson",
+   "Frederik Tingager",
+   "Tobias Mølgaard",
+   "Eric Kahl",
+   "Colin Rösler",
+   "Mouhammade Camara"
+  ],
+  "MF": [
+   "Magnus Knudsen",
+   "Kristian Arnstad",
+   "Callum McCowatt",
+   "Frederik Emmery",
+   "Rasmus Carstensen",
+   "Jens Jønsson"
+  ],
+  "ST": [
+   "Janni Serra",
+   "Tobias Bech",
+   "Sebastian Jørgensen",
+   "Mikael Anderson"
+  ]
+ },
+ "Ajax Amsterdam": {
+  "TW": [
+   "Marc-André ter Stegen",
+   "Maarten Paes"
+  ],
+  "ABW": [
+   "Anton Gaaei",
+   "Lucas Rosa",
+   "Youri Baas",
+   "Owen Wijndal",
+   "Caio Henrique",
+   "Daley Blind"
+  ],
+  "MF": [
+   "Sofyan Amrabat",
+   "Julian Brandt",
+   "Oscar Gloukh",
+   "Davy Klaassen",
+   "Alejandro Monserrate",
+   "Steven Berghuis"
+  ],
+  "ST": [
+   "Kasper Dolberg",
+   "Simon Adingra",
+   "Viktor Tsygankov",
+   "Marcos Leonardo"
+  ]
+ },
+ "Atalanta Bergamo": {
+  "TW": [
+   "Marco Carnesecchi",
+   "Marco Sportiello"
+  ],
+  "ABW": [
+   "Raoul Bellanova",
+   "Thomas Kristensen",
+   "Giorgio Scalvini",
+   "Lorenzo Bernasconi",
+   "Isak Hien",
+   "Sead Kolašinac"
+  ],
+  "MF": [
+   "Mario Pašalić",
+   "Éderson",
+   "Franck Kessié",
+   "Lazar Samardžić",
+   "Eljif Elmas",
+   "Nicola Zalewski"
+  ],
+  "ST": [
+   "Gianluca Scamacca",
+   "Charles De Ketelaere",
+   "Jonathan Rowe",
+   "Giacomo Raspadori"
+  ]
+ },
+ "Borac Banja Luka": {
+  "TW": [
+   "Damjan Šiškovski",
+   "Nikola Ćetković"
+  ],
+  "ABW": [
+   "Bart Meijers",
+   "Abel Pascual",
+   "Branimir Cipetić",
+   "Siniša Saničanin",
+   "Sebastijan Herrera",
+   "Viktor Rogan"
+  ],
+  "MF": [
+   "Amer Hiroš",
+   "Anderson Esiti",
+   "Srđan Grahovac",
+   "Miloš Jojić",
+   "Stojan Vranješ",
+   "Sandi Ogrinec"
+  ],
+  "ST": [
+   "Luka Juričić",
+   "David Vuković",
+   "Amar Milak",
+   "Dani Romera"
+  ]
+ },
+ "SC Braga": {
+  "TW": [
+   "Tiago Sá",
+   "Bernardo Fontes"
+  ],
+  "ABW": [
+   "Víctor Gómez",
+   "Gustaf Lagerbielke",
+   "Bright Arrey-Mbi",
+   "Adrian Barišić",
+   "Diogo Travassos",
+   "Sergio Barcia"
+  ],
+  "MF": [
+   "João Moutinho",
+   "Mario Dorgeles",
+   "Denis Huseinbašić",
+   "Demir Ege Tıknaz",
+   "Jean-Baptiste Gorby",
+   "Tomás Marques"
+  ],
+  "ST": [
+   "Ricardo Horta",
+   "Pau Víctor",
+   "Fran Navarro",
+   "Gabri Martínez"
+  ]
+ },
+ "SK Brann": {
+  "TW": [
+   "Mathias Dyngeland",
+   "Simen Vidtun Nilsen"
+  ],
+  "ABW": [
+   "Leo Cornic",
+   "Fredrik Pallesen",
+   "Nana Kwame Boakye",
+   "Joachim Soltvedt",
+   "Vetle Dragsnes",
+   "Neraysho Kasanwirjo"
+  ],
+  "MF": [
+   "Sondre Tronstad",
+   "Sakarias Opsahl",
+   "Ulrik Mathisen",
+   "Kristian Eriksen",
+   "Kristall Máni Ingason",
+   "Eggert Aron Gudmundsson"
+  ],
+  "ST": [
+   "Niklas Castro",
+   "Bård Finne",
+   "Sævar Atli Magnússon",
+   "Noah Holm"
+  ]
+ },
+ "Brighton & Hove Albion": {
+  "TW": [
+   "Bart Verbruggen",
+   "Jason Steele"
+  ],
+  "ABW": [
+   "Lewis Dunk",
+   "Luka Vušković",
+   "Pascal Struijk",
+   "Ferdi Kadıoğlu",
+   "Maxim De Cuyper",
+   "Olivier Boscagli"
+  ],
+  "MF": [
+   "Pascal Groß",
+   "Yasin Ayari",
+   "Jack Hinshelwood",
+   "Matt O'Riley",
+   "Diego Gómez",
+   "Mats Wieffer"
+  ],
+  "ST": [
+   "Georginio Rutter",
+   "Charalampos Kostoulas",
+   "Ibrahim Osman",
+   "Promise David"
+  ]
+ },
+ "FC Kopenhagen": {
+  "TW": [
+   "Diant Ramaj",
+   "Rúnar Alex Rúnarsson"
+  ],
+  "ABW": [
+   "Felix Beijmo",
+   "Gabriel Pereira",
+   "Ákos Markgráf",
+   "Marcos López",
+   "Junnosuke Suzuki",
+   "Birger Meling"
+  ],
+  "MF": [
+   "Mads Emil Madsen",
+   "Alex Král",
+   "William Clem",
+   "Thomas Delaney",
+   "Magnus Mattsson",
+   "Hunor Németh"
+  ],
+  "ST": [
+   "Mohamed Elyounoussi",
+   "Robert",
+   "Andreas Cornelius",
+   "Maher Carrizo"
+  ]
+ },
+ "ZSKA Sofia": {
+  "TW": [
+   "Fedor Lapoukhov",
+   "Dimitar Evtimov"
+  ],
+  "ABW": [
+   "Pastor",
+   "Teodor Ivanov",
+   "Ángelo Martino",
+   "Facundo Rodríguez",
+   "Tamimou Ouorou",
+   "Andrey Yordanov"
+  ],
+  "MF": [
+   "Bruno Jordão",
+   "Max Ebong",
+   "Stefano Sensi",
+   "Isaac Solet",
+   "Petko Panayotov",
+   "James Eto'o"
+  ],
+  "ST": [
+   "Joël Zwarts",
+   "Ioannis Pittas",
+   "Léo Pereira",
+   "Leandro Godoy"
+  ]
+ },
+ "KF Egnatia": {
+  "TW": [
+   "Levan Tandilashvili",
+   "Bruno Puja"
+  ],
+  "ABW": [
+   "Zamiq Əliyev",
+   "Alessandro Kacbufi",
+   "Arbenit Xhemajli",
+   "Numan Ajetovikj",
+   "Eljon Sota",
+   "Eneo Bitri"
+  ],
+  "MF": [
+   "Albano Aleksi",
+   "Fernando Medeiros",
+   "Ibrahim Diabaté",
+   "Altin Kryeziu",
+   "Guillem Jaime",
+   "Edison Ndreca"
+  ],
+  "ST": [
+   "Ildi Gruda",
+   "Soumaila Bakayoko",
+   "Alessandro Albanese",
+   "Jurguens Montenegro"
+  ]
+ },
+ "KAA Gent": {
+  "TW": [
+   "Davy Roef",
+   "Kjell Peersman"
+  ],
+  "ABW": [
+   "Maksim Paskotši",
+   "Mouhamed Ngom",
+   "Christian Burgess",
+   "Tiago Araújo",
+   "Siebe Van der Heyden",
+   "Mamadou Diallo"
+  ],
+  "MF": [
+   "László Bénes",
+   "Aimé Omgba",
+   "Mathias Delorge",
+   "Tibe De Vlieger",
+   "Leonardo Lopes",
+   "Matties Volckaert"
+  ],
+  "ST": [
+   "Michel-Ange Balikwisha",
+   "Momodou Sonko",
+   "Hyllarion Goore",
+   "Josué Vergara"
+  ]
+ },
+ "FC Getafe": {
+  "TW": [
+   "David Soria",
+   "Jiří Letáček"
+  ],
+  "ABW": [
+   "Dakonam Djené",
+   "Abdel Abqar",
+   "Zaid Romero",
+   "Kiko Femenía",
+   "Johan Mojica",
+   "Andrés García"
+  ],
+  "MF": [
+   "Ramón Terrats",
+   "Mario Martín",
+   "Orel Mangala",
+   "Nemanja Gudelj",
+   "Francho Serrano",
+   "Alberto Risco"
+  ],
+  "ST": [
+   "Borja Mayoral",
+   "Martín Satriano",
+   "Enes Ünal",
+   "Iván Azón"
+  ]
+ },
+ "Hajduk Split": {
+  "TW": [
+   "Ivica Ivušić",
+   "Toni Silić"
+  ],
+  "ABW": [
+   "Alec Van Hoorenbeeck",
+   "Dennis Hadžikadunić",
+   "Ron Raçi",
+   "Dario Marešić",
+   "Mathieu Acapandié",
+   "Šimun Hrgović"
+  ],
+  "MF": [
+   "Adrion Pajaziti",
+   "Leander Dendoncker",
+   "Etnik Brruti",
+   "Alberto del Moral",
+   "Anđelo Šutalo",
+   "Šotiček"
+  ],
+  "ST": [
+   "Marko Livaja",
+   "Michele Šego",
+   "Abdoulie Sanyang",
+   "Roko Brajković"
+  ]
+ },
+ "Heart of Midlothian": {
+  "TW": [
+   "Beau Reus",
+   "Zander Clark"
+  ],
+  "ABW": [
+   "Craig Halkett",
+   "Jamie McCart",
+   "Stephen Kingsley",
+   "Jordi Altena",
+   "Oisin McEntee",
+   "Harry Milne"
+  ],
+  "MF": [
+   "Calvin Miller",
+   "Blair Spittal",
+   "Sabah Kerjota",
+   "Yan Dhanda",
+   "Tom Renaud",
+   "Tómas Bent Magnússon"
+  ],
+  "ST": [
+   "Cláudio Braga",
+   "Amadou Ba-Sy",
+   "Pierre Landry Kaboré",
+   "JJ Williams"
+  ]
+ },
+ "Iberia 1999": {
+  "TW": [
+   "Tornike Megrelishvili",
+   "Revaz Kurtanidze"
+  ],
+  "ABW": [
+   "Vahid Selimović",
+   "Jemal-Giorgi Jinjolava",
+   "Aleksandre Amisulashvili",
+   "Sebastián Figueredo",
+   "Giorgi Gogsadze",
+   "Nikoloz Botchorishvili"
+  ],
+  "MF": [
+   "Nikoloz Dadiani",
+   "Bakar Kardava",
+   "Ibrahim Alhassan",
+   "Eldar Kuliiev",
+   "Giorgi Kutsia",
+   "Saba Avdoevi"
+  ],
+  "ST": [
+   "Amiran Dzagania",
+   "Zviad Natchkebia",
+   "Stephen Ende",
+   "Lucas Café"
+  ]
+ },
+ "Inter Club d'Escaldes": {
+  "TW": [
+   "Javi Díaz",
+   "Pol"
+  ],
+  "ABW": [
+   "Anwar Hernández",
+   "Jilmar Torres",
+   "Álex Sánchez",
+   "Jaouad Erraji",
+   "Maurizio Pochettino",
+   "Robin Lafarge"
+  ],
+  "MF": [
+   "Víctor Alonso",
+   "Juan Cámara",
+   "David López",
+   "Pablo Molina",
+   "Antonio Otegui",
+   "Lamine Diaby"
+  ],
+  "ST": [
+   "Faysal Chouaib",
+   "Borja Arellano",
+   "Domi Berlanga",
+   "Rafinha"
+  ]
+ },
+ "FK Jablonec": {
+  "TW": [
+   "Jan Hanuš",
+   "Klemen Mihelak"
+  ],
+  "ABW": [
+   "Nemanja Tekijaški",
+   "Daniel Souček",
+   "Martin Cedidla",
+   "Jiří Sláma",
+   "Filip Novák",
+   "Eduard Sobol"
+  ],
+  "MF": [
+   "Nelson Okeke",
+   "Vakhtang Chanturishvili",
+   "Filip Zorvan",
+   "Richard Sedláček",
+   "Matěj Polidar",
+   "Sebastian Nebyla"
+  ],
+  "ST": [
+   "Lamin Jawo",
+   "Jan Chramosta",
+   "Dominik Hollý",
+   "Antonín Růsek"
+  ]
+ },
+ "Kairat Almaty": {
+  "TW": [
+   "Temirlan Anarbekov",
+   "Sherhan Kalmurza"
+  ],
+  "ABW": [
+   "Luís Mata",
+   "Aleksandr Martynovich",
+   "Erkin Tapalov",
+   "Lucas Áfrico",
+   "Aleksandr Shirobokov",
+   "Damir Kasabulat"
+  ],
+  "MF": [
+   "Adilet Sadybekov",
+   "Olzhas Baybek",
+   "Jaakko Oksanen",
+   "Gustavo Mendonça",
+   "Oiva Jukkola",
+   "Aleksandr Mrynskiy"
+  ],
+  "ST": [
+   "Edmilson",
+   "Marc Gual",
+   "Jorginho",
+   "Azamat Tuyakbayev"
+  ]
+ },
+ "Kauno Žalgiris": {
+  "TW": [
+   "Deividas Mikelionis",
+   "Tomas Švedkauskas"
+  ],
+  "ABW": [
+   "Anton Tolordava",
+   "Luka Račić",
+   "Aldayr Hernández",
+   "Marko Konatar",
+   "Nosa Edokpolor",
+   "Joris Moutachy"
+  ],
+  "MF": [
+   "Yukiyoshi Karashima",
+   "Gratas Sirgėdas",
+   "Vykintas Slivka",
+   "Franco Baldassarra",
+   "Fabien Ourega",
+   "Ivan Fiolić"
+  ],
+  "ST": [
+   "Amine Benchaib",
+   "Motiejus Burba",
+   "Renan Oliveira",
+   "Gabriel Debeljuh"
+  ]
+ },
+ "KuPS Kuopio": {
+  "TW": [
+   "Johannes Kreidl",
+   "Hemmo Riihimäki"
+  ],
+  "ABW": [
+   "Saku Heiskanen",
+   "Kasim Adams",
+   "Saku Savolainen",
+   "Arttu Lötjönen",
+   "Clinton Antwi",
+   "Brahima Magassa"
+  ],
+  "MF": [
+   "Jerry Voutilainen",
+   "Petteri Pennanen",
+   "Valentín Gasc",
+   "Niilo Kujasalo",
+   "Samuel Pasanen",
+   "Tommi Jyry"
+  ],
+  "ST": [
+   "Gustav Engvall",
+   "Jaime Moreno",
+   "Ayman Aiki",
+   "Calvin Kabuye"
+  ]
+ },
+ "Lincoln Red Imps": {
+  "TW": [
+   "Nauzet Santana",
+   "Jaylan Hankins"
+  ],
+  "ABW": [
+   "Ethan Jolley",
+   "Christian Rutjens",
+   "Gabri Cardozo",
+   "Bernardo Lopes",
+   "Ethan Britto",
+   "Julliani Eersteling"
+  ],
+  "MF": [
+   "Mandi",
+   "Toni García",
+   "Graeme Torrilla",
+   "Nico Pinto",
+   "León Mason",
+   "Álvaro Romero"
+  ],
+  "ST": [
+   "Lee Casciaro",
+   "Kike Gómez",
+   "Manu Toledano",
+   "Álex Mula"
+  ]
+ },
+ "FC Lugano": {
+  "TW": [
+   "David von Ballmoos",
+   "Felix Gebhardt"
+  ],
+  "ABW": [
+   "Hannes Delcroix",
+   "Antonios Papadopoulos",
+   "Ezgjan Alioski",
+   "Lukas Mai",
+   "Damian Kelvin",
+   "Bekhruz Karimov"
+  ],
+  "MF": [
+   "Anto Grgić",
+   "Ahmed Kendouci",
+   "Uran Bislimi",
+   "Daniel Dos Santos",
+   "Mattia Zanotti",
+   "Renato Steffen"
+  ],
+  "ST": [
+   "Albian Ajeti",
+   "Kevin Behrens",
+   "Yanis Cimignani",
+   "Elias Pihlström"
+  ]
+ },
+ "FC Midtjylland": {
+  "TW": [
+   "Elias Ólafsson",
+   "Nordin Bakker"
+  ],
+  "ABW": [
+   "Rasmus Kristensen",
+   "Martin Erlić",
+   "Ousmane Diao",
+   "Magnus Jensen",
+   "Mads Bech Sørensen",
+   "Aziz Ndiaye"
+  ],
+  "MF": [
+   "Philip Billing",
+   "Pedro Bravo",
+   "Hyun-seok Hong",
+   "Denil Castillo",
+   "Kjell Wätjen",
+   "Sofus Johannesen"
+  ],
+  "ST": [
+   "Mileta Rajović",
+   "Cho Gue-sung",
+   "Mikael Uhre",
+   "Stanley Iheanacho"
+  ]
+ },
+ "Mjällby AIF": {
+  "TW": [
+   "Robin Wallinder",
+   "Melker Ahlstrand"
+  ],
+  "ABW": [
+   "Ludvig Svanberg",
+   "Axel Norén",
+   "Abdullah Iqbal",
+   "Tom Pettersson",
+   "Tony Miettinen",
+   "Ludvig Tidstrand"
+  ],
+  "MF": [
+   "Viktor Gustafson",
+   "Teo Helge",
+   "Jeppe Kjær",
+   "Jesper Gustavsson",
+   "Villiam Granath",
+   "Martin Agnarsson"
+  ],
+  "ST": [
+   "Bork Bang-Kittilsen",
+   "Áki Samuelsen",
+   "Jacob Bergström",
+   "Ali Youssef"
+  ]
+ },
+ "AS Monaco": {
+  "TW": [
+   "Lukas Hrádecký",
+   "Philipp Köhn"
+  ],
+  "ABW": [
+   "Vanderson",
+   "Jordan Teze",
+   "Christian Mawissa",
+   "Eric Dier",
+   "Mohammed Salisu",
+   "Flávio Nazinho"
+  ],
+  "MF": [
+   "Denis Zakaria",
+   "Lamine Camara",
+   "Aleksandr Golovin",
+   "Mamadou Coulibaly",
+   "Edan Diop",
+   "Takumi Minamino"
+  ],
+  "ST": [
+   "Folarin Balogun",
+   "Mika Biereth",
+   "Paris Brunner",
+   "Matthis Abline"
+  ]
+ },
+ "FC Nordsjælland": {
+  "TW": [
+   "Andreas Hansen",
+   "Jakob Busk"
+  ],
+  "ABW": [
+   "Peter Ankersen",
+   "Tobias Salquist",
+   "Noah Markmann",
+   "Stephen Acquah",
+   "Victor Nelsson",
+   "Markus Walker"
+  ],
+  "MF": [
+   "Mark Brink",
+   "Nicklas Røjkjær",
+   "Justin Janssen",
+   "Malte Heyde",
+   "Juho Lähteenmäki",
+   "Runar Norheim"
+  ],
+  "ST": [
+   "Ola Solbakken",
+   "Prince Amoako",
+   "Alexander Lind",
+   "Ibrahim Adel"
+  ]
+ },
+ "Pafos FC": {
+  "TW": [
+   "Jay Gorter",
+   "Radosław Majecki"
+  ],
+  "ABW": [
+   "David Luiz",
+   "David Goldar",
+   "Samy Mmaee",
+   "Yoram Zague",
+   "Nikolas Ioannou",
+   "Jonatás Noro"
+  ],
+  "MF": [
+   "Domingos Quina",
+   "Ken Sema",
+   "Ivan Šunjić",
+   "Vlad Dragomir",
+   "Pêpê",
+   "Guga"
+  ],
+  "ST": [
+   "Lelê",
+   "Anderson Silva",
+   "Jajá",
+   "Nicolas Ngamaleu"
+  ]
+ },
+ "Panathinaikos": {
+  "TW": [
+   "Iñaki Peña",
+   "Lucas Chaves"
+  ],
+  "ABW": [
+   "Davide Calabria",
+   "Georgios Kyriakopoulos",
+   "Victor Kristiansen",
+   "Stefan de Vrij",
+   "Erik Palmer-Brown",
+   "Rick van Drongelen"
+  ],
+  "MF": [
+   "Pedro Chirivella",
+   "Azzedine Ounahi",
+   "Imrân Louza",
+   "Etienne Camara",
+   "Adriano Jagušić",
+   "Santino Andino"
+  ],
+  "ST": [
+   "Cyriel Dessers",
+   "Andrews Tetteh",
+   "Facundo Pellistri",
+   "Levi García"
+  ]
+ },
+ "Roter Stern Belgrad": {
+  "TW": [
+   "Matheus",
+   "Savo Radanović"
+  ],
+  "ABW": [
+   "Miloš Veljković",
+   "Yuta Nakayama",
+   "Derrick Luckassen",
+   "Mihailo Ristić",
+   "Stefan Gudelj",
+   "Franklin Tebo"
+  ],
+  "MF": [
+   "Mirko Ivanić",
+   "Abu Fani",
+   "Rade Krunić",
+   "Tomás Händel",
+   "Timi Max Elšnik",
+   "Mahmudu Bajo"
+  ],
+  "ST": [
+   "Marko Arnautović",
+   "Bamba Dieng",
+   "Osman Bukari",
+   "Kristiyan Balov"
+  ]
+ },
+ "Riga FC": {
+  "TW": [
+   "Krišjānis Zviedris",
+   "Kristaps Zommers"
+  ],
+  "ABW": [
+   "Abner",
+   "Karl Wassom",
+   "Raivis Jurkovskis",
+   "Andrés Salazar",
+   "Baba Musah",
+   "Antonijs Černomordijs"
+  ],
+  "MF": [
+   "Orlando Galo",
+   "Raki Aouani",
+   "Iago Siqueira",
+   "Renārs Varslavāns",
+   "Salah-Eddine Oulad M'Hand",
+   "Meissa Diop"
+  ],
+  "ST": [
+   "Anthony Contreras",
+   "Reginaldo Ramires",
+   "Mohamed Badamosi",
+   "Abdulrahman Taiwo"
+  ]
+ },
+ "Sint-Truidense VV": {
+  "TW": [
+   "Leo Kokubo",
+   "Matt Lendfers"
+  ],
+  "ABW": [
+   "Shōgo Taniguchi",
+   "Visar Musliu",
+   "Taiga Hata",
+   "Joedrick Pupe",
+   "Robert-Jan Vanwesemael",
+   "Kota Takai"
+  ],
+  "MF": [
+   "Abdoulaye Sissako",
+   "Ryan Merlen",
+   "Nelson Ishiwatari",
+   "Ryotaro Araki",
+   "Kaito Matsuzawa",
+   "Shion Shinkawa"
+  ],
+  "ST": [
+   "Arbnor Muja",
+   "Samed Baždar",
+   "Ilias Sebaoui",
+   "Oumar Diouf"
+  ]
+ },
+ "FC Thun": {
+  "TW": [
+   "Niklas Steffen",
+   "Tim Spycher"
+  ],
+  "ABW": [
+   "Genís Montolio",
+   "Jan Bamert",
+   "Marco Bürki",
+   "Lucien Dähler",
+   "Fabio Fehr",
+   "Ashvin Balaruban"
+  ],
+  "MF": [
+   "Mattias Käit",
+   "Justin Roth",
+   "Adam Ilic",
+   "Nils Reichmuth",
+   "Saiz",
+   "Zoukit"
+  ],
+  "ST": [
+   "Furkan Dursun",
+   "Brighton Labeau",
+   "Marc Gutbub",
+   "Braschi"
+  ]
+ },
+ "Trabzonspor": {
+  "TW": [
+   "André Onana",
+   "Ahmet Doğan Yıldırım"
+  ],
+  "ABW": [
+   "Stefan Savić",
+   "Wagner Pina",
+   "Mustafa Eskihellaç",
+   "Chibuike Nwaiwu",
+   "Arseniy Batagov",
+   "Sidny Lopes Cabral"
+  ],
+  "MF": [
+   "Ernest Muçi",
+   "Fabinho",
+   "Benjamin Bouchouari",
+   "Ruslan Malinovskyi",
+   "Ozan Tufan",
+   "Aral Şimşir"
+  ],
+  "ST": [
+   "Paul Onuachu",
+   "Franculino Djú",
+   "Mohamed Salah",
+   "Noah Saviolo"
+  ]
+ },
+ "FC Twente": {
+  "TW": [
+   "Lars Unnerstall",
+   "Joël Drommel"
+  ],
+  "ABW": [
+   "Robin Pröpper",
+   "Ruud Nijstad",
+   "Michał Rosiak",
+   "Krzysztof Kurowski",
+   "Bart van Rooij",
+   "Aske Adelgaard"
+  ],
+  "MF": [
+   "Ramiz Zerrouki",
+   "Daouda Weidmann",
+   "Kristian Hlynsson",
+   "Jordy Bawuah",
+   "Thomas van den Belt",
+   "Gijs Besselink"
+  ],
+  "ST": [
+   "Wout Weghorst",
+   "Younes Taha",
+   "Daan Rots",
+   "Marko Pjaca"
+  ]
+ },
+ "Universitatea Craiova": {
+  "TW": [
+   "Răzvan Sava",
+   "Alexandru Maxim"
+  ],
+  "ABW": [
+   "Oleksandr Romanchuk",
+   "Vladimir Screciu",
+   "Nikola Stevanović",
+   "Adrian Rus",
+   "Roux",
+   "Heriberto Tavares"
+  ],
+  "MF": [
+   "Alexandru Crețu",
+   "Tudor Băluță",
+   "Nicușor Bancu",
+   "Carlos Mora",
+   "Samuel Teles",
+   "Alexandru Cicâldău"
+  ],
+  "ST": [
+   "Steven Nsimba",
+   "Al Hamlawi",
+   "Ștefan Baiaram",
+   "Monday Etim"
+  ]
+ },
+ "Juventus Turin": {
+  "TW": [
+   "Guglielmo Vicario",
+   "Kamil Grabara"
+  ],
+  "ABW": [
+   "Gleison Bremer",
+   "Federico Gatti",
+   "Pierre Kalulu",
+   "Lloyd Kelly",
+   "Jhon Lucumí",
+   "Andrea Cambiaso"
+  ],
+  "MF": [
+   "Manuel Locatelli",
+   "Khéphren Thuram",
+   "Teun Koopmeiners",
+   "Weston McKennie",
+   "Douglas Luiz",
+   "Pape Matar Sarr"
+  ],
+  "ST": [
+   "Kenan Yıldız",
+   "Francisco Conceição",
+   "Randal Kolo Muani",
+   "Nick Woltemade"
+  ]
+ },
+ "Crystal Palace": {
+  "TW": [
+   "Walter Benítez",
+   "Dean Henderson"
+  ],
+  "ABW": [
+   "Chris Richards",
+   "Tyrick Mitchell",
+   "Jaydee Canvot",
+   "Honest Ahanor",
+   "Anan Khalaili",
+   "Oscar Mingueza"
+  ],
+  "MF": [
+   "Adam Wharton",
+   "Daichi Kamada",
+   "Quinten Timber",
+   "Jefferson Lerma",
+   "Will Hughes",
+   "Yéremy Pino"
+  ],
+  "ST": [
+   "Jean-Philippe Mateta",
+   "Jørgen Strand Larsen",
+   "Ismaïla Sarr",
+   "Eddie Nketiah"
+  ]
+ },
+ "Sparta Prag": {
+  "TW": [
+   "Jakub Surovčík",
+   "Krisztián Hegyi"
+  ],
+  "ABW": [
+   "Martin Suchomel",
+   "Pavel Kadeřábek",
+   "Jaroslav Zelený",
+   "Asger Sørensen",
+   "Adam Ševínský",
+   "Viktor Vitályos"
+  ],
+  "MF": [
+   "Andrew Irving",
+   "Adam Karabec",
+   "Josimar Alcócer",
+   "Hugo Sochůrek",
+   "Matěj Ryneš",
+   "Santiago Eneme"
+  ],
+  "ST": [
+   "Jonatan Braut Brunes",
+   "Jan Kuchta",
+   "Matyáš Vojta",
+   "Lukáš Haraslín"
+  ]
+ },
+ "Beşiktaş": {
+  "TW": [
+   "Alexander Nübel",
+   "Doğan Alemdar"
+  ],
+  "ABW": [
+   "Emmanuel Agbadou",
+   "Tiago Djaló",
+   "Kassoum Ouattara",
+   "Amir Murillo",
+   "Yasin Özcan",
+   "Rıdvan Yılmaz"
+  ],
+  "MF": [
+   "Wilfred Ndidi",
+   "Salih Özcan",
+   "Orkun Kökçü",
+   "Junior Olaitan",
+   "Fabio Miretti",
+   "Kartal Kayra Yılmaz"
+  ],
+  "ST": [
+   "Dušan Vlahović",
+   "Leandro Trossard",
+   "Oh Hyeon-gyu",
+   "Václav Černý"
+  ]
+ },
+ "Royale Union Saint-Gilloise": {
+  "TW": [
+   "Vic Chambaere",
+   "Hervé Koffi"
+  ],
+  "ABW": [
+   "Kevin Mac Allister",
+   "Ross Sykes",
+   "Massiré Sylla",
+   "Denzel De Roeve",
+   "Nohim Chibani",
+   "Louis Patris"
+  ],
+  "MF": [
+   "Adem Zorgane",
+   "Kamiel Van De Perre",
+   "Rob Schoofs",
+   "Besfort Zeneli",
+   "Darius Olaru",
+   "Relebohile Mofokeng"
+  ],
+  "ST": [
+   "Mateo Biondic",
+   "Kevin Rodríguez",
+   "Guilherme Smith",
+   "Raul Florucz"
+  ]
+ },
+ "Ferencváros": {
+  "TW": [
+   "Dénes Dibusz",
+   "Ádám Varga"
+  ],
+  "ABW": [
+   "Mariano Gómez",
+   "Nathan Zohoré",
+   "Endre Botka",
+   "Toon Raemaekers",
+   "Attila Osváth",
+   "Olivér Nagy"
+  ],
+  "MF": [
+   "Ádám Nagy",
+   "Naby Keïta",
+   "Habib Maïga",
+   "Marius Corbu",
+   "Cadu",
+   "Matúš Bero"
+  ],
+  "ST": [
+   "Bamidele Yusuf",
+   "Veljko Birmančević",
+   "Jonathan Levi",
+   "Franko Kovačević"
+  ]
+ },
+ "Benfica Lissabon": {
+  "TW": [
+   "Anatoliy Trubin",
+   "Samuel Soares"
+  ],
+  "ABW": [
+   "Tomás Araújo",
+   "Alexander Bah",
+   "Samuel Dahl",
+   "Alessandro Circati",
+   "Clément Lenglet",
+   "Gabriel Índio"
+  ],
+  "MF": [
+   "Fredrik Aursnes",
+   "Enzo Barrenechea",
+   "Heorhiy Sudakov",
+   "João Palhinha",
+   "Leandro Barreiro",
+   "Rafa Silva"
+  ],
+  "ST": [
+   "Vangelis Pavlidis",
+   "Dodi Lukébakio",
+   "Andreas Schjelderup",
+   "Gianluca Prestianni"
+  ]
+ },
+ "OFI Kreta": {
+  "TW": [
+   "Nikolaos Christogeorgos",
+   "Lilo Klidman"
+  ],
+  "ABW": [
+   "Dimitris Nikolaou",
+   "Achilleas Poungouras",
+   "Krešimir Krizmanić",
+   "Christos Shelis",
+   "Nikolaos Athanasiou",
+   "Lorenzo Dickmann"
+  ],
+  "MF": [
+   "Andreas Bouchalakis",
+   "Thanasis Androutsos",
+   "Giannis Apostolakis",
+   "Georgios Kanellopoulos",
+   "Zisis Karachalios",
+   "Thiago Nuss"
+  ],
+  "ST": [
+   "Aaron Leya Iseka",
+   "Taxiarchis Fountas",
+   "Aitor Cantalapiedra",
+   "Kenan Kodro"
+  ]
+ },
+ "AFC Bournemouth": {
+  "TW": [
+   "Djordje Petrović",
+   "Michele Di Gregorio"
+  ],
+  "ABW": [
+   "James Hill",
+   "António Silva",
+   "Bafodé Diakité",
+   "Adrien Truffert",
+   "Adam Smith",
+   "Veljko Milosavljević"
+  ],
+  "MF": [
+   "Alex Scott",
+   "Tyler Adams",
+   "Ryan Christie",
+   "Lewis Cook",
+   "Marcus Tavernier",
+   "Alex Tóth"
+  ],
+  "ST": [
+   "Evanilson",
+   "Justin Kluivert",
+   "Junior Kroupi",
+   "Rayan"
+  ]
+ },
+ "Olympique Lyon": {
+  "TW": [
+   "Dominik Greif",
+   "Rémy Descamps"
+  ],
+  "ABW": [
+   "Nicolás Tagliafico",
+   "Moussa Niakhaté",
+   "Clinton Mata",
+   "Abner",
+   "Ruben Kluivert",
+   "Felix Bacher"
+  ],
+  "MF": [
+   "Corentin Tolisso",
+   "Tanner Tessmann",
+   "Tyler Morton",
+   "Mads Bidstrup",
+   "Pavel Šulc",
+   "Khalis Merah"
+  ],
+  "ST": [
+   "Ernest Nuamah",
+   "Keito Nakamura",
+   "Loïs Openda",
+   "Julien Duranville"
+  ]
+ },
+ "Torreense": {
+  "TW": [
+   "Lucas Paes",
+   "Adriel"
+  ],
+  "ABW": [
+   "Stopira",
+   "Juan Alcedo",
+   "Volnei",
+   "David Bruno",
+   "Javi Vázquez",
+   "Mohamed Ali Diadie"
+  ],
+  "MF": [
+   "Alejandro Alfaro",
+   "Costinha",
+   "Carlos Reina",
+   "Amine Oudrhiri",
+   "Nuha Jatta",
+   "Marco Silva"
+  ],
+  "ST": [
+   "Jorge Aguirre",
+   "Dany Jean",
+   "Manuel Pozo",
+   "Luis Quintero"
+  ]
+ },
+ "Olympiakos Piräus": {
+  "TW": [
+   "Stefan Ortega",
+   "Dimitrios Stournaras"
+  ],
+  "ABW": [
+   "Panagiotis Retsos",
+   "Lorenzo Pirola",
+   "David Carmo",
+   "Zinedin Smajlović",
+   "Manolis Saliakas",
+   "Bruno Onyemaechi"
+  ],
+  "MF": [
+   "Remo Freuler",
+   "Chiquinho",
+   "Santiago Hezze",
+   "Gustavo Puerta",
+   "Gustavo Sá",
+   "Kostas Fortounis"
+  ],
+  "ST": [
+   "Ayoub El Kaabi",
+   "Roman Yaremchuk",
+   "Gelson Martins",
+   "Leon Bailey"
+  ]
+ },
+ "Red Bull Salzburg": {
+  "TW": [
+   "Christian Früchtl",
+   "Christian Zawieschitzky"
+  ],
+  "ABW": [
+   "Stefan Lainer",
+   "Dominik Schmid",
+   "Kevin Boma",
+   "Tim Drexler",
+   "Frans Krätzig",
+   "Valentin Zabransky"
+  ],
+  "MF": [
+   "Umut Tohumcu",
+   "Bartosz Mazurek",
+   "Gaoussou Diakité",
+   "Abubakr Barry",
+   "Soumaïla Diabaté",
+   "Jesper Lindstrøm"
+  ],
+  "ST": [
+   "Yorbe Vertessen",
+   "Haris Tabaković",
+   "Karim Konaté",
+   "Sota Kitano"
+  ]
+ },
+ "Omonia Nikosia": {
+  "TW": [
+   "Thomas Kaminski",
+   "Fabiano"
+  ],
+  "ABW": [
+   "Lubomír Šatka",
+   "Stefan Simič",
+   "Senou Coulibaly",
+   "Moses Odubajo",
+   "Jure Balkovec",
+   "Nikolas Kyriakidis"
+  ],
+  "MF": [
+   "Carel Eiting",
+   "Mateo Marić",
+   "Florin Tănase",
+   "Luuk Brouwers",
+   "Muamer Tanković",
+   "Panagiotis Andreou"
+  ],
+  "ST": [
+   "Loïs Diony",
+   "Ewandro",
+   "David Akintola",
+   "Jaden Montnor"
+  ]
+ },
+ "AFC Sunderland": {
+  "TW": [
+   "Robin Roefs",
+   "Simon Moore"
+  ],
+  "ABW": [
+   "Kevin Danso",
+   "Dan Ballard",
+   "Nordi Mukiele",
+   "Reinildo",
+   "Omar Alderete",
+   "Thomas Meunier"
+  ],
+  "MF": [
+   "Granit Xhaka",
+   "Noah Sadiki",
+   "Enzo Le Fée",
+   "Chris Rigg",
+   "Jules Ahoka",
+   "Luke O'Nien"
+  ],
+  "ST": [
+   "Brian Brobbey",
+   "Nilson Angulo",
+   "Chemsdine Talbi",
+   "Malick Fofana"
+  ]
+ },
+ "Dinamo Zagreb": {
+  "TW": [
+   "Dominik Kotarski",
+   "Danijel Zagorac"
+  ],
+  "ABW": [
+   "Scott McKenna",
+   "Niko Galešić",
+   "Moris Valinčić",
+   "Bruno Goda",
+   "Noa Mikić",
+   "Stjepan Radeljić"
+  ],
+  "MF": [
+   "Miha Zajc",
+   "Luka Ivanušec",
+   "Josip Mišić",
+   "Robert Mudražija",
+   "Kirill Kravtsov",
+   "Luka Stojković"
+  ],
+  "ST": [
+   "Dion Beljo",
+   "Mislav Oršić",
+   "Dani Rodríguez",
+   "Arber Hoxha"
+  ]
+ },
+ "Hapoel Be'er Sheva": {
+  "TW": [
+   "Ofir Marciano",
+   "Marco Wolff"
+  ],
+  "ABW": [
+   "Guy Mizrahi",
+   "Matan Baltaxa",
+   "Miguel Vítor",
+   "Pedro Amador",
+   "Itay Rotman",
+   "Ofir Davidzada"
+  ],
+  "MF": [
+   "Eliel Peretz",
+   "Mohammad Kanaan",
+   "Lucas Ventura",
+   "Niv Yehoshua",
+   "Dan Biton",
+   "Amir Ganah"
+  ],
+  "ST": [
+   "Yonas Malede",
+   "Igor Zlatanović",
+   "João Victor",
+   "Adrián Ugarriza"
+  ]
+ },
+ "Stade Rennes": {
+  "TW": [
+   "Brice Samba",
+   "Nicolas Lemaître"
+  ],
+  "ABW": [
+   "Charlie Cresswell",
+   "Quentin Merlin",
+   "Przemysław Frankowski",
+   "Bryan Reynolds",
+   "Mahamadou Nagida",
+   "Abdelhamid Aït Boudlal"
+  ],
+  "MF": [
+   "Sebastian Szymański",
+   "Valentin Rongier",
+   "Adrien Thomasson",
+   "Mahdi Camara",
+   "Ludovic Blas",
+   "Musa Al-Taamari"
+  ],
+  "ST": [
+   "Estéban Lepaul",
+   "Eliezer Mayenda",
+   "Boulaye Dia",
+   "Issa Soumaré"
+  ]
+ },
+ "Sturm Graz": {
+  "TW": [
+   "Daniil Khudiakov",
+   "Ammar Helac"
+  ],
+  "ABW": [
+   "Albert Vallci",
+   "Emran Soglo",
+   "Paul Koller",
+   "Jeyland Mitchell",
+   "Luís Balbo",
+   "Petar Petrović"
+  ],
+  "MF": [
+   "Jon Gorenc Stanković",
+   "Otar Kiteishvili",
+   "Jürgen Heil",
+   "Jacob Hödl",
+   "Simon Seidl",
+   "Gizo Mamageishvili"
+  ],
+  "ST": [
+   "Szymon Włodarczyk",
+   "Seedy Jatta",
+   "Belmin Beganović",
+   "Axel Kayombo"
+  ]
+ },
+ "Jagiellonia Białystok": {
+  "TW": [
+   "Sławomir Abramowicz",
+   "Michał Perchel"
+  ],
+  "ABW": [
+   "Dušan Stojinović",
+   "Yuki Kobayashi",
+   "Bernardo Vital",
+   "Bartłomiej Wdowik",
+   "Rodrigo Conceição",
+   "Apostolos Konstantopoulos"
+  ],
+  "MF": [
+   "Taras Romanczuk",
+   "Hampus Finndell",
+   "Kajetan Szmyt",
+   "Sergio Lozano",
+   "Kamil Jóźwiak",
+   "Anders Klynge"
+  ],
+  "ST": [
+   "Jesús Imaz",
+   "Youssuf Sylla",
+   "Nik Prelec",
+   "Jeremy Agbonifo"
+  ]
+ },
+ "RSC Anderlecht": {
+  "TW": [
+   "Colin Coosemans",
+   "Justin Heekeren"
+  ],
+  "ABW": [
+   "Léo Pétrot",
+   "Ludwig Augustinsson",
+   "Giulian Biancone",
+   "Marco Kana",
+   "Oleg Reabciuk",
+   "Andrew Omobamidele"
+  ],
+  "MF": [
+   "Enric Llansana",
+   "Lukáš Ambros",
+   "Thelo Aasgaard",
+   "Romeo Amane",
+   "Ilias Koutsoupias",
+   "Mario Stroeykens"
+  ],
+  "ST": [
+   "Mihajlo Cvetković",
+   "Oliver Antman",
+   "Marten Winkler",
+   "Danylo Sikan"
+  ]
+ },
+ "Lillestrøm SK": {
+  "TW": [
+   "Stefan Hagerup",
+   "Pontus Dahlberg"
+  ],
+  "ABW": [
+   "Lars Mogstad Ranger",
+   "Sturla Ottesen",
+   "Espen Garnås",
+   "Sander Moen Foss",
+   "Frederik Elkær",
+   "Ruben Gabrielsen"
+  ],
+  "MF": [
+   "Gustav Nyheim",
+   "Henrik Melland",
+   "Eric Kitolano",
+   "Kevin Krygård",
+   "Filip Ottosson",
+   "Ylldren Ibrahimaj"
+  ],
+  "ST": [
+   "Vá",
+   "Fredrik Gulbrandsen",
+   "Thomas Lehne Olsen",
+   "Camil Jebara"
+  ]
+ },
+ "Real Sociedad": {
+  "TW": [
+   "Álex Remiro",
+   "Unai Marrero"
+  ],
+  "ABW": [
+   "Jon Aramburu",
+   "Igor Zubeldia",
+   "Jon Martín",
+   "Sergio Gómez",
+   "Mamadou Sarr",
+   "Jon Pacheco"
+  ],
+  "MF": [
+   "Carlos Soler",
+   "Yangel Herrera",
+   "Jon Gorrotxategi",
+   "Beñat Turrientes",
+   "Luka Sučić",
+   "Arsen Zakharyan"
+  ],
+  "ST": [
+   "Mikel Oyarzabal",
+   "Orri Óskarsson",
+   "Gonçalo Guedes",
+   "Takefusa Kubo"
+  ]
+ },
+ "AZ Alkmaar": {
+  "TW": [
+   "Rome Owusu-Oduro",
+   "Hobie Verhulst"
+  ],
+  "ABW": [
+   "Seiya Maikuma",
+   "Wouter Goes",
+   "Lewis Schouten",
+   "Mateo Chávez",
+   "Elijah Dijkstra",
+   "Denso Kasius"
+  ],
+  "MF": [
+   "Peer Koopmeiners",
+   "Jordy Clasie",
+   "Kees Smit",
+   "Dave Kwakman",
+   "Valdemar Byskov",
+   "Calvin Stengs"
+  ],
+  "ST": [
+   "Weslley Patati",
+   "Mexx Meerdink",
+   "Ro-Zangelo Daal",
+   "Jizz Hornkamp"
+  ]
+ },
+ "Celta Vigo": {
+  "TW": [
+   "Ionuț Radu",
+   "Altay Bayındır"
+  ],
+  "ABW": [
+   "Marcos Alonso",
+   "Yoel Lago",
+   "Álvaro Núñez",
+   "Carl Starfelt",
+   "Javi Rodríguez",
+   "Javi Galán"
+  ],
+  "MF": [
+   "Ilaix Moriba",
+   "Miguel Román",
+   "Aleix Febas",
+   "Andrés Antañón",
+   "Javi Rueda",
+   "Sergio Carreira"
+  ],
+  "ST": [
+   "Williot Swedberg",
+   "Ferran Jutglà",
+   "Borja Iglesias",
+   "Iago Aspas"
+  ]
+ },
+ "Levski Sofia": {
+  "TW": [
+   "Ognyan Vladimirov",
+   "Martin Lukov"
+  ],
+  "ABW": [
+   "Hevertton Santos",
+   "Maicon",
+   "Christian Makoun",
+   "Álex Centelles",
+   "Aldair",
+   "Nikola Serafimov"
+  ],
+  "MF": [
+   "Marko Grujić",
+   "Gašper Trdin",
+   "Akram Bouras",
+   "Mehdi Moubarik",
+   "Asen Mitkov",
+   "Serginho"
+  ],
+  "ST": [
+   "Juan Perea",
+   "Armstrong Oko-Flex",
+   "Mazire Soula",
+   "Reinaldo"
+  ]
+ },
+ "Celtic Glasgow": {
+  "TW": [
+   "Viljami Sinisalo",
+   "Ross Doohan"
+  ],
+  "ABW": [
+   "Alistair Johnston",
+   "Anthony Ralston",
+   "Liam Scales",
+   "Auston Trusty",
+   "Cameron Carter-Vickers",
+   "Kieran Tierney"
+  ],
+  "MF": [
+   "Callum McGregor",
+   "Arne Engels",
+   "Reo Hatate",
+   "Paulo Bernardo",
+   "Luke McCowan",
+   "Alex Oxlade-Chamberlain"
+  ],
+  "ST": [
+   "Daizen Maeda",
+   "Kelechi Iheanacho",
+   "Jota",
+   "Sebastian Tounekti"
+  ]
+ },
+ "NK Celje": {
+  "TW": [
+   "Žan-Luk Leban",
+   "Luka Kolar"
+  ],
+  "ABW": [
+   "Pijus Širvys",
+   "Damjan Vukliševič",
+   "Artemijus Tutyškinas",
+   "Alpha Diounkou",
+   "Leonardo Koutris",
+   "Łukasz Bejger"
+  ],
+  "MF": [
+   "Svit Sešlar",
+   "Mark Zabukovnik",
+   "Milot Avdyli",
+   "Mario Kvesić",
+   "Darko Hrka",
+   "Papa Daniel"
+  ],
+  "ST": [
+   "Armandas Kučys",
+   "Yaya Dukuly",
+   "Matej Poplatnik",
+   "Benjamin Verbič"
+  ]
+ },
+ "AC Mailand": {
+  "TW": [
+   "Mike Maignan",
+   "Pietro Terracciano"
+  ],
+  "ABW": [
+   "Fikayo Tomori",
+   "Matteo Gabbia",
+   "Strahinja Pavlović",
+   "Mario Gila",
+   "Pervis Estupiñán",
+   "Davide Bartesaghi"
+  ],
+  "MF": [
+   "Luka Modrić",
+   "Adrien Rabiot",
+   "Ardon Jashari",
+   "Ruben Loftus-Cheek",
+   "Alexis Saelemaekers",
+   "Yunus Musah"
+  ],
+  "ST": [
+   "Gonçalo Ramos",
+   "Christian Pulisic",
+   "Francesco Camarda",
+   "Samuel Chukwueze"
+  ]
+ },
+ "Olympique Marseille": {
+  "TW": [
+   "Jeffrey de Lange",
+   "Gerónimo Rulli"
+  ],
+  "ABW": [
+   "CJ Egan-Riley",
+   "Derek Cornelius",
+   "Nayef Aguerd",
+   "Bamo Meïté",
+   "Emerson",
+   "Ulisses Garcia"
+  ],
+  "MF": [
+   "Pierre-Emile Højbjerg",
+   "Geoffrey Kondogbia",
+   "Himad Abdelli",
+   "Angel Gomes",
+   "Tochukwu Nnadi",
+   "Amine Harit"
+  ],
+  "ST": [
+   "Amine Gouiri",
+   "Igor Paixão",
+   "Timothy Weah",
+   "Neal Maupay"
+  ]
+ },
+ "Ararat-Armenia": {
+  "TW": [
+   "Arman Nersesyan",
+   "Shirak Badalyan"
+  ],
+  "ABW": [
+   "Hugo Oliveira",
+   "Junior Bueno",
+   "Kamo Hovhannisyan",
+   "Edgar Grigoryan",
+   "Bouchaib Arrassi",
+   "Alexandros Malis"
+  ],
+  "MF": [
+   "Juan Balanta",
+   "Armen Ambartsumyan",
+   "Zidane Banjaqui",
+   "Karen Muradyan",
+   "Alwyn Tera",
+   "Artur Serobyan"
+  ],
+  "ST": [
+   "Arayik Eloyan",
+   "Alioune Ndour",
+   "Paul Ayongo",
+   "Zhirayr Shaghoyan"
+  ]
+ },
+ "Viktoria Pilsen": {
+  "TW": [
+   "Dominik Ťapaj",
+   "Florian Wiegele"
+  ],
+  "ABW": [
+   "Tobiáš Pališčák",
+   "Denis Vavro",
+   "Karel Spáčil",
+   "Merchas Doski",
+   "Adam Gabriel",
+   "Sampson Dweh"
+  ],
+  "MF": [
+   "Lukáš Červ",
+   "Patrik Hrošovský",
+   "Tomáš Ladra",
+   "Cheick Souaré",
+   "Denis Višinský",
+   "Alexandr Sojka"
+  ],
+  "ST": [
+   "Salim Fago Lawal",
+   "Mohamed Touré",
+   "Matěj Vydra",
+   "Baboucarr Faal"
+  ]
+ },
+ "Lech Posen": {
+  "TW": [
+   "Mateusz Lis",
+   "Wiktor Obremski"
+  ],
+  "ABW": [
+   "Joel Pereira",
+   "Michał Gurgul",
+   "Mateusz Skrzypczak",
+   "Terry Yegbe",
+   "Wojciech Mońka",
+   "João Moutinho"
+  ],
+  "MF": [
+   "Antoni Kozubal",
+   "Radosław Murawski",
+   "Patrik Wålemark",
+   "Pablo Rodríguez",
+   "Filip Jagiełło",
+   "Leo Bengtsson"
+  ],
+  "ST": [
+   "Mikael Ishak",
+   "Yannick Agnero",
+   "Luis Palma",
+   "Allahyar Sayyadmanesh"
+  ]
+ },
+ "NEC Nijmegen": {
+  "TW": [
+   "Gonzalo Crettaz",
+   "Nikolas Polster"
+  ],
+  "ABW": [
+   "Perr Schuurs",
+   "Ahmetcan Kaplan",
+   "Deveron Fonville",
+   "Philippe Sandler",
+   "Mitchel Bakker",
+   "Bram Nuytinck"
+  ],
+  "MF": [
+   "Dennis Geiger",
+   "Darko Nejašmić",
+   "Noé Lebreton",
+   "Tjaronn Chery",
+   "Isak Hansen-Aarøen",
+   "Willum Þór Willumsson"
+  ],
+  "ST": [
+   "Bryan Linssen",
+   "Kaj Sierhuis",
+   "Dušan Tadić",
+   "Emre Mor"
+  ]
+ }
+}

@@ -1,0 +1,50 @@
+{
+  "Panathinaikos": {
+    "TW": ["Iñaki Peña", "Lucas Chaves"],
+    "ABW": ["Davide Calabria", "Georgios Kyriakopoulos", "Victor Kristiansen", "Stefan de Vrij", "Erik Palmer-Brown", "Rick van Drongelen"],
+    "MF": ["Pedro Chirivella", "Azzedine Ounahi", "Imrân Louza", "Etienne Camara", "Adriano Jagušić", "Santino Andino"],
+    "ST": ["Cyriel Dessers", "Andrews Tetteh", "Facundo Pellistri", "Levi García"]
+  },
+  "Roter Stern Belgrad": {
+    "TW": ["Matheus", "Savo Radanović"],
+    "ABW": ["Miloš Veljković", "Yuta Nakayama", "Derrick Luckassen", "Mihailo Ristić", "Stefan Gudelj", "Franklin Tebo"],
+    "MF": ["Mirko Ivanić", "Abu Fani", "Rade Krunić", "Tomás Händel", "Timi Max Elšnik", "Mahmudu Bajo"],
+    "ST": ["Marko Arnautović", "Bamba Dieng", "Osman Bukari", "Kristiyan Balov"]
+  },
+  "Riga FC": {
+    "TW": ["Krišjānis Zviedris", "Kristaps Zommers"],
+    "ABW": ["Abner", "Karl Wassom", "Raivis Jurkovskis", "Andrés Salazar", "Baba Musah", "Antonijs Černomordijs"],
+    "MF": ["Orlando Galo", "Raki Aouani", "Iago Siqueira", "Renārs Varslavāns", "Salah-Eddine Oulad M'Hand", "Meissa Diop"],
+    "ST": ["Anthony Contreras", "Reginaldo Ramires", "Mohamed Badamosi", "Abdulrahman Taiwo"]
+  },
+  "Sint-Truidense VV": {
+    "TW": ["Leo Kokubo", "Matt Lendfers"],
+    "ABW": ["Shōgo Taniguchi", "Visar Musliu", "Taiga Hata", "Joedrick Pupe", "Robert-Jan Vanwesemael", "Kota Takai"],
+    "MF": ["Abdoulaye Sissako", "Ryan Merlen", "Nelson Ishiwatari", "Ryotaro Araki", "Kaito Matsuzawa", "Shion Shinkawa"],
+    "ST": ["Arbnor Muja", "Samed Baždar", "Ilias Sebaoui", "Oumar Diouf"]
+  },
+  "FC Thun": {
+    "TW": ["Niklas Steffen", "Tim Spycher"],
+    "ABW": ["Genís Montolio", "Jan Bamert", "Marco Bürki", "Lucien Dähler", "Fabio Fehr", "Ashvin Balaruban"],
+    "MF": ["Mattias Käit", "Justin Roth", "Adam Ilic", "Nils Reichmuth", "Saiz", "Zoukit"],
+    "ST": ["Furkan Dursun", "Brighton Labeau", "Marc Gutbub", "Braschi"]
+  },
+  "Trabzonspor": {
+    "TW": ["André Onana", "Ahmet Doğan Yıldırım"],
+    "ABW": ["Stefan Savić", "Wagner Pina", "Mustafa Eskihellaç", "Chibuike Nwaiwu", "Arseniy Batagov", "Sidny Lopes Cabral"],
+    "MF": ["Ernest Muçi", "Fabinho", "Benjamin Bouchouari", "Ruslan Malinovskyi", "Ozan Tufan", "Aral Şimşir"],
+    "ST": ["Paul Onuachu", "Franculino Djú", "Mohamed Salah", "Noah Saviolo"]
+  },
+  "FC Twente": {
+    "TW": ["Lars Unnerstall", "Joël Drommel"],
+    "ABW": ["Robin Pröpper", "Ruud Nijstad", "Michał Rosiak", "Krzysztof Kurowski", "Bart van Rooij", "Aske Adelgaard"],
+    "MF": ["Ramiz Zerrouki", "Daouda Weidmann", "Kristian Hlynsson", "Jordy Bawuah", "Thomas van den Belt", "Gijs Besselink"],
+    "ST": ["Wout Weghorst", "Younes Taha", "Daan Rots", "Marko Pjaca"]
+  },
+  "Universitatea Craiova": {
+    "TW": ["Răzvan Sava", "Alexandru Maxim"],
+    "ABW": ["Oleksandr Romanchuk", "Vladimir Screciu", "Nikola Stevanović", "Adrian Rus", "Roux", "Heriberto Tavares"],
+    "MF": ["Alexandru Crețu", "Tudor Băluță", "Nicușor Bancu", "Carlos Mora", "Samuel Teles", "Alexandru Cicâldău"],
+    "ST": ["Steven Nsimba", "Al Hamlawi", "Ștefan Baiaram", "Monday Etim"]
+  }
+}

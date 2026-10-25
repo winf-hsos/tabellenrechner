@@ -1,0 +1,50 @@
+{
+  "Paris Saint-Germain": {
+    "TW": ["Lucas Chevalier", "Matvey Safonov"],
+    "ABW": ["Achraf Hakimi", "Marquinhos", "Willian Pacho", "Nuno Mendes", "Ilya Zabarnyi", "Lucas Hernández"],
+    "MF": ["Vitinha", "João Neves", "Fabián Ruiz", "Warren Zaïre-Emery", "Dro Fernández", "Maghnes Akliouche"],
+    "ST": ["Ousmane Dembélé", "Khvicha Kvaratskhelia", "Désiré Doué", "Ferran Torres"]
+  },
+  "FC Barcelona": {
+    "TW": ["Joan García", "Wojciech Szczęsny"],
+    "ABW": ["Pau Cubarsí", "Jules Koundé", "Alejandro Balde", "João Cancelo", "Andreas Christensen", "Eric García"],
+    "MF": ["Pedri", "Rodri", "Frenkie de Jong", "Dani Olmo", "Fermín López", "Gavi"],
+    "ST": ["Lamine Yamal", "Raphinha", "Anthony Gordon", "Karim Adeyemi"]
+  },
+  "Aston Villa": {
+    "TW": ["Zion Suzuki", "Marco Bizot"],
+    "ABW": ["Pau Torres", "Tyrone Mings", "Victor Lindelöf", "Matty Cash", "Ian Maatsen", "Matteo Ruggeri"],
+    "MF": ["Boubacar Kamara", "Amadou Onana", "John McGinn", "Leon Goretzka", "João Gomes", "Emiliano Buendía"],
+    "ST": ["Nicolas Jackson", "Tammy Abraham", "Alejandro Garnacho", "Ibrahim Mbaye"]
+  },
+  "FC Liverpool": {
+    "TW": ["Alisson Becker", "Giorgi Mamardashvili"],
+    "ABW": ["Virgil van Dijk", "Jérémy Jacquet", "Ronald Araújo", "Milos Kerkez", "Jeremie Frimpong", "Conor Bradley"],
+    "MF": ["Dominik Szoboszlai", "Florian Wirtz", "Alexis Mac Allister", "Ryan Gravenberch", "Wataru Endo", "James McConnell"],
+    "ST": ["Alexander Isak", "Hugo Ekitike", "Cody Gakpo", "Bradley Barcola"]
+  },
+  "Sporting Lissabon": {
+    "TW": ["Rui Silva", "Diego Callai"],
+    "ABW": ["Gonçalo Inácio", "Eduardo Quaresma", "Maxi Araújo", "Iván Fresneda", "Georgios Vagiannidis", "Ibrahima Ba"],
+    "MF": ["Sergi Altimira", "Issa Doumbia", "João Simões", "Silas Andersen", "Pedro Lima", "Flávio Gonçalves"],
+    "ST": ["Luis Suárez", "Fotis Ioannidis", "Geny Catamo", "Nestory Irankunda"]
+  },
+  "FC Arsenal": {
+    "TW": ["David Raya", "Kepa Arrizabalaga"],
+    "ABW": ["William Saliba", "Gabriel Magalhães", "Jurriën Timber", "Riccardo Calafiori", "Ben White", "Ezri Konsa"],
+    "MF": ["Declan Rice", "Martín Zubimendi", "Mikel Merino", "Martin Ødegaard", "Eberechi Eze", "Bruno Guimarães"],
+    "ST": ["Bukayo Saka", "Viktor Gyökeres", "Kai Havertz", "Noni Madueke"]
+  },
+  "Real Madrid": {
+    "TW": ["Thibaut Courtois", "Andriy Lunin"],
+    "ABW": ["Trent Alexander-Arnold", "Dean Huijsen", "Éder Militão", "Antonio Rüdiger", "Álvaro Carreras", "Marc Cucurella"],
+    "MF": ["Jude Bellingham", "Federico Valverde", "Aurélien Tchouaméni", "Eduardo Camavinga", "Arda Güler", "Bernardo Silva"],
+    "ST": ["Kylian Mbappé", "Vinícius Júnior", "Rodrygo", "Endrick"]
+  },
+  "Betis Sevilla": {
+    "TW": ["Álvaro Valles", "Diego Conde"],
+    "ABW": ["Natan", "Marc Bartra", "Diego Llorente", "Valentín Gómez", "Fran García", "Héctor Bellerín"],
+    "MF": ["Isco", "Giovani Lo Celso", "Dani Ceballos", "Marc Roca", "Pablo Fornals", "Álvaro Fidalgo"],
+    "ST": ["Antony", "Abde Ezzalzouli", "Cucho Hernández", "Troy Parrott"]
+  }
+}

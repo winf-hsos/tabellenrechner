@@ -1,0 +1,50 @@
+{
+  "Inter Mailand": {
+    "TW": ["Josep Martínez", "Ivan Provedel"],
+    "ABW": ["Alessandro Bastoni", "Manuel Akanji", "Yann Bisseck", "John Stones", "Federico Dimarco", "Carlos Augusto"],
+    "MF": ["Nicolò Barella", "Hakan Çalhanoğlu", "Henrikh Mkhitaryan", "Piotr Zieliński", "Petar Sučić", "Curtis Jones"],
+    "ST": ["Lautaro Martínez", "Marcus Thuram", "Pio Esposito", "Ange-Yoan Bonny"]
+  },
+  "FC Porto": {
+    "TW": ["Diogo Costa", "Cláudio Ramos"],
+    "ABW": ["Jakub Kiwior", "Jan Bednarek", "Nehuén Pérez", "Zaidu Sanusi", "Alberto Costa", "Martim Fernandes"],
+    "MF": ["Victor Froholdt", "Gabri Veiga", "Alan Varela", "Pablo Rosario", "Hwang In-beom", "Seko Fofana"],
+    "ST": ["Samu Aghehowa", "William Gomes", "Pepê", "Borja Sainz"]
+  },
+  "Slavia Prag": {
+    "TW": ["Jindřich Staněk", "Nazar Domčak"],
+    "ABW": ["Igoh Ogbu", "David Zima", "Štěpán Chaloupek", "David Jurásek", "Tomáš Vlček", "Ange N'Guessan"],
+    "MF": ["Tomáš Holeš", "Lukáš Provod", "Oscar Dorley", "Michal Sadílek", "Toumani Diakité", "David Moses"],
+    "ST": ["Mojmír Chytil", "Tomáš Chorý", "Ivan Schranz", "Youssoupha Sanyang"]
+  },
+  "SSC Neapel": {
+    "TW": ["Vanja Milinković-Savić", "Alex Meret"],
+    "ABW": ["Giovanni Di Lorenzo", "Amir Rrahmani", "Sam Beukema", "Mathías Olivera", "Leonardo Spinazzola", "Rafa Marín"],
+    "MF": ["Stanislav Lobotka", "Scott McTominay", "Kevin De Bruyne", "André-Frank Zambo Anguissa", "Billy Gilmour", "Antonio Vergara"],
+    "ST": ["Rasmus Højlund", "David Neres", "Alisson Santos", "Lorenzo Lucca"]
+  },
+  "LASK": {
+    "TW": ["Lukas Jungwirth", "Tobias Schützenauer"],
+    "ABW": ["Andrés Andrade", "Xavier Mbuyamba", "Yvan Dibango", "Miguel Freckleton", "George Bello", "Alemão"],
+    "MF": ["Robert Ljubičić", "Alessandro Schöpf", "Sascha Horvath", "Kasper Jørgensen", "Melayro Bogarde", "Kryštof Daněk"],
+    "ST": ["Moses Usor", "Samuel Adeniran", "Ramiz Harakaté", "Florian Flecker"]
+  },
+  "OSC Lille": {
+    "TW": ["Berke Özer", "Orlando Gill"],
+    "ABW": ["Nathan Ngoy", "Alexsandro", "Tiago Santos", "Calvin Verdonk", "Romain Perraud", "Tanguy Nianzou"],
+    "MF": ["Nabil Bentaleb", "Benjamin André", "Ethan Mbappé", "Hákon Haraldsson", "Osame Sahraoui", "Ngal'Ayel Mukau"],
+    "ST": ["Olivier Giroud", "Ayase Ueda", "Dilane Bakwa", "Gaëtan Perrin"]
+  },
+  "Galatasaray": {
+    "TW": ["Uğurcan Çakır", "Günay Güvenç"],
+    "ABW": ["Wilfried Singo", "Davinson Sánchez", "Abdülkerim Bardakcı", "Eren Elmalı", "Ismail Jakobs", "Kaan Ayhan"],
+    "MF": ["Lucas Torreira", "İlkay Gündoğan", "Gabriel Sara", "Mario Lemina", "Yunus Akgün", "Lesley Ugochukwu"],
+    "ST": ["Victor Osimhen", "Leroy Sané", "Rafael Leão", "Barış Alper Yılmaz"]
+  },
+  "Slovan Bratislava": {
+    "TW": ["Aleksandar Popović", "Dominik Takáč"],
+    "ABW": ["Samuel Kozlovský", "Kevin Wimmer", "Svetozar Marković", "Kenan Bajrić", "César Blackman", "Sandro Cruz"],
+    "MF": ["Danylo Ihnatenko", "Daiki Matsuoka", "Rahim Ibrahim", "Alen Mustafić", "Cristian Martínez", "Peter Pokorný"],
+    "ST": ["Andraž Šporar", "Alasana Yirajang", "Roman Čerepkai", "Alexej Maroš"]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "AGF Aarhus": {
+    "TW": ["Jesper Hansen", "Mads Hedenstad"],
+    "ABW": ["Daníel Grétarsson", "Frederik Tingager", "Tobias Mølgaard", "Eric Kahl", "Colin Rösler", "Mouhammade Camara"],
+    "MF": ["Magnus Knudsen", "Kristian Arnstad", "Callum McCowatt", "Frederik Emmery", "Rasmus Carstensen", "Jens Jønsson"],
+    "ST": ["Janni Serra", "Tobias Bech", "Sebastian Jørgensen", "Mikael Anderson"]
+  },
+  "Ajax Amsterdam": {
+    "TW": ["Marc-André ter Stegen", "Maarten Paes"],
+    "ABW": ["Anton Gaaei", "Lucas Rosa", "Youri Baas", "Owen Wijndal", "Caio Henrique", "Daley Blind"],
+    "MF": ["Sofyan Amrabat", "Julian Brandt", "Oscar Gloukh", "Davy Klaassen", "Alejandro Monserrate", "Steven Berghuis"],
+    "ST": ["Kasper Dolberg", "Simon Adingra", "Viktor Tsygankov", "Marcos Leonardo"]
+  },
+  "Atalanta Bergamo": {
+    "TW": ["Marco Carnesecchi", "Marco Sportiello"],
+    "ABW": ["Raoul Bellanova", "Thomas Kristensen", "Giorgio Scalvini", "Lorenzo Bernasconi", "Isak Hien", "Sead Kolašinac"],
+    "MF": ["Mario Pašalić", "Éderson", "Franck Kessié", "Lazar Samardžić", "Eljif Elmas", "Nicola Zalewski"],
+    "ST": ["Gianluca Scamacca", "Charles De Ketelaere", "Jonathan Rowe", "Giacomo Raspadori"]
+  },
+  "Borac Banja Luka": {
+    "TW": ["Damjan Šiškovski", "Nikola Ćetković"],
+    "ABW": ["Bart Meijers", "Abel Pascual", "Branimir Cipetić", "Siniša Saničanin", "Sebastijan Herrera", "Viktor Rogan"],
+    "MF": ["Amer Hiroš", "Anderson Esiti", "Srđan Grahovac", "Miloš Jojić", "Stojan Vranješ", "Sandi Ogrinec"],
+    "ST": ["Luka Juričić", "David Vuković", "Amar Milak", "Dani Romera"]
+  },
+  "SC Braga": {
+    "TW": ["Tiago Sá", "Bernardo Fontes"],
+    "ABW": ["Víctor Gómez", "Gustaf Lagerbielke", "Bright Arrey-Mbi", "Adrian Barišić", "Diogo Travassos", "Sergio Barcia"],
+    "MF": ["João Moutinho", "Mario Dorgeles", "Denis Huseinbašić", "Demir Ege Tıknaz", "Jean-Baptiste Gorby", "Tomás Marques"],
+    "ST": ["Ricardo Horta", "Pau Víctor", "Fran Navarro", "Gabri Martínez"]
+  },
+  "SK Brann": {
+    "TW": ["Mathias Dyngeland", "Simen Vidtun Nilsen"],
+    "ABW": ["Leo Cornic", "Fredrik Pallesen", "Nana Kwame Boakye", "Joachim Soltvedt", "Vetle Dragsnes", "Neraysho Kasanwirjo"],
+    "MF": ["Sondre Tronstad", "Sakarias Opsahl", "Ulrik Mathisen", "Kristian Eriksen", "Kristall Máni Ingason", "Eggert Aron Gudmundsson"],
+    "ST": ["Niklas Castro", "Bård Finne", "Sævar Atli Magnússon", "Noah Holm"]
+  },
+  "Brighton & Hove Albion": {
+    "TW": ["Bart Verbruggen", "Jason Steele"],
+    "ABW": ["Lewis Dunk", "Luka Vušković", "Pascal Struijk", "Ferdi Kadıoğlu", "Maxim De Cuyper", "Olivier Boscagli"],
+    "MF": ["Pascal Groß", "Yasin Ayari", "Jack Hinshelwood", "Matt O'Riley", "Diego Gómez", "Mats Wieffer"],
+    "ST": ["Georginio Rutter", "Charalampos Kostoulas", "Ibrahim Osman", "Promise David"]
+  },
+  "FC Kopenhagen": {
+    "TW": ["Diant Ramaj", "Rúnar Alex Rúnarsson"],
+    "ABW": ["Felix Beijmo", "Gabriel Pereira", "Ákos Markgráf", "Marcos López", "Junnosuke Suzuki", "Birger Meling"],
+    "MF": ["Mads Emil Madsen", "Alex Král", "William Clem", "Thomas Delaney", "Magnus Mattsson", "Hunor Németh"],
+    "ST": ["Mohamed Elyounoussi", "Robert", "Andreas Cornelius", "Maher Carrizo"]
+  },
+  "ZSKA Sofia": {
+    "TW": ["Fedor Lapoukhov", "Dimitar Evtimov"],
+    "ABW": ["Pastor", "Teodor Ivanov", "Ángelo Martino", "Facundo Rodríguez", "Tamimou Ouorou", "Andrey Yordanov"],
+    "MF": ["Bruno Jordão", "Max Ebong", "Stefano Sensi", "Isaac Solet", "Petko Panayotov", "James Eto'o"],
+    "ST": ["Joël Zwarts", "Ioannis Pittas", "Léo Pereira", "Leandro Godoy"]
+  }
+}

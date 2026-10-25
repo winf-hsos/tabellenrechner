@@ -1,0 +1,56 @@
+{
+  "Juventus Turin": {
+    "TW": ["Guglielmo Vicario", "Kamil Grabara"],
+    "ABW": ["Gleison Bremer", "Federico Gatti", "Pierre Kalulu", "Lloyd Kelly", "Jhon Lucumí", "Andrea Cambiaso"],
+    "MF": ["Manuel Locatelli", "Khéphren Thuram", "Teun Koopmeiners", "Weston McKennie", "Douglas Luiz", "Pape Matar Sarr"],
+    "ST": ["Kenan Yıldız", "Francisco Conceição", "Randal Kolo Muani", "Nick Woltemade"]
+  },
+  "Crystal Palace": {
+    "TW": ["Walter Benítez", "Dean Henderson"],
+    "ABW": ["Chris Richards", "Tyrick Mitchell", "Jaydee Canvot", "Honest Ahanor", "Anan Khalaili", "Oscar Mingueza"],
+    "MF": ["Adam Wharton", "Daichi Kamada", "Quinten Timber", "Jefferson Lerma", "Will Hughes", "Yéremy Pino"],
+    "ST": ["Jean-Philippe Mateta", "Jørgen Strand Larsen", "Ismaïla Sarr", "Eddie Nketiah"]
+  },
+  "Sparta Prag": {
+    "TW": ["Jakub Surovčík", "Krisztián Hegyi"],
+    "ABW": ["Martin Suchomel", "Pavel Kadeřábek", "Jaroslav Zelený", "Asger Sørensen", "Adam Ševínský", "Viktor Vitályos"],
+    "MF": ["Andrew Irving", "Adam Karabec", "Josimar Alcócer", "Hugo Sochůrek", "Matěj Ryneš", "Santiago Eneme"],
+    "ST": ["Jonatan Braut Brunes", "Jan Kuchta", "Matyáš Vojta", "Lukáš Haraslín"]
+  },
+  "Beşiktaş": {
+    "TW": ["Alexander Nübel", "Doğan Alemdar"],
+    "ABW": ["Emmanuel Agbadou", "Tiago Djaló", "Kassoum Ouattara", "Amir Murillo", "Yasin Özcan", "Rıdvan Yılmaz"],
+    "MF": ["Wilfred Ndidi", "Salih Özcan", "Orkun Kökçü", "Junior Olaitan", "Fabio Miretti", "Kartal Kayra Yılmaz"],
+    "ST": ["Dušan Vlahović", "Leandro Trossard", "Oh Hyeon-gyu", "Václav Černý"]
+  },
+  "Royale Union Saint-Gilloise": {
+    "TW": ["Vic Chambaere", "Hervé Koffi"],
+    "ABW": ["Kevin Mac Allister", "Ross Sykes", "Massiré Sylla", "Denzel De Roeve", "Nohim Chibani", "Louis Patris"],
+    "MF": ["Adem Zorgane", "Kamiel Van De Perre", "Rob Schoofs", "Besfort Zeneli", "Darius Olaru", "Relebohile Mofokeng"],
+    "ST": ["Mateo Biondic", "Kevin Rodríguez", "Guilherme Smith", "Raul Florucz"]
+  },
+  "Ferencváros": {
+    "TW": ["Dénes Dibusz", "Ádám Varga"],
+    "ABW": ["Mariano Gómez", "Nathan Zohoré", "Endre Botka", "Toon Raemaekers", "Attila Osváth", "Olivér Nagy"],
+    "MF": ["Ádám Nagy", "Naby Keïta", "Habib Maïga", "Marius Corbu", "Cadu", "Matúš Bero"],
+    "ST": ["Bamidele Yusuf", "Veljko Birmančević", "Jonathan Levi", "Franko Kovačević"]
+  },
+  "Benfica Lissabon": {
+    "TW": ["Anatoliy Trubin", "Samuel Soares"],
+    "ABW": ["Tomás Araújo", "Alexander Bah", "Samuel Dahl", "Alessandro Circati", "Clément Lenglet", "Gabriel Índio"],
+    "MF": ["Fredrik Aursnes", "Enzo Barrenechea", "Heorhiy Sudakov", "João Palhinha", "Leandro Barreiro", "Rafa Silva"],
+    "ST": ["Vangelis Pavlidis", "Dodi Lukébakio", "Andreas Schjelderup", "Gianluca Prestianni"]
+  },
+  "OFI Kreta": {
+    "TW": ["Nikolaos Christogeorgos", "Lilo Klidman"],
+    "ABW": ["Dimitris Nikolaou", "Achilleas Poungouras", "Krešimir Krizmanić", "Christos Shelis", "Nikolaos Athanasiou", "Lorenzo Dickmann"],
+    "MF": ["Andreas Bouchalakis", "Thanasis Androutsos", "Giannis Apostolakis", "Georgios Kanellopoulos", "Zisis Karachalios", "Thiago Nuss"],
+    "ST": ["Aaron Leya Iseka", "Taxiarchis Fountas", "Aitor Cantalapiedra", "Kenan Kodro"]
+  },
+  "AFC Bournemouth": {
+    "TW": ["Djordje Petrović", "Michele Di Gregorio"],
+    "ABW": ["James Hill", "António Silva", "Bafodé Diakité", "Adrien Truffert", "Adam Smith", "Veljko Milosavljević"],
+    "MF": ["Alex Scott", "Tyler Adams", "Ryan Christie", "Lewis Cook", "Marcus Tavernier", "Alex Tóth"],
+    "ST": ["Evanilson", "Justin Kluivert", "Junior Kroupi", "Rayan"]
+  }
+}

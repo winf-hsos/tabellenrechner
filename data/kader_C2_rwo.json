@@ -1,0 +1,26 @@
+{"Rot-Weiß Oberhausen": {
+  "TW": ["Nicolas Glaus", "Ryan Valentine"],
+  "ABW": ["Nico Klaß", "Justus Henke", "Simon Ludwig", "Lucas Halangk", "Nils Winter", "Pierre Fassnacht"],
+  "MF": ["Max Meyer", "Alexander Mühling", "Yannik Möker", "Luca Schlax", "Arda Süne", "Kerem Yalcin"],
+  "ST": ["Timur Kesim", "Travis de Jong", "Burinyuy Nyuydine", "Sergio Terranova"],
+  "_meta": {
+    "stand": "2026-10-25",
+    "primaerquelle": "https://www.rwo1904.de/teams/profis/team-kader (Vereinsseite Profis, enthaelt Meyer/Moeker/Glaus -> Kader 2026/27)",
+    "bestaetigung": [
+      "https://www.rwo1904.de/nachrichten/profis/25934/knappe-niederlage-rwo-verliert-in-siegen (Startelf 17.10.2026: Glaus, Henke, Suene, Muehling, Kesim, Schlax, Nyuydine, Yalcin, Halangk, Winter, Ludwig)",
+      "https://www.rwo1904.de/matchcenter/spiel/4aefe0e7-b1dd-11f1-b8ef-0661027b5143/liveticker (NR-Pokal Haldern 2026/27)",
+      "https://www.rwo1904.de/nachrichten/profis/22525/rwo-verpflichtet-yannik-moker (24.06.2026)",
+      "https://www.spox.com/... (10.09.2026: Klaß Kapitaen, Meyer Zugang)"
+    ],
+    "weitere_kaderspieler_nicht_aufgenommen": {
+      "TW": ["Jannis Knoblauch", "Thomas Hinterkeuser"],
+      "ABW": ["Tim Böhmer", "Michel Niemeyer"],
+      "MF": ["Joel Vega Zambrano", "Hasan Onur", "Denis Donkor", "Yassir Atty", "Cankoray Mutlu"]
+    },
+    "unsicher": [
+      "Positionen laut Vereinsseite; Nyuydine und Terranova dort als Mittelfeld gefuehrt, hier als ST gesetzt (Nyuydine Stammspieler offensiv; Terranova Einwechselspieler/Torschuetze). Nur Kesim und de Jong stehen auf der Vereinsseite als Sturm.",
+      "Reihenfolge nach Wichtigkeit aus Startelf Siegen (17.10.) und Pokal Haldern abgeleitet; Glaus vs. Valentine als Nr.1 plausibel, aber nicht explizit belegt.",
+      "Kratzsch, Stoppelkamp: weder Vereins-Kaderseite noch 2026/27-Aufstellungen -> nicht uebernommen."
+    ]
+  }
+}}

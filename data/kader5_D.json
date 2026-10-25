@@ -1,0 +1,26 @@
+{
+  "FC 08 Homburg": {
+    "TW": ["Jonas Weyand", "Michael Gelt"],
+    "ABW": ["Kristijan Taseski", "Philipp Steinhart", "Michael Heilig", "Tim Steinmetz", "Frederik Schumann", "Jan-Erik Eichhorn"],
+    "MF": ["Nicolas Jörg", "Nicolas Andermatt", "Simon Joachims", "Michael Guthörl", "Manuel Feil", "Julian Günther-Schmidt"],
+    "ST": ["Marc Ehrhart", "Hilal El-Helwe", "Emir Kuhinja", "Jacob Roden"]
+  },
+  "SpVgg Ansbach": {
+    "TW": ["Nils Leidenberger", "Heiko Schiefer"],
+    "ABW": ["Lucas Beetz", "Matthias Hahn", "Eric Weeger", "Riko Manz", "Lukas Oberseider", "Mirko Puscher"],
+    "MF": ["Tobias Dietrich", "Björn Angermeier", "Leon Stauber", "Niklas Seefried", "Tarkan Ücüncü", "Ben Müller"],
+    "ST": ["Dino Nuhanović", "Patrick Kroiß", "Nico Hayer", "Lukas Schmidt"]
+  },
+  "FC Memmingen": {
+    "TW": ["Dominik Dewein", "Felix Unger"],
+    "ABW": ["Maximilian Dolinski", "Jakob Gräser", "Max Zeller", "Kim-Bryan Paschek", "Rufus Roth", "David Remiger"],
+    "MF": ["Timo Schmidt", "Michael Bergmann", "Fabian Lutz", "Lukas Rietzler", "Jonas Koller", "Uros Micic"],
+    "ST": ["Philipp Kirsamer", "Luis Pfaumann", "Constantin Kresin", "Pascal Maier"]
+  },
+  "TSV Buchbach": {
+    "TW": ["Ludwig Zech", "Oskar Preil"],
+    "ABW": ["Faton Dzemailji", "Philipp Walter", "Rocco Tavra", "Marinus Erber", "Fadhel Morou", "Dominik Auerhammer"],
+    "MF": ["Samed Bahar", "Daniel Muteba", "Albano Gashi", "Tobias Heiland", "Florian Wiedl", "Philipp Zimmerer"],
+    "ST": ["Tobias Stoßberger", "Leo Kainz", "Tobias Sztaf", "Tizian Zimmermann"]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "FC Rot-Weiß Erfurt": {
+    "TW": ["Lorenz Otto", "Jaden Rodtnick"],
+    "ABW": ["Til-Linus Schwarz", "Maxime Awoudja", "Sofiane Ikene", "Pablo Santana Soares", "Nathan Claxton", "Niclas Walther"],
+    "MF": ["Marco Wolf", "Benjika Caciel", "Robbie Felßberg", "Berk Inaler", "Benny Boboy", "Hinata Gonda"],
+    "ST": ["Romarjo Hajrulla", "Raphael Assibey-Mensah", "Dustin Forkel", "Boipelo Mashigo"]
+  },
+  "Greifswalder FC": {
+    "TW": ["Jakub Jakubov", "Luis Ackermann"],
+    "ABW": ["Elias Ndukwe Oke", "Lukas Walchhütter", "Joel Awuah", "Lion Semić", "Marcus Niemitz", "Alexander Seidel"],
+    "MF": ["Robert Leipertz", "Mc Moordy King Hüther", "Michael Sternberg", "Bajram Syla", "Janis Juckel", "Leon Schmökel"],
+    "ST": ["Grace Bokake", "Gibson Adu", "Kay Seidemann", "Theo Harz"]
+  },
+  "1. FC Lokomotive Leipzig": {
+    "TW": ["Jonas Wendlinger", "Justin Duda"],
+    "ABW": ["Eliyas Strasner", "Tobias Dombrowa", "Lukas Wilton", "Filip Kusić", "Jan Stein", "Pepe Böhm"],
+    "MF": ["Farid Abderrahmane", "Alexander Siebeck", "Simon Schierack", "Gabriel Sadlek", "Patrick Vuc", "Eren Öztürk"],
+    "ST": ["Djamal Ziane", "Ayodele Max Adetula", "Ricky Bornschein", "Julian Kügel"]
+  },
+  "VfB Oldenburg": {
+    "TW": ["Jhonny Peitzmeier", "Ole Springer"],
+    "ABW": ["Marc Schröder", "Leon Deichmann", "Ermal Pepshi", "Anouar Adam", "Nico Knystock", "Nico Mai"],
+    "MF": ["Vjekoslav Taritaš", "Drilon Demaj", "Rafael Brand", "Willem Hoffrogge", "Linus Schäfer", "Nick Otto"],
+    "ST": ["Mats Facklam", "Leon Demaj", "Kai Pröger", "Moses Otuali"]
+  },
+  "VfB Lübeck": {
+    "TW": ["Finn Böhmker", "Ismaël François Bos"],
+    "ABW": ["Marvin Thiel", "Deniz Hasan Yilmaz", "Emmanuel Ntsiakoh", "Maximilian Schütt", "Henry Jeschonek", "Jonas Dittrich"],
+    "MF": ["Bjarne Pfundheller", "Dardan Karimani", "Tom Kankowski", "Luis Coordes", "Colin Ulrich", "Felix Mandl"],
+    "ST": ["Selim Ajkic", "Lennard Heiduck", "Ware Pakia", "Ramiz Demir"]
+  }
+}

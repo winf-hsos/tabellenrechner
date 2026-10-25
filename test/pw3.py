@@ -1,0 +1,20 @@
+import os
+from playwright.sync_api import sync_playwright
+with sync_playwright() as p:
+    b=p.chromium.launch(); pg=b.new_context(viewport={"width":1200,"height":900}).new_page()
+    pg.goto("file://"+os.path.dirname(os.path.abspath(__file__))+"/index.html")
+    pg.wait_for_selector(".lr-tab"); pg.get_by_text("Mannschaften & Kader").first.click()
+    pg.get_by_role("button", name="Kader", exact=True).first.click()
+    pg.wait_for_selector("#team-staerke")
+    title=lambda: pg.locator(".lr-modal h2, .lr-modal h3").first.inner_text()
+    pg.locator("#team-staerke").click()
+    print("Team 1:", title(), pg.locator("#team-staerke").input_value())
+    pg.locator("#team-staerke").fill("77"); pg.keyboard.press("Tab")
+    pg.wait_for_timeout(300)
+    print("Nach Tab:", title(), "Fokus auf Stärke:", pg.evaluate("document.activeElement.id"), pg.locator("#team-staerke").input_value())
+    pg.keyboard.press("Shift+Tab"); pg.wait_for_timeout(300)
+    print("Nach Shift+Tab:", title(), pg.locator("#team-staerke").input_value())
+    pg.keyboard.press("Tab"); pg.keyboard.press("Tab"); pg.wait_for_timeout(300)
+    print("Nach 2x Tab:", title(), pg.evaluate("document.activeElement.id"))
+    pg.screenshot(path="tab.png")
+    b.close()

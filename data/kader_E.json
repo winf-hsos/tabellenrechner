@@ -1,0 +1,20 @@
+{
+  "SpVgg Unterhaching": {
+    "TW": ["Erion Avdija", "Maurice Dehler"],
+    "ABW": ["Manuel Stiefler", "Alexander Winkler", "Andy Breuer", "Luis Pfluger", "Timon Obermeier", "Constantin Strunz"],
+    "MF": ["Mike Gevorgyan", "Ben Westermeier", "Dominik Lindermeir", "Wesley Krattenmacher", "Marinus Spann", "Ferdinand Borne"],
+    "ST": ["Jeroen Krupa", "Cornelius Pfeiffer", "Moritz Müller", "Bryan Beusch"]
+  },
+  "1. FC Schweinfurt 05": {
+    "TW": ["Jan Mottl", "Julian Brätz"],
+    "ABW": ["Kevin Frisorger", "Nils Piwernetz", "Lauris Bausenwein", "Jason Prodanović", "Johannes Theinhardt", "Pietro Besso"],
+    "MF": ["Philipp Hack", "Mirco Geisler", "Kevin Fery", "Valentin Schmitt", "Gil Ebner", "Luka Kalandia"],
+    "ST": ["Michael Dellinger", "Leonard Krasniqi"]
+  },
+  "FV Illertissen": {
+    "TW": ["Daniel Adamczyk", "Jakob Mayer"],
+    "ABW": ["Maximilian Neuberger", "Eduard Heckmann", "Jordi Wegmann", "Constantin Pauly", "Flemming Schug", "Emirhan Delikaya"],
+    "MF": ["Marco Hingerl", "Daniel Hausmann", "Nino Cassaniti", "Alessio Hasler", "Ben Kronenberg", "Jan-Luca Fink"],
+    "ST": ["Denis Milic", "Elidon Qenaj", "Mussa Fofanah", "İlkan Atak"]
+  }
+}

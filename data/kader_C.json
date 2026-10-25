@@ -1,0 +1,32 @@
+{
+  "Eintracht Norderstedt": {
+    "TW": ["Lars Huxsohl", "Paul Henry Ralfs"],
+    "ABW": ["Henrik Lauterbach", "Endrik Jaschan", "Fabian Grau", "Moritz Frahm", "Dane Kummerfeld", "Julius Grunwald"],
+    "MF": ["Falk Gross", "Jonas Behounek", "Josh Görtzen", "Bjarne Kasper", "Erjanik Ghubasaryan", "Melvin Zimmer"],
+    "ST": ["Nick Gutmann", "Lukas Krüger", "Lenny Kufrin", "Lucas Camacho de Valdoleiros"]
+  },
+  "HSC Hannover": {
+    "TW": ["Bastian Fielsch"],
+    "ABW": ["Fabian Weigel"],
+    "MF": ["Leander Baar", "Marcel Langer", "Denis Vukančić", "Jonas Röhrbein"],
+    "ST": []
+  },
+  "SV Todesfelde": {
+    "TW": [],
+    "ABW": ["Noel Denis"],
+    "MF": ["Noah Odiase", "Morten Liebert"],
+    "ST": ["Etienne Sohn", "Benjamin Petrick"]
+  },
+  "Rot-Weiß Oberhausen": {
+    "TW": [],
+    "ABW": [],
+    "MF": ["Alexander Mühling", "Max Meyer"],
+    "ST": []
+  },
+  "Sportfreunde Lotte": {
+    "TW": [],
+    "ABW": [],
+    "MF": ["Fatih Öztürk"],
+    "ST": ["Emir Yakisir"]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "Schachtar Donezk": {
+    "TW": ["Dmytro Riznyk", "Kiril Fesyun"],
+    "ABW": ["Mykola Matviyenko", "Valeriy Bondar", "Marlon Santos", "Pedro Henrique", "Vinicius Tobias", "Irakli Azarovi"],
+    "MF": ["Marlon Gomes", "Dmytro Kryskiv", "Oleh Ocheretko", "Yehor Nazaryna", "Pedrinho", "Isaque"],
+    "ST": ["Kauã Elias", "Lassina Traoré", "Alisson Santana", "Eguinaldo"]
+  },
+  "Como 1907": {
+    "TW": ["Jean Butez", "Robert Sánchez"],
+    "ABW": ["Marc-Oliver Kempf", "Trevoh Chalobah", "Jacobo Ramón", "Álex Valle", "Yan Couto", "Ivan Smolčić"],
+    "MF": ["Máximo Perrone", "Maxence Caqueret", "Nico Paz", "Martin Baturina", "Samuele Ricci", "Lucas Da Cunha"],
+    "ST": ["Anastasios Douvikas", "Assane Diao", "Jesús Rodríguez", "Moise Kean"]
+  },
+  "Manchester United": {
+    "TW": ["Senne Lammens", "Karl Darlow"],
+    "ABW": ["Diogo Dalot", "Patrick Dorgu", "Lisandro Martínez", "Harry Maguire", "Leny Yoro", "Luke Shaw"],
+    "MF": ["Bruno Fernandes", "Carlos Baleba", "Youri Tielemans", "Andrey Santos", "Kobbie Mainoo", "Mason Mount"],
+    "ST": ["Bryan Mbeumo", "Matheus Cunha", "Benjamin Šeško", "Amad Diallo"]
+  },
+  "FC Villarreal": {
+    "TW": ["Luiz Júnior", "Péter Gulácsi"],
+    "ABW": ["Juan Foyth", "Renato Veiga", "Santiago Mouriño", "Sergi Cardona", "Logan Costa", "Alex Freeman"],
+    "MF": ["Alberto Moleiro", "Pape Gueye", "Santi Comesaña", "Ilias Akhomach", "Carlos Maciá", "Nathan Saliba"],
+    "ST": ["Georges Mikautadze", "Gerard Moreno", "Tani Oluwaseyi", "Tajon Buchanan"]
+  },
+  "Atlético Madrid": {
+    "TW": ["Jan Oblak", "Juan Musso"],
+    "ABW": ["Cristian Romero", "Robin Le Normand", "Dávid Hancko", "Alejandro Grimaldo", "Marc Pubill", "Marcos Llorente"],
+    "MF": ["Koke", "Pablo Barrios", "Morten Hjulmand", "Johnny Cardoso", "Álex Baena", "Lee Kang-in"],
+    "ST": ["Julián Álvarez", "Alexander Sørloth", "Ademola Lookman", "Jonathan David"]
+  },
+  "FC Brügge": {
+    "TW": ["Yann Sommer", "Nordin Jackers"],
+    "ABW": ["Brandon Mechele", "Joel Ordóñez", "Lee Han-beom", "Hugo Siquet", "Kyriani Sabbe", "Matteo Dams"],
+    "MF": ["Hans Vanaken", "Hugo Vetlesen", "Carlos Forbs", "Freddie Potts", "Jan Virgili", "Cheveyo Tsawa"],
+    "ST": ["Nicolò Tresoldi", "Romeo Vermant", "Mamadou Diakhon", "Andrej Vasovic"]
+  },
+  "Manchester City": {
+    "TW": ["Gianluigi Donnarumma", "Marcus Bettinelli"],
+    "ABW": ["Rúben Dias", "Joško Gvardiol", "Marc Guéhi", "Rayan Aït-Nouri", "Nico O'Reilly", "Abdukodir Khusanov"],
+    "MF": ["Enzo Fernández", "Elliot Anderson", "Ayyoub Bouaddi", "Mateo Kovačić", "Rayan Cherki", "Phil Foden"],
+    "ST": ["Erling Haaland", "Jérémy Doku", "Antoine Semenyo", "Iliman Ndiaye"]
+  },
+  "RC Lens": {
+    "TW": ["Robin Risser", "Régis Gurtner"],
+    "ABW": ["Ruben Aguilar", "Samson Baidoo", "Matthieu Udol", "Jonathan Gradit", "Souleymane Sagnan", "Nidal Čelik"],
+    "MF": ["Amadou Haidara", "Andrija Bulatović", "Yacine Titraoui", "Mickaël Cuisance", "Thorgan Hazard", "Florian Thauvin"],
+    "ST": ["Florian Sotoca", "Odsonne Édouard", "Franjo Ivanović", "Abdallah Sima"]
+  }
+}

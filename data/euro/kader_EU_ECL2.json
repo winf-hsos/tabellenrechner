@@ -1,0 +1,56 @@
+{
+  "KF Egnatia": {
+    "TW": ["Levan Tandilashvili", "Bruno Puja"],
+    "ABW": ["Zamiq Əliyev", "Alessandro Kacbufi", "Arbenit Xhemajli", "Numan Ajetovikj", "Eljon Sota", "Eneo Bitri"],
+    "MF": ["Albano Aleksi", "Fernando Medeiros", "Ibrahim Diabaté", "Altin Kryeziu", "Guillem Jaime", "Edison Ndreca"],
+    "ST": ["Ildi Gruda", "Soumaila Bakayoko", "Alessandro Albanese", "Jurguens Montenegro"]
+  },
+  "KAA Gent": {
+    "TW": ["Davy Roef", "Kjell Peersman"],
+    "ABW": ["Maksim Paskotši", "Mouhamed Ngom", "Christian Burgess", "Tiago Araújo", "Siebe Van der Heyden", "Mamadou Diallo"],
+    "MF": ["László Bénes", "Aimé Omgba", "Mathias Delorge", "Tibe De Vlieger", "Leonardo Lopes", "Matties Volckaert"],
+    "ST": ["Michel-Ange Balikwisha", "Momodou Sonko", "Hyllarion Goore", "Josué Vergara"]
+  },
+  "FC Getafe": {
+    "TW": ["David Soria", "Jiří Letáček"],
+    "ABW": ["Dakonam Djené", "Abdel Abqar", "Zaid Romero", "Kiko Femenía", "Johan Mojica", "Andrés García"],
+    "MF": ["Ramón Terrats", "Mario Martín", "Orel Mangala", "Nemanja Gudelj", "Francho Serrano", "Alberto Risco"],
+    "ST": ["Borja Mayoral", "Martín Satriano", "Enes Ünal", "Iván Azón"]
+  },
+  "Hajduk Split": {
+    "TW": ["Ivica Ivušić", "Toni Silić"],
+    "ABW": ["Alec Van Hoorenbeeck", "Dennis Hadžikadunić", "Ron Raçi", "Dario Marešić", "Mathieu Acapandié", "Šimun Hrgović"],
+    "MF": ["Adrion Pajaziti", "Leander Dendoncker", "Etnik Brruti", "Alberto del Moral", "Anđelo Šutalo", "Šotiček"],
+    "ST": ["Marko Livaja", "Michele Šego", "Abdoulie Sanyang", "Roko Brajković"]
+  },
+  "Heart of Midlothian": {
+    "TW": ["Beau Reus", "Zander Clark"],
+    "ABW": ["Craig Halkett", "Jamie McCart", "Stephen Kingsley", "Jordi Altena", "Oisin McEntee", "Harry Milne"],
+    "MF": ["Calvin Miller", "Blair Spittal", "Sabah Kerjota", "Yan Dhanda", "Tom Renaud", "Tómas Bent Magnússon"],
+    "ST": ["Cláudio Braga", "Amadou Ba-Sy", "Pierre Landry Kaboré", "JJ Williams"]
+  },
+  "Iberia 1999": {
+    "TW": ["Tornike Megrelishvili", "Revaz Kurtanidze"],
+    "ABW": ["Vahid Selimović", "Jemal-Giorgi Jinjolava", "Aleksandre Amisulashvili", "Sebastián Figueredo", "Giorgi Gogsadze", "Nikoloz Botchorishvili"],
+    "MF": ["Nikoloz Dadiani", "Bakar Kardava", "Ibrahim Alhassan", "Eldar Kuliiev", "Giorgi Kutsia", "Saba Avdoevi"],
+    "ST": ["Amiran Dzagania", "Zviad Natchkebia", "Stephen Ende", "Lucas Café"]
+  },
+  "Inter Club d'Escaldes": {
+    "TW": ["Javi Díaz", "Pol"],
+    "ABW": ["Anwar Hernández", "Jilmar Torres", "Álex Sánchez", "Jaouad Erraji", "Maurizio Pochettino", "Robin Lafarge"],
+    "MF": ["Víctor Alonso", "Juan Cámara", "David López", "Pablo Molina", "Antonio Otegui", "Lamine Diaby"],
+    "ST": ["Faysal Chouaib", "Borja Arellano", "Domi Berlanga", "Rafinha"]
+  },
+  "FK Jablonec": {
+    "TW": ["Jan Hanuš", "Klemen Mihelak"],
+    "ABW": ["Nemanja Tekijaški", "Daniel Souček", "Martin Cedidla", "Jiří Sláma", "Filip Novák", "Eduard Sobol"],
+    "MF": ["Nelson Okeke", "Vakhtang Chanturishvili", "Filip Zorvan", "Richard Sedláček", "Matěj Polidar", "Sebastian Nebyla"],
+    "ST": ["Lamin Jawo", "Jan Chramosta", "Dominik Hollý", "Antonín Růsek"]
+  },
+  "Kairat Almaty": {
+    "TW": ["Temirlan Anarbekov", "Sherhan Kalmurza"],
+    "ABW": ["Luís Mata", "Aleksandr Martynovich", "Erkin Tapalov", "Lucas Áfrico", "Aleksandr Shirobokov", "Damir Kasabulat"],
+    "MF": ["Adilet Sadybekov", "Olzhas Baybek", "Jaakko Oksanen", "Gustavo Mendonça", "Oiva Jukkola", "Aleksandr Mrynskiy"],
+    "ST": ["Edmilson", "Marc Gual", "Jorginho", "Azamat Tuyakbayev"]
+  }
+}

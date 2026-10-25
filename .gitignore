@@ -1,0 +1,4 @@
+node_modules/
+test/new.jsx
+test/*.bundle.cjs
+test/app.js

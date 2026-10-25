@@ -1,0 +1,56 @@
+{
+  "Kauno Žalgiris": {
+    "TW": ["Deividas Mikelionis", "Tomas Švedkauskas"],
+    "ABW": ["Anton Tolordava", "Luka Račić", "Aldayr Hernández", "Marko Konatar", "Nosa Edokpolor", "Joris Moutachy"],
+    "MF": ["Yukiyoshi Karashima", "Gratas Sirgėdas", "Vykintas Slivka", "Franco Baldassarra", "Fabien Ourega", "Ivan Fiolić"],
+    "ST": ["Amine Benchaib", "Motiejus Burba", "Renan Oliveira", "Gabriel Debeljuh"]
+  },
+  "KuPS Kuopio": {
+    "TW": ["Johannes Kreidl", "Hemmo Riihimäki"],
+    "ABW": ["Saku Heiskanen", "Kasim Adams", "Saku Savolainen", "Arttu Lötjönen", "Clinton Antwi", "Brahima Magassa"],
+    "MF": ["Jerry Voutilainen", "Petteri Pennanen", "Valentín Gasc", "Niilo Kujasalo", "Samuel Pasanen", "Tommi Jyry"],
+    "ST": ["Gustav Engvall", "Jaime Moreno", "Ayman Aiki", "Calvin Kabuye"]
+  },
+  "Lincoln Red Imps": {
+    "TW": ["Nauzet Santana", "Jaylan Hankins"],
+    "ABW": ["Ethan Jolley", "Christian Rutjens", "Gabri Cardozo", "Bernardo Lopes", "Ethan Britto", "Julliani Eersteling"],
+    "MF": ["Mandi", "Toni García", "Graeme Torrilla", "Nico Pinto", "León Mason", "Álvaro Romero"],
+    "ST": ["Lee Casciaro", "Kike Gómez", "Manu Toledano", "Álex Mula"]
+  },
+  "FC Lugano": {
+    "TW": ["David von Ballmoos", "Felix Gebhardt"],
+    "ABW": ["Hannes Delcroix", "Antonios Papadopoulos", "Ezgjan Alioski", "Lukas Mai", "Damian Kelvin", "Bekhruz Karimov"],
+    "MF": ["Anto Grgić", "Ahmed Kendouci", "Uran Bislimi", "Daniel Dos Santos", "Mattia Zanotti", "Renato Steffen"],
+    "ST": ["Albian Ajeti", "Kevin Behrens", "Yanis Cimignani", "Elias Pihlström"]
+  },
+  "FC Midtjylland": {
+    "TW": ["Elias Ólafsson", "Nordin Bakker"],
+    "ABW": ["Rasmus Kristensen", "Martin Erlić", "Ousmane Diao", "Magnus Jensen", "Mads Bech Sørensen", "Aziz Ndiaye"],
+    "MF": ["Philip Billing", "Pedro Bravo", "Hyun-seok Hong", "Denil Castillo", "Kjell Wätjen", "Sofus Johannesen"],
+    "ST": ["Mileta Rajović", "Cho Gue-sung", "Mikael Uhre", "Stanley Iheanacho"]
+  },
+  "Mjällby AIF": {
+    "TW": ["Robin Wallinder", "Melker Ahlstrand"],
+    "ABW": ["Ludvig Svanberg", "Axel Norén", "Abdullah Iqbal", "Tom Pettersson", "Tony Miettinen", "Ludvig Tidstrand"],
+    "MF": ["Viktor Gustafson", "Teo Helge", "Jeppe Kjær", "Jesper Gustavsson", "Villiam Granath", "Martin Agnarsson"],
+    "ST": ["Bork Bang-Kittilsen", "Áki Samuelsen", "Jacob Bergström", "Ali Youssef"]
+  },
+  "AS Monaco": {
+    "TW": ["Lukas Hrádecký", "Philipp Köhn"],
+    "ABW": ["Vanderson", "Jordan Teze", "Christian Mawissa", "Eric Dier", "Mohammed Salisu", "Flávio Nazinho"],
+    "MF": ["Denis Zakaria", "Lamine Camara", "Aleksandr Golovin", "Mamadou Coulibaly", "Edan Diop", "Takumi Minamino"],
+    "ST": ["Folarin Balogun", "Mika Biereth", "Paris Brunner", "Matthis Abline"]
+  },
+  "FC Nordsjælland": {
+    "TW": ["Andreas Hansen", "Jakob Busk"],
+    "ABW": ["Peter Ankersen", "Tobias Salquist", "Noah Markmann", "Stephen Acquah", "Victor Nelsson", "Markus Walker"],
+    "MF": ["Mark Brink", "Nicklas Røjkjær", "Justin Janssen", "Malte Heyde", "Juho Lähteenmäki", "Runar Norheim"],
+    "ST": ["Ola Solbakken", "Prince Amoako", "Alexander Lind", "Ibrahim Adel"]
+  },
+  "Pafos FC": {
+    "TW": ["Jay Gorter", "Radosław Majecki"],
+    "ABW": ["David Luiz", "David Goldar", "Samy Mmaee", "Yoram Zague", "Nikolas Ioannou", "Jonatás Noro"],
+    "MF": ["Domingos Quina", "Ken Sema", "Ivan Šunjić", "Vlad Dragomir", "Pêpê", "Guga"],
+    "ST": ["Lelê", "Anderson Silva", "Jajá", "Nicolas Ngamaleu"]
+  }
+}

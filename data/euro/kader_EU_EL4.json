@@ -1,0 +1,50 @@
+{
+  "Celtic Glasgow": {
+    "TW": ["Viljami Sinisalo", "Ross Doohan"],
+    "ABW": ["Alistair Johnston", "Anthony Ralston", "Liam Scales", "Auston Trusty", "Cameron Carter-Vickers", "Kieran Tierney"],
+    "MF": ["Callum McGregor", "Arne Engels", "Reo Hatate", "Paulo Bernardo", "Luke McCowan", "Alex Oxlade-Chamberlain"],
+    "ST": ["Daizen Maeda", "Kelechi Iheanacho", "Jota", "Sebastian Tounekti"]
+  },
+  "NK Celje": {
+    "TW": ["Žan-Luk Leban", "Luka Kolar"],
+    "ABW": ["Pijus Širvys", "Damjan Vukliševič", "Artemijus Tutyškinas", "Alpha Diounkou", "Leonardo Koutris", "Łukasz Bejger"],
+    "MF": ["Svit Sešlar", "Mark Zabukovnik", "Milot Avdyli", "Mario Kvesić", "Darko Hrka", "Papa Daniel"],
+    "ST": ["Armandas Kučys", "Yaya Dukuly", "Matej Poplatnik", "Benjamin Verbič"]
+  },
+  "AC Mailand": {
+    "TW": ["Mike Maignan", "Pietro Terracciano"],
+    "ABW": ["Fikayo Tomori", "Matteo Gabbia", "Strahinja Pavlović", "Mario Gila", "Pervis Estupiñán", "Davide Bartesaghi"],
+    "MF": ["Luka Modrić", "Adrien Rabiot", "Ardon Jashari", "Ruben Loftus-Cheek", "Alexis Saelemaekers", "Yunus Musah"],
+    "ST": ["Gonçalo Ramos", "Christian Pulisic", "Francesco Camarda", "Samuel Chukwueze"]
+  },
+  "Olympique Marseille": {
+    "TW": ["Jeffrey de Lange", "Gerónimo Rulli"],
+    "ABW": ["CJ Egan-Riley", "Derek Cornelius", "Nayef Aguerd", "Bamo Meïté", "Emerson", "Ulisses Garcia"],
+    "MF": ["Pierre-Emile Højbjerg", "Geoffrey Kondogbia", "Himad Abdelli", "Angel Gomes", "Tochukwu Nnadi", "Amine Harit"],
+    "ST": ["Amine Gouiri", "Igor Paixão", "Timothy Weah", "Neal Maupay"]
+  },
+  "Ararat-Armenia": {
+    "TW": ["Arman Nersesyan", "Shirak Badalyan"],
+    "ABW": ["Hugo Oliveira", "Junior Bueno", "Kamo Hovhannisyan", "Edgar Grigoryan", "Bouchaib Arrassi", "Alexandros Malis"],
+    "MF": ["Juan Balanta", "Armen Ambartsumyan", "Zidane Banjaqui", "Karen Muradyan", "Alwyn Tera", "Artur Serobyan"],
+    "ST": ["Arayik Eloyan", "Alioune Ndour", "Paul Ayongo", "Zhirayr Shaghoyan"]
+  },
+  "Viktoria Pilsen": {
+    "TW": ["Dominik Ťapaj", "Florian Wiegele"],
+    "ABW": ["Tobiáš Pališčák", "Denis Vavro", "Karel Spáčil", "Merchas Doski", "Adam Gabriel", "Sampson Dweh"],
+    "MF": ["Lukáš Červ", "Patrik Hrošovský", "Tomáš Ladra", "Cheick Souaré", "Denis Višinský", "Alexandr Sojka"],
+    "ST": ["Salim Fago Lawal", "Mohamed Touré", "Matěj Vydra", "Baboucarr Faal"]
+  },
+  "Lech Posen": {
+    "TW": ["Mateusz Lis", "Wiktor Obremski"],
+    "ABW": ["Joel Pereira", "Michał Gurgul", "Mateusz Skrzypczak", "Terry Yegbe", "Wojciech Mońka", "João Moutinho"],
+    "MF": ["Antoni Kozubal", "Radosław Murawski", "Patrik Wålemark", "Pablo Rodríguez", "Filip Jagiełło", "Leo Bengtsson"],
+    "ST": ["Mikael Ishak", "Yannick Agnero", "Luis Palma", "Allahyar Sayyadmanesh"]
+  },
+  "NEC Nijmegen": {
+    "TW": ["Gonzalo Crettaz", "Nikolas Polster"],
+    "ABW": ["Perr Schuurs", "Ahmetcan Kaplan", "Deveron Fonville", "Philippe Sandler", "Mitchel Bakker", "Bram Nuytinck"],
+    "MF": ["Dennis Geiger", "Darko Nejašmić", "Noé Lebreton", "Tjaronn Chery", "Isak Hansen-Aarøen", "Willum Þór Willumsson"],
+    "ST": ["Bryan Linssen", "Kaj Sierhuis", "Dušan Tadić", "Emre Mor"]
+  }
+}

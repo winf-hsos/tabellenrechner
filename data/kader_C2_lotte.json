@@ -1,0 +1,9 @@
+{"Sportfreunde Lotte": {
+ "TW": ["Laurenz Beckemeyer", "Tim Fisch"],
+ "ABW": ["Justin Faltyn", "Mehmet Kaya", "Dimitrie Deumi-Nappi", "Karlo Grgić", "Denis Milic", "Johann Deumi-Nappi"],
+ "MF": ["Eduard Mahmuti", "Nedzhib Hadzha", "Hassan Mohamad", "Keanu Kerbsties", "Rohin Shivani", "Fatih Öztürk"],
+ "ST": ["Malte Zumdieck", "Noah Wallenßus", "Emir Yakisir", "Emro Curic"],
+ "_alternativen": {"TW": ["Mika Westerhus", "Luis Hillemeier"], "ABW": ["Yunus Akdag"], "MF": ["Fares Hadj", "Moritz Berg", "Arda Halicioglu", "Ayodele Ojo"], "ST": ["Samuel Addai", "Eric Preljevic", "Can Akbaş", "Yehor Koniuchenko", "Julien Kurowski", "Simon Zöls"]},
+ "_quellen": ["sport.de Kader 2026/2027", "sf-lotte.de Spielberichte Paderborn U21 (10.10.2026) und Siegen (24.10.2026)", "sf-lotte.de Startseite (Neuzugang Moritz Berg)", "Vereinsmeldung 15.6.2026 (Öztürk, Yakisir; vom Auftraggeber)"],
+ "_hinweis": "TW2 Tim Fisch nicht belegt (Einsatz unbekannt); sf-lotte.de nennt Luis Hillemeier als Trainer, sport.de/soccerway als Torwart"
+}}

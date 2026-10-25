@@ -1,0 +1,26 @@
+{
+  "BSG Chemie Leipzig": {
+    "TW": ["Marcel Bergmann", "Florian Horenburg"],
+    "ABW": ["Tim Hoops", "Phillipp Wendt", "Lorenz Hollenbach", "Elias Kratzer", "Marc Enke", "David Pfeil"],
+    "MF": ["Willi Reincke", "Luis Jakobi", "Valon Aliji", "Darijan Silic", "Julius Hoffmann", "Anton Bulland"],
+    "ST": ["Philipp Kühn", "Malick Sanogo", "Tyron Profis", "Bradley Lokilo"]
+  },
+  "FC Schöningen": {
+    "TW": ["Justin Kick", "Tobias Dahncke"],
+    "ABW": ["Brian Behrendt", "Max Klump", "Julian Weigel", "Robin Kölle", "Dimitar Milushev", "Maximilian Sauer"],
+    "MF": ["Federico Palacios", "Luca Horn", "Luca Marino", "Maxim Safronow", "Brian Präger", "Tom-Luca Winter"],
+    "ST": ["Moussa Doumbouya", "Hannes Joppich", "Ayhan Cankor", "Jordi Njoya"]
+  },
+  "SV Atlas Delmenhorst": {
+    "TW": ["Damian Schobert", "Kilian Sanden"],
+    "ABW": ["Ibrahim Temin", "Yehor Melenivskyi", "Alejo Sánchez Romero", "André Ndiaye", "Eric Anozie", "Timon Widiker"],
+    "MF": ["Dinand Gijsen", "Chris David", "Niklas Tepe", "Mats Kaiser", "Tobias Fagerström", "Fin Tiedeken"],
+    "ST": ["Steffen Rohwedder", "Lamine Diop", "Marcel Raßmann", "Amin Muja"]
+  },
+  "Bremer SV": {
+    "TW": ["Lucas Fox", "Nico Weide"],
+    "ABW": ["Ryusei Hosokawa", "Anthony Nwachukwu", "Denis Koldžić", "Juul Timmermans", "Jean de Chatrie Doegl", "Fyn Luca Ebeling"],
+    "MF": ["Vedat Tunc", "Daniel Michel", "Luca Schlake", "Justin Bretgeld", "Alessio Arambasic", "Mussa Tasmin"],
+    "ST": ["Bastian Redecker", "Fritz Kleiner", "Ebrima Camara", "Clinton Helmdach"]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "Olympique Lyon": {
+    "TW": ["Dominik Greif", "Rémy Descamps"],
+    "ABW": ["Nicolás Tagliafico", "Moussa Niakhaté", "Clinton Mata", "Abner", "Ruben Kluivert", "Felix Bacher"],
+    "MF": ["Corentin Tolisso", "Tanner Tessmann", "Tyler Morton", "Mads Bidstrup", "Pavel Šulc", "Khalis Merah"],
+    "ST": ["Ernest Nuamah", "Keito Nakamura", "Loïs Openda", "Julien Duranville"]
+  },
+  "Torreense": {
+    "TW": ["Lucas Paes", "Adriel"],
+    "ABW": ["Stopira", "Juan Alcedo", "Volnei", "David Bruno", "Javi Vázquez", "Mohamed Ali Diadie"],
+    "MF": ["Alejandro Alfaro", "Costinha", "Carlos Reina", "Amine Oudrhiri", "Nuha Jatta", "Marco Silva"],
+    "ST": ["Jorge Aguirre", "Dany Jean", "Manuel Pozo", "Luis Quintero"]
+  },
+  "Olympiakos Piräus": {
+    "TW": ["Stefan Ortega", "Dimitrios Stournaras"],
+    "ABW": ["Panagiotis Retsos", "Lorenzo Pirola", "David Carmo", "Zinedin Smajlović", "Manolis Saliakas", "Bruno Onyemaechi"],
+    "MF": ["Remo Freuler", "Chiquinho", "Santiago Hezze", "Gustavo Puerta", "Gustavo Sá", "Kostas Fortounis"],
+    "ST": ["Ayoub El Kaabi", "Roman Yaremchuk", "Gelson Martins", "Leon Bailey"]
+  },
+  "Red Bull Salzburg": {
+    "TW": ["Christian Früchtl", "Christian Zawieschitzky"],
+    "ABW": ["Stefan Lainer", "Dominik Schmid", "Kevin Boma", "Tim Drexler", "Frans Krätzig", "Valentin Zabransky"],
+    "MF": ["Umut Tohumcu", "Bartosz Mazurek", "Gaoussou Diakité", "Abubakr Barry", "Soumaïla Diabaté", "Jesper Lindstrøm"],
+    "ST": ["Yorbe Vertessen", "Haris Tabaković", "Karim Konaté", "Sota Kitano"]
+  },
+  "Omonia Nikosia": {
+    "TW": ["Thomas Kaminski", "Fabiano"],
+    "ABW": ["Lubomír Šatka", "Stefan Simič", "Senou Coulibaly", "Moses Odubajo", "Jure Balkovec", "Nikolas Kyriakidis"],
+    "MF": ["Carel Eiting", "Mateo Marić", "Florin Tănase", "Luuk Brouwers", "Muamer Tanković", "Panagiotis Andreou"],
+    "ST": ["Loïs Diony", "Ewandro", "David Akintola", "Jaden Montnor"]
+  },
+  "AFC Sunderland": {
+    "TW": ["Robin Roefs", "Simon Moore"],
+    "ABW": ["Kevin Danso", "Dan Ballard", "Nordi Mukiele", "Reinildo", "Omar Alderete", "Thomas Meunier"],
+    "MF": ["Granit Xhaka", "Noah Sadiki", "Enzo Le Fée", "Chris Rigg", "Jules Ahoka", "Luke O'Nien"],
+    "ST": ["Brian Brobbey", "Nilson Angulo", "Chemsdine Talbi", "Malick Fofana"]
+  },
+  "Dinamo Zagreb": {
+    "TW": ["Dominik Kotarski", "Danijel Zagorac"],
+    "ABW": ["Scott McKenna", "Niko Galešić", "Moris Valinčić", "Bruno Goda", "Noa Mikić", "Stjepan Radeljić"],
+    "MF": ["Miha Zajc", "Luka Ivanušec", "Josip Mišić", "Robert Mudražija", "Kirill Kravtsov", "Luka Stojković"],
+    "ST": ["Dion Beljo", "Mislav Oršić", "Dani Rodríguez", "Arber Hoxha"]
+  },
+  "Hapoel Be'er Sheva": {
+    "TW": ["Ofir Marciano", "Marco Wolff"],
+    "ABW": ["Guy Mizrahi", "Matan Baltaxa", "Miguel Vítor", "Pedro Amador", "Itay Rotman", "Ofir Davidzada"],
+    "MF": ["Eliel Peretz", "Mohammad Kanaan", "Lucas Ventura", "Niv Yehoshua", "Dan Biton", "Amir Ganah"],
+    "ST": ["Yonas Malede", "Igor Zlatanović", "João Victor", "Adrián Ugarriza"]
+  },
+  "Stade Rennes": {
+    "TW": ["Brice Samba", "Nicolas Lemaître"],
+    "ABW": ["Charlie Cresswell", "Quentin Merlin", "Przemysław Frankowski", "Bryan Reynolds", "Mahamadou Nagida", "Abdelhamid Aït Boudlal"],
+    "MF": ["Sebastian Szymański", "Valentin Rongier", "Adrien Thomasson", "Mahdi Camara", "Ludovic Blas", "Musa Al-Taamari"],
+    "ST": ["Estéban Lepaul", "Eliezer Mayenda", "Boulaye Dia", "Issa Soumaré"]
+  }
+}
