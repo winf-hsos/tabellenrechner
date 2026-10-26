@@ -18,7 +18,7 @@ with sync_playwright() as p:
     ok(de_tabs[0] == "Bundesliga" and "DFB-Pokal" in de_tabs and "Europa" in de_tabs, f"Deutschland: {de_tabs}")
     pg.locator("#sec-en").click(); pg.wait_for_timeout(300)
     en_tabs = tabs(pg)
-    ok(en_tabs[0] == "Premier League" and en_tabs[1:] == ["Europa", "Torjäger", "Kalender", "Historie"], f"England: {en_tabs}")
+    ok(en_tabs[0] == "Premier League" and en_tabs[1:] == ["Championship", "League One", "League Two", "FA Cup", "Europa", "Torjäger", "Kalender", "Historie"], f"England: {en_tabs}")
     ok(pg.locator(".lr-tbl tbody tr").count() == 20, "Premier League hat 20 Mannschaften")
     ok(pg.locator(".lr-tbl tbody tr img.lr-logo").count() == 20, "alle 20 Klubs haben ein Logo")
     ok("38" in pg.locator(".lr-md-num").inner_text(), "38 Spieltage")
@@ -41,7 +41,7 @@ with sync_playwright() as p:
     pg.get_by_role("button", name="Rest der Saison").click(); pg.wait_for_timeout(900)
     pg.locator(".lr-tab", has_text="Torjäger").click(); pg.wait_for_timeout(300)
     heads = [h.strip() for h in pg.locator(".lr-top-h b").all_inner_texts()]
-    ok(heads == ["Premier League"], f"Torjäger England zeigt nur: {heads}")
+    ok(heads == ["Premier League", "Championship", "League One", "League Two", "FA Cup"], f"Torjäger England zeigt nur: {heads}")
     top = pg.locator(".lr-top-tbl tbody tr").all_inner_texts()
     ok(len(top) == 10, "zehn Torjäger")
     vereine = {t.split("\t")[2].strip() for t in top}
@@ -49,7 +49,7 @@ with sync_playwright() as p:
     # Kalender England
     pg.locator(".lr-tab", has_text="Kalender").click(); pg.wait_for_timeout(300)
     opts = pg.locator("select[aria-label='Wettbewerb filtern'] option").all_inner_texts()
-    ok(opts == ["alle", "Premier League"], f"Kalender-Filter England: {opts}")
+    ok(opts == ["alle", "Premier League", "Championship", "League One", "League Two", "FA Cup"], f"Kalender-Filter England: {opts}")
     ok(pg.locator(".lr-cal-month").count() >= 9, "Kalender mit mehreren Monaten")
     ok("DFB-Pokal" not in pg.locator("body").inner_text() and "Champions League" not in pg.locator(".lr-wrap").last.inner_text(), "Kalender England ohne Pokal und Europapokal")
     # Historie England: leer, dann Saison durchspielen
@@ -59,15 +59,15 @@ with sync_playwright() as p:
     ok("Premier League" in pg.locator(".lr-modal").inner_text() and "Deutschland bleibt unberührt" in pg.locator(".lr-modal").inner_text(), "Dialog nennt England")
     pg.locator("#playall-go").click(); pg.wait_for_timeout(1500)
     d = state(pg)
-    ok([e["leagueId"] for e in d["history"]] == ["pl"] and d["history"][0]["label"] == "2026/27", "Historie: genau ein Eintrag Premier League 2026/27")
-    tab = [r["name"] for r in d["history"][0]["table"]]
+    ok(sorted(e["leagueId"] for e in d["history"]) == ["ch", "facup", "l1", "l2", "pl"] and all(e["label"] == "2026/27" for e in d["history"]), "Historie: vier Ligen und FA Cup 2026/27")
+    tab = [r["name"] for r in [e for e in d["history"] if e["leagueId"] == "pl"][0]["table"]]
     en1 = {c: [t["name"] for t in d["euro"]["teams"][c] if t.get("en")] for c in ("cl", "el", "ecl")}
     ok(en1["cl"] == tab[:5] and en1["el"] == tab[5:8] and en1["ecl"] == tab[8:9], f"Europapokal-Plätze aus der Tabelle: CL {en1['cl']}, EL {en1['el']}, ECL {en1['ecl']}")
     ok(all(len(d["euro"]["teams"][c]) == 36 and len({t["name"] for t in d["euro"]["teams"][c]}) == 36 for c in ("cl", "el", "ecl")), "Listen bleiben bei 36 verschiedenen Teilnehmern")
     ok(d["active"]["pl"]["label"] == "2027/28" and d["active"]["pl"]["results"] == {}, "nächste Saison 2027/28 beginnt")
     ok(d["active"]["bl1"]["label"] == "2026/27" and d["active"]["bl1"]["results"] == {}, "Deutschland unverändert")
     ok("Premier League" in pg.locator(".lr-wrap").last.inner_text(), "Historie England zeigt die Saison")
-    ok(pg.locator(".lr-tab", has_text="Historie").inner_text().strip() == "Historie (1)", "Zähler englische Historie (1)")
+    ok(pg.locator(".lr-tab", has_text="Historie").inner_text().strip() == "Historie (5)", "Zähler englische Historie (5)")
     # Deutschland: eigene, noch leere Historie
     pg.locator("#sec-de").click(); pg.wait_for_timeout(300)
     ok(tabs(pg)[-1] == "Historie", "Deutschland: Historie ist leer (kein Zähler)")
@@ -82,7 +82,7 @@ with sync_playwright() as p:
         teilnehmer = {r["name"] for r in e["table"]}
         ok(set(en1[c]) <= teilnehmer and len(en1[c]) == len(en0[c]), f"{c.upper()}: die {len(en1[c])} englischen Qualifikanten aus der Premier-League-Tabelle spielen mit")
     ok(all(len(d["euro"]["teams"][c]) == 36 and sorted(t["name"] for t in d["euro"]["teams"][c] if t.get("en")) == sorted(en1[c]) for c in ("cl", "el", "ecl")), "deutscher Saisonwechsel lässt die englischen Qualifikanten stehen")
-    ok(sum(1 for e in d["history"] if e["leagueId"] == "pl") == 1 and sum(1 for e in d["history"] if e["leagueId"] != "pl") == 9, "Historie: 1 englischer und 9 deutsche Einträge")
+    ok(sum(1 for e in d["history"] if e["leagueId"] in ("pl", "ch", "l1", "l2", "facup")) == 5 and sum(1 for e in d["history"] if e["leagueId"] not in ("pl", "ch", "l1", "l2", "facup")) == 9, "Historie: 5 englische und 9 deutsche Einträge")
     # Abschnitt bleibt nach Neuladen
     pg.locator("#sec-en").click(); pg.wait_for_timeout(900)
     pg.reload(); pg.wait_for_selector(".lr-tab"); pg.wait_for_timeout(500)
