@@ -5180,6 +5180,35 @@ function driftSquad(squad) {
   return squad ? scaleSquadTo(squad, driftValue(squadStrength(squad))) : squad;
 }
 
+/**
+ * Neue Stärken auf Knopfdruck: jeder Kader der genannten Ligen ändert sich um höchstens ±DRIFT_MAX. Beim Saisonwechsel
+ * bleiben die Stärken unverändert, bis dieser Knopf gedrückt wird. Für Deutschland (`mitDe`) zählen auch der
+ * Regionalliga-Topf und die ausländischen Europapokal-Teilnehmer ohne eigene Liga.
+ */
+function driftLeagues(d, ids, mitDe) {
+  const active = { ...d.active };
+  ids.forEach((id) => {
+    const s = d.active[id];
+    if (!s) return;
+    const squads = s.squads.map(driftSquad);
+    active[id] = { ...s, squads, strengths: squads.map(squadStrength) };
+  });
+  const out = { ...d, active };
+  if (mitDe) {
+    out.regional = (d.regional || []).map((c) => {
+      if (!c.squad) return { ...c, strength: driftValue(c.strength) };
+      const q = driftSquad(c.squad);
+      return { ...c, squad: q, strength: squadStrength(q) };
+    });
+    out.euro = {
+      ...d.euro,
+      teams: Object.fromEntries(Object.entries(d.euro.teams).map(([id, list]) => [
+        id, list.map((t) => (t.de || t.en || t.es || t.it || t.fr ? t : { ...t, strength: driftValue(t.strength) }))])),
+    };
+  }
+  return out;
+}
+
 function newSeason(teams, strengths, label, start, squads) {
   const kader = squads && squads.length === teams.length ? squads : makeSquads(teams, strengths);
   return {
@@ -6836,7 +6865,7 @@ function playoffWinner(list, strengthOf, sim) {
  * Saisonwechsel der englischen Pyramide: alle vier Ligen kommen ins Archiv, Premier League und
  * Europapokal-Plätze werden aus der Tabelle bestimmt, dann steigen auf und ab: 3 zwischen Premier League und
  * Championship (je zwei direkt, der Dritte über die Playoffs), 3 zwischen Championship und League One,
- * 4 zwischen League One und League Two. Alle Mannschaften behalten ihre Kader, jede Stärke ändert sich um höchstens ±5.
+ * 4 zwischen League One und League Two. Alle Mannschaften behalten Kader und Stärken (neue Stärken per Knopf, siehe `driftLeagues`).
  */
 function englishSeasonEnd(d) {
   const drawShare = DRAW_SHARE[d.drawBias || 0] != null ? DRAW_SHARE[d.drawBias || 0] : 0;
@@ -6868,7 +6897,7 @@ function englishSeasonEnd(d) {
   ENG_IDS.forEach((id) => {
     const s = d.active[id];
     const teams = lists[id];
-    active[id] = newSeason(teams, teams.map((n) => strengthOf[n]), nextLabel(s.label), shiftYear(s.start, 1), teams.map((n) => driftSquad(squadOf[n])));
+    active[id] = newSeason(teams, teams.map((n) => strengthOf[n]), nextLabel(s.label), shiftYear(s.start, 1), teams.map((n) => squadOf[n]));
   });
   return { ...d, euro: euroAfterEnglishSeason(d), history: [...archives, ...d.history], active };
 }
@@ -6916,7 +6945,7 @@ function playCoupe(d) {
  * Saisonwechsel der französischen Pyramide: alle drei Tabellen kommen ins Archiv, die Europapokal-Plätze werden aus der
  * Ligue-1-Tabelle bestimmt, dann steigen auf und ab: 3 zwischen Ligue 1 und Ligue 2 (zwei direkt, der Dritte über die
  * Playoffs der Plätze 3–6) und 3 zwischen Ligue 2 und Ligue 3 (die ersten Drei der Ligue 3 steigen direkt auf). Aus der
- * Ligue 3 steigt niemand ab. Alle Mannschaften behalten ihre Kader, jede Stärke ändert sich um höchstens ±5.
+ * Ligue 3 steigt niemand ab. Alle Mannschaften behalten Kader und Stärken (neue Stärken per Knopf, siehe `driftLeagues`).
  */
 function frenchSeasonEnd(d) {
   const drawShare = DRAW_SHARE[d.drawBias || 0] != null ? DRAW_SHARE[d.drawBias || 0] : 0;
@@ -6945,7 +6974,7 @@ function frenchSeasonEnd(d) {
   FR_IDS.forEach((id) => {
     const s = d.active[id];
     const teams = lists[id];
-    active[id] = newSeason(teams, teams.map((n) => strengthOf[n]), nextLabel(s.label), shiftYear(s.start, 1), teams.map((n) => driftSquad(squadOf[n])));
+    active[id] = newSeason(teams, teams.map((n) => strengthOf[n]), nextLabel(s.label), shiftYear(s.start, 1), teams.map((n) => squadOf[n]));
   });
   return { ...d, euro: euroAfterFrenchSeason(d), history: [...archives, ...d.history], active };
 }
@@ -6956,7 +6985,7 @@ function frenchSeasonEnd(d) {
  * Playoffs der Plätze 3–6), 4 zwischen Serie B und Serie C (die drei Gruppensieger und der Sieger der Playoffs aus den
  * drei Zweiten und dem besten Dritten; die vier Letzten der Serie B steigen ab und besetzen die frei gewordenen Plätze).
  * Reservemannschaften sind nicht aufstiegsberechtigt. Aus der Serie C steigt niemand ab. Alle Mannschaften behalten
- * ihre Kader, jede Stärke ändert sich um höchstens ±5.
+ * ihre Kader und Stärken.
  */
 function italianSeasonEnd(d) {
   const drawShare = DRAW_SHARE[d.drawBias || 0] != null ? DRAW_SHARE[d.drawBias || 0] : 0;
@@ -6997,7 +7026,7 @@ function italianSeasonEnd(d) {
   IT_IDS.forEach((id) => {
     const s = d.active[id];
     const teams = lists[id];
-    active[id] = newSeason(teams, teams.map((n) => strengthOf[n]), nextLabel(s.label), shiftYear(s.start, 1), teams.map((n) => driftSquad(squadOf[n])));
+    active[id] = newSeason(teams, teams.map((n) => strengthOf[n]), nextLabel(s.label), shiftYear(s.start, 1), teams.map((n) => squadOf[n]));
   });
   return { ...d, euro: euroAfterItalianSeason(d), history: [...archives, ...d.history], active };
 }
@@ -7007,7 +7036,7 @@ function italianSeasonEnd(d) {
  * La-Liga-Tabelle bestimmt, dann steigen auf und ab: 3 zwischen La Liga und Segunda División (zwei direkt, der Dritte
  * über die Playoffs der Plätze 3–6; Reservemannschaften sind nicht aufstiegsberechtigt), 4 zwischen Segunda División und
  * Primera Federación (aus jeder Gruppe der Meister und der Sieger der Playoffs der Plätze 2–5). Aus der Primera
- * Federación steigt niemand ab. Alle Mannschaften behalten ihre Kader, jede Stärke ändert sich um höchstens ±5.
+ * Federación steigt niemand ab. Alle Mannschaften behalten Kader und Stärken (neue Stärken per Knopf, siehe `driftLeagues`).
  */
 function spanishSeasonEnd(d) {
   const drawShare = DRAW_SHARE[d.drawBias || 0] != null ? DRAW_SHARE[d.drawBias || 0] : 0;
@@ -7039,7 +7068,7 @@ function spanishSeasonEnd(d) {
   ES_IDS.forEach((id) => {
     const s = d.active[id];
     const teams = lists[id];
-    active[id] = newSeason(teams, teams.map((n) => strengthOf[n]), nextLabel(s.label), shiftYear(s.start, 1), teams.map((n) => driftSquad(squadOf[n])));
+    active[id] = newSeason(teams, teams.map((n) => strengthOf[n]), nextLabel(s.label), shiftYear(s.start, 1), teams.map((n) => squadOf[n]));
   });
   return { ...d, euro: euroAfterSpanishSeason(d), history: [...archives, ...d.history], active };
 }
@@ -7425,7 +7454,7 @@ export default function Tabellenrechner() {
         ...d,
         ...(league.id === "pl" ? { euro: euroAfterEnglishSeason(d) } : {}),
         history: [entry, ...d.history],
-        active: { ...d.active, [league.id]: newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads.map(driftSquad)) },
+        active: { ...d.active, [league.id]: newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads) },
       };
     });
     setMd((m) => ({ ...m, [league.id]: 0 }));
@@ -7488,9 +7517,9 @@ export default function Tabellenrechner() {
         squad: squadOf[n] || null,
       }));
       const regional = [...pool.filter((c) => newcomers.indexOf(c.name) < 0), ...runter].map((c) => (
-        c.squad ? { ...c, squad: driftSquad(c.squad), strength: squadStrength(driftSquad(c.squad)) } : { ...c, strength: driftValue(c.strength) }));
+        c.squad ? { ...c, strength: squadStrength(c.squad) } : c));
       const st = (names) => names.map((n) => strengthOf[n] || 30);
-      const sq = (names) => names.map((n) => driftSquad(squadOf[n] || makeSquad(n, strengthOf[n] || 30)));
+      const sq = (names) => names.map((n) => squadOf[n] || makeSquad(n, strengthOf[n] || 30));
 
       return {
         ...d,
@@ -7498,7 +7527,7 @@ export default function Tabellenrechner() {
         history,
         euro: {
           teams: Object.fromEntries(Object.entries(euroApplyQualifiers(d.euro.teams, euroQ)).map(([id, list]) => [
-            id, list.map((t) => (t.de || t.en || t.es || t.it || t.fr ? t : { ...t, strength: driftValue(t.strength) }))])),
+            id, list])),
           runs: { cl: null, el: null, ecl: null },
         },
         regional,
@@ -7825,6 +7854,8 @@ export default function Tabellenrechner() {
             <div className="lr-top-r">
               <div className="lr-status">{status}</div>
               <span className="lr-build" id="build-info" title="Stand dieser Seite">Stand {BUILD_INFO}</span>
+              <button className="lr-btn lr-btn-sm" id="newstr-open" onClick={() => setModal({ type: "newstr" })}
+                title="Neue Stärken für alle Klubs dieses Abschnitts bestimmen (höchstens ±5)">Neue Stärken</button>
               <button className="lr-btn lr-btn-sm" id="playall-open" onClick={() => setModal({ type: "playall" })}
                 title="Alle Wettbewerbe zu Ende spielen und in die Historie legen">Saison durchspielen</button>
               <button className="lr-btn lr-btn-sm" id="reset-open" onClick={() => setModal({ type: "reset" })}>Zurücksetzen</button>
@@ -8462,7 +8493,7 @@ export default function Tabellenrechner() {
               Alle noch offenen Spiele der Ligue 1, Ligue 2 und Ligue 3 werden ausgewürfelt (bereits eingetragene
               Ergebnisse bleiben), dazu die Coupe de France. Anschließend kommen alle Wettbewerbe in die französische
               Historie, die Playoffs werden gespielt, die Europapokal-Plätze aus der Ligue-1-Tabelle gesetzt, und die
-              nächste Saison beginnt mit Auf- und Abstieg und neuen Stärken (höchstens ±5). Deutschland, England,
+              nächste Saison beginnt mit Auf- und Abstieg und unveränderten Stärken (neue per Knopf „Neue Stärken“). Deutschland, England,
               Spanien und Italien bleiben unberührt.
             </p>
           ) : section === "it" ? (
@@ -8470,7 +8501,7 @@ export default function Tabellenrechner() {
               Alle noch offenen Spiele der Serie A, der Serie B und der drei Gruppen der Serie C werden ausgewürfelt
               (bereits eingetragene Ergebnisse bleiben), dazu die Coppa Italia. Anschließend kommen alle Wettbewerbe
               in die italienische Historie, die Playoffs werden gespielt, die Europapokal-Plätze aus der Serie-A-Tabelle
-              gesetzt, und die nächste Saison beginnt mit Auf- und Abstieg und neuen Stärken (höchstens ±5).
+              gesetzt, und die nächste Saison beginnt mit Auf- und Abstieg und unveränderten Stärken (neue per Knopf „Neue Stärken“).
               Deutschland, England, Spanien und Frankreich bleiben unberührt.
             </p>
           ) : section === "es" ? (
@@ -8478,15 +8509,15 @@ export default function Tabellenrechner() {
               Alle noch offenen Spiele von La Liga, Segunda División und den beiden Gruppen der Primera Federación
               werden ausgewürfelt (bereits eingetragene Ergebnisse bleiben), dazu die Copa del Rey. Anschließend
               kommen alle Wettbewerbe in die spanische Historie, die Playoffs werden gespielt, die Europapokal-Plätze
-              aus der La-Liga-Tabelle gesetzt, und die nächste Saison beginnt mit Auf- und Abstieg und neuen Stärken
-              (höchstens ±5). Deutschland, England, Italien und Frankreich bleiben unberührt.
+              aus der La-Liga-Tabelle gesetzt, und die nächste Saison beginnt mit Auf- und Abstieg; die Stärken
+              bleiben (neue per Knopf „Neue Stärken“). Deutschland, England, Italien und Frankreich bleiben unberührt.
             </p>
           ) : section === "en" ? (
             <p>
               Alle noch offenen Spiele der Premier League, Championship, League One und League Two
               werden ausgewürfelt (bereits eingetragene Ergebnisse bleiben). Anschließend kommen alle
               vier Ligen in die englische Historie, die Playoffs werden gespielt, und die nächste
-              Saison beginnt mit Auf- und Abstieg und neuen Stärken (höchstens ±5). Deutschland
+              Saison beginnt mit Auf- und Abstieg und unveränderten Stärken (neue per Knopf „Neue Stärken“). Deutschland
               bleibt unberührt.
             </p>
           ) : (
@@ -8494,13 +8525,31 @@ export default function Tabellenrechner() {
               Alle noch offenen Spiele der fünf Ligen, des DFB-Pokals und der drei Europapokale werden
               ausgewürfelt (bereits eingetragene Ergebnisse bleiben). Anschließend kommen alle Wettbewerbe
               in die Historie, die Relegationen werden per Hin- und Rückspiel entschieden, und die
-              nächste Saison beginnt mit Auf- und Abstieg und neuen Stärken. England, Spanien, Italien und Frankreich bleiben unberührt.
+              nächste Saison beginnt mit Auf- und Abstieg, die Stärken bleiben (neue per Knopf „Neue Stärken“). England, Spanien, Italien und Frankreich bleiben unberührt.
             </p>
           )}
           <p>Das lässt sich nicht rückgängig machen. Vorher unter Historie „Sichern“ eine Kopie anlegen.</p>
           <div className="lr-modal-foot">
             <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
             <button className="lr-btn lr-btn-p" id="playall-go" onClick={section === "en" ? playAllEn : section === "es" ? playAllEs : section === "it" ? playAllIt : section === "fr" ? playAllFr : playAll}>Alles durchspielen</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal && modal.type === "newstr" && (
+        <Modal onClose={() => setModal(null)}>
+          <h2>{`Neue Stärken — ${COUNTRY[section].name}`}</h2>
+          <p>
+            Jeder Klub dieses Abschnitts bekommt eine neue Stärke, die sich um höchstens ±5 von der bisherigen
+            unterscheidet. Ergebnisse, Tabellen und Historie bleiben. Ohne diesen Knopf bleiben die Stärken auch nach
+            dem Saisonwechsel unverändert.
+          </p>
+          <div className="lr-modal-foot">
+            <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
+            <button className="lr-btn lr-btn-p" id="newstr-go" onClick={() => {
+              setData((d) => driftLeagues(d, COUNTRY[section].ids, section === "de"));
+              setModal(null);
+            }}>Neue Stärken bestimmen</button>
           </div>
         </Modal>
       )}
@@ -9656,7 +9705,7 @@ function CloseModal({ league, season, rows, playedGames, totalGames, onClose, on
         {playedGames < totalGames
           ? `Es fehlen noch ${totalGames - playedGames} Spiele. Die Abschlusstabelle wird trotzdem so gespeichert, wie sie gerade steht.`
           : "Alle Spiele sind eingetragen."}
-        {" "}Danach ändert sich die Stärke jeder Mannschaft um höchstens ±5.
+        {" "}Die Stärken bleiben dabei unverändert (neue per Knopf „Neue Stärken“).
       </p>
       <div style={{ borderTop: "1px solid rgba(233,229,216,0.22)", paddingTop: 14 }}>
         <div style={{ fontSize: 13, marginBottom: 12 }}>
@@ -9709,8 +9758,8 @@ function PromotionModal({ data, onClose, onConfirm }) {
       <h2>Alle Ligen abschließen</h2>
       <p>
         Die fünf Abschlusstabellen wandern in die Historie, danach werden die Ligen neu
-        besetzt. Stärkewerte nehmen die Mannschaften mit in ihre neue Liga, jede Stärke ändert sich dabei
-        um höchstens ±5. In der 3., 4. und
+        besetzt. Stärkewerte nehmen die Mannschaften unverändert mit in ihre neue Liga (neue Stärken
+        per Knopf „Neue Stärken“). In der 3., 4. und
         5. Liga steigen jeweils die ersten vier auf und die letzten vier ab.
       </p>
 

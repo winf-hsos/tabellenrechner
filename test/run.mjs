@@ -109,8 +109,14 @@ const all2 = names(d);
 {
   const diffs = [];
   ["bl1","bl2","bl3","bl4","bl5"].forEach((id) => d.active[id].teams.forEach((n, i) => { if (n in vorher) diffs.push(d.active[id].strengths[i] - vorher[n]); }));
-  ok(diffs.length > 60 && diffs.every((x) => Math.abs(x) <= 5), `Stärke ändert sich höchstens um 5 (${diffs.length} Teams, max ${Math.max(...diffs.map(Math.abs))})`);
-  ok(diffs.filter((x) => x !== 0).length > diffs.length / 2 && diffs.some((x) => x > 0) && diffs.some((x) => x < 0), "Stärken sinken und steigen, die meisten ändern sich");
+  ok(diffs.length > 60 && diffs.every((x) => x === 0), `Stärken bleiben nach dem Saisonwechsel unverändert (${diffs.length} Teams)`);
+  await click(btn("Neue Stärken")); await flush();
+  await click(btn("Neue Stärken bestimmen")); await flush();
+  d = saved();
+  const diffs2 = [];
+  ["bl1","bl2","bl3","bl4","bl5"].forEach((id) => d.active[id].teams.forEach((n, i) => { if (n in vorher) diffs2.push(d.active[id].strengths[i] - vorher[n]); }));
+  ok(diffs2.length > 60 && diffs2.every((x) => Math.abs(x) <= 5), `Knopf „Neue Stärken“: höchstens ±5 (${diffs2.length} Teams, max ${Math.max(...diffs2.map(Math.abs))})`);
+  ok(diffs2.filter((x) => x !== 0).length > diffs2.length / 2 && diffs2.some((x) => x > 0) && diffs2.some((x) => x < 0), "Stärken sinken und steigen, die meisten ändern sich");
   const alle = ["bl1","bl2","bl3","bl4","bl5"].flatMap((id) => d.active[id].strengths);
   ok(alle.every((x) => x >= 1 && x <= 99), "alle Stärken zwischen 1 und 99");
 }

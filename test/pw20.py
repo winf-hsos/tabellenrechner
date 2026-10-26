@@ -24,9 +24,14 @@ with sync_playwright() as p:
     # erste Änderung, damit gespeichert wird; dann Stärken verändern und zurücksetzen
     pg.get_by_role("button", name="Spieltag simulieren").first.click(); pg.wait_for_timeout(700)
     pruefe(json.loads(pg.evaluate("() => localStorage.getItem('ligarechner:v2')")), "frischer Start")
+    vor = json.loads(pg.evaluate("() => localStorage.getItem('ligarechner:v2')"))
+    vorwerte = {x for l in ("bl1", "bl2", "bl3", "bl4", "bl5") for x in vor["active"][l]["strengths"]}
     pg.locator("#playall-open").click(); pg.locator("#playall-go").click(); pg.wait_for_timeout(2500)
     d = json.loads(pg.evaluate("() => localStorage.getItem('ligarechner:v2')"))
-    ok(max(d["active"]["bl1"]["strengths"]) != 95 or min(d["active"]["bl1"]["strengths"]) != 70, "nach einer Saison weichen die Stärken ab (Drift)")
+    ok(set(d["active"]["bl1"]["strengths"]) <= vorwerte and max(d["active"]["bl1"]["strengths"]) >= 90, "nach einer Saison bleiben die Stärken unverändert")
+    pg.locator("#newstr-open").click(); pg.locator("#newstr-go").click(); pg.wait_for_timeout(600)
+    d = json.loads(pg.evaluate("() => localStorage.getItem('ligarechner:v2')"))
+    ok(max(d["active"]["bl1"]["strengths"]) != 95 or min(d["active"]["bl1"]["strengths"]) != 70, "nach dem Knopf „Neue Stärken“ weichen die Stärken ab (Drift)")
     pg.locator("#reset-open").click()
     pg.locator(".lr-modal").get_by_role("button", name="Alles zurücksetzen").click(); pg.wait_for_timeout(900)
     d = json.loads(pg.evaluate("() => localStorage.getItem('ligarechner:v2')"))
