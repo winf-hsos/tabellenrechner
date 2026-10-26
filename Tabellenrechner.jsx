@@ -82,7 +82,7 @@ const ENGLAND = [
     id: "pl",
     name: "Premier League",
     accent: "#B07CF0",
-    range: [96, 70],
+    range: [94, 74],
     teams: [
       "Manchester City", "FC Arsenal", "FC Liverpool", "Manchester United",
       "FC Chelsea", "Tottenham Hotspur", "Aston Villa", "AFC Bournemouth",
@@ -93,9 +93,13 @@ const ENGLAND = [
   },
 ];
 const ENG_IDS = ENGLAND.map((l) => l.id);
+/** Namen aller Premier-League-Klubs: sie qualifizieren sich über die Tabelle für den Europapokal. */
+const PL_NAMES = new Set(ENGLAND[0].teams);
+/** Englische Europapokal-Plätze (Anzahl der Klubs in den Startlisten): Plätze 1–5 CL, 6–8 EL, 9 ECL. */
+const EURO_PLACES_EN = { cl: 5, el: 3, ecl: 1 };
 
-/** Startstärken der Premier League (aus den Spielerpreisen der Fantasy Premier League auf 96–70 umgerechnet). */
-const PL_START = {"Manchester City": 96, "FC Arsenal": 91, "FC Liverpool": 87, "Manchester United": 86, "FC Chelsea": 84, "Tottenham Hotspur": 80, "Aston Villa": 79, "AFC Bournemouth": 78, "Nottingham Forest": 77, "FC Everton": 77, "Newcastle United": 77, "FC Brentford": 76, "Brighton & Hove Albion": 76, "Crystal Palace": 74, "Leeds United": 73, "FC Fulham": 72, "AFC Sunderland": 72, "Ipswich Town": 72, "Coventry City": 71, "Hull City": 70};
+/** Startstärken der Premier League (aus den Spielerpreisen der Fantasy Premier League auf 94–74 umgerechnet). */
+const PL_START = {"Manchester City": 94, "FC Arsenal": 90, "FC Liverpool": 87, "Manchester United": 86, "FC Chelsea": 85, "Tottenham Hotspur": 82, "Aston Villa": 81, "AFC Bournemouth": 80, "Nottingham Forest": 79, "FC Everton": 79, "Newcastle United": 79, "FC Brentford": 79, "Brighton & Hove Albion": 79, "Crystal Palace": 77, "Leeds United": 77, "FC Fulham": 76, "AFC Sunderland": 76, "Ipswich Town": 75, "Coventry City": 75, "Hull City": 74};
 
 /** Gehört ein Historieneintrag zum englischen Abschnitt? */
 const isEngHist = (h) => ENG_IDS.indexOf(h.leagueId) >= 0;
@@ -285,10 +289,9 @@ function zoneFor(leagueId, pos, n) {
     if (pos <= 4) return "auf";
     if (pos > n - 4) return "ab";
   } else if (leagueId === "pl") {
-    if (pos <= 4) return "cl";
-    if (pos <= 6) return "el";
-    if (pos === 7) return "ecl";
-    if (pos > n - 3) return "ab";
+    if (pos <= EURO_PLACES_EN.cl) return "cl";
+    if (pos <= EURO_PLACES_EN.cl + EURO_PLACES_EN.el) return "el";
+    if (pos <= EURO_PLACES_EN.cl + EURO_PLACES_EN.el + EURO_PLACES_EN.ecl) return "ecl";
   }
   return null;
 }
@@ -296,7 +299,7 @@ function zoneFor(leagueId, pos, n) {
 function zonesUsed(leagueId) {
   if (leagueId === "eu") return ["ach", "po", "aus"];
   if (leagueId === "bl1") return ["cl", "el", "ecl", "rel", "ab"];
-  if (leagueId === "pl") return ["cl", "el", "ecl", "ab"];
+  if (leagueId === "pl") return ["cl", "el", "ecl"];
   if (leagueId === "bl4" || leagueId === "bl5") return ["auf", "ab"];
   return ["auf", "rel", "ab"];
 }
@@ -3227,7 +3230,8 @@ function euroStartTeams(id) {
   const werte = rescaleTo(EURO_FOREIGN[id].map((x) => x[1]), EURO_RANGE[id][0], EURO_RANGE[id][1]);
   return [
     ...EURO_START_DE[id].map((name) => ({ name, de: true, strength: 70 })),
-    ...EURO_FOREIGN[id].map(([name], i) => ({ name, de: false, strength: werte[i] })),
+    ...EURO_FOREIGN[id].filter(([name]) => PL_NAMES.has(name)).map(([name]) => ({ name, de: false, en: true, strength: 70 })),
+    ...EURO_FOREIGN[id].map(([name], i) => ({ name, de: false, strength: werte[i] })).filter((t) => !PL_NAMES.has(t.name)),
   ];
 }
 
@@ -3246,7 +3250,7 @@ function normEuro(e) {
   EURO_COMPS.forEach((c) => {
     const l = e.teams && Array.isArray(e.teams[c.id]) ? e.teams[c.id] : null;
     teams[c.id] = l && l.length
-      ? l.filter((t) => t && t.name).map((t) => ({ name: String(t.name), de: !!t.de, strength: Number(t.strength) || 60 }))
+      ? l.filter((t) => t && t.name).map((t) => ({ name: String(t.name), de: !!t.de, en: !!t.en || PL_NAMES.has(String(t.name)), strength: Number(t.strength) || 60 }))
       : base.teams[c.id];
     const r = e.runs && e.runs[c.id];
     runs[c.id] = r && Array.isArray(r.fixtures) && Array.isArray(r.teams) ? { ...r, ko: Array.isArray(r.ko) ? r.ko : [] } : null;
@@ -3256,8 +3260,8 @@ function normEuro(e) {
 
 /** Stärke eines Teilnehmers: deutsche Klubs zählen mit ihrer aktuellen Ligastärke. */
 function euroStrength(t, active) {
-  if (t.de && active) {
-    for (const id of LEAGUE_IDS) {
+  if ((t.de || t.en) && active) {
+    for (const id of [...LEAGUE_IDS, ...ENG_IDS]) {
       const s = active[id];
       const i = s ? s.teams.indexOf(t.name) : -1;
       if (i >= 0) return Number(s.strengths[i]) || 1;
@@ -3286,6 +3290,38 @@ function euroApplyQualifiers(teams, q) {
     out[c.id] = [...(q[c.id] || []).map((name) => ({ name, de: true, strength: 70 })), ...fremd];
   });
   return out;
+}
+
+/** Anzahl der englischen Klubs je Wettbewerb in den aktuellen Teilnehmerlisten (sonst die Standardplätze). */
+function euroPlacesEn(teams) {
+  const n = {};
+  EURO_COMPS.forEach((c) => { n[c.id] = (teams[c.id] || []).filter((t) => t.en).length; });
+  return n.cl + n.el + n.ecl > 0 ? n : { ...EURO_PLACES_EN };
+}
+
+/** Englische Plätze aus der Abschlusstabelle der Premier League: erst CL, dann EL, dann ECL. */
+function euroQualifiersEn(order, places) {
+  const cl = order.slice(0, places.cl);
+  const el = order.slice(places.cl, places.cl + places.el);
+  const ecl = order.slice(places.cl + places.el, places.cl + places.el + places.ecl);
+  return { cl, el, ecl };
+}
+
+/** Teilnehmerlisten mit den neuen englischen Qualifikanten; alle übrigen Teilnehmer bleiben. */
+function euroApplyQualifiersEn(teams, q) {
+  const out = {};
+  EURO_COMPS.forEach((c) => {
+    out[c.id] = [...(teams[c.id] || []).filter((t) => !t.en),
+      ...(q[c.id] || []).map((name) => ({ name, de: false, en: true, strength: 70 }))];
+  });
+  return out;
+}
+
+/** Europapokal-Teilnehmer nach dem Abschluss der Premier League: Plätze aus der Tabelle der Saison. */
+function euroAfterEnglishSeason(d) {
+  const s = d.active.pl;
+  const order = computeTable(s.teams, makeFixtures(s.teams.length, s.seed), s.results).map((r) => r.name);
+  return { ...d.euro, teams: euroApplyQualifiersEn(d.euro.teams, euroQualifiersEn(order, euroPlacesEn(d.euro.teams))) };
 }
 
 /** Teilnehmerliste prüfen: genau 36 verschiedene, nicht leere Namen. */
@@ -3478,8 +3514,8 @@ function euroIndex(run) {
 
 /** Kader eines Teilnehmers: deutsche Klubs bringen ihren Ligakader mit, die anderen den echten oder einen erzeugten. */
 function euroSquadFor(t, strength, active) {
-  if (t.de && active) {
-    for (const id of LEAGUE_IDS) {
+  if ((t.de || t.en) && active) {
+    for (const id of [...LEAGUE_IDS, ...ENG_IDS]) {
       const s = active[id];
       const i = s ? s.teams.indexOf(t.name) : -1;
       if (i >= 0 && s.squads && s.squads[i]) return s.squads[i];
@@ -4548,6 +4584,7 @@ export default function Tabellenrechner() {
       const s = d.active[league.id];
       return {
         ...d,
+        ...(league.id === "pl" ? { euro: euroAfterEnglishSeason(d) } : {}),
         history: [entry, ...d.history],
         active: { ...d.active, [league.id]: newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads.map(driftSquad)) },
       };
@@ -4622,7 +4659,7 @@ export default function Tabellenrechner() {
         history,
         euro: {
           teams: Object.fromEntries(Object.entries(euroApplyQualifiers(d.euro.teams, euroQ)).map(([id, list]) => [
-            id, list.map((t) => (t.de ? t : { ...t, strength: driftValue(t.strength) }))])),
+            id, list.map((t) => (t.de || t.en ? t : { ...t, strength: driftValue(t.strength) }))])),
           runs: { cl: null, el: null, ecl: null },
         },
         regional,
@@ -4794,6 +4831,7 @@ export default function Tabellenrechner() {
         const eintrag = archive(voll, id);
         cur = {
           ...voll,
+          euro: id === "pl" ? euroAfterEnglishSeason(voll) : voll.euro,
           history: [eintrag, ...voll.history],
           active: { ...voll.active, [id]: newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads.map(driftSquad)) },
         };
@@ -5947,7 +5985,7 @@ function EuroTeamsModal({ comp, list, active, logos, onLogo, onSave, onClose, on
   };
   const alleDeutschen = useMemo(() => LEAGUE_IDS.map((id) => ({ id, name: LEAGUE_BY_ID[id].name, teams: active[id] ? active[id].teams : [] })), [active]);
   const speichern = () => {
-    const clean = rows.map((r) => ({ name: r.name.trim(), de: !!r.de, strength: Number(r.strength) || 60 }));
+    const clean = rows.map((r) => ({ name: r.name.trim(), de: !!r.de, en: !!r.en, strength: Number(r.strength) || 60 }));
     const alt = [];
     const neu = [];
     rows.forEach((r) => {
@@ -5962,8 +6000,8 @@ function EuroTeamsModal({ comp, list, active, logos, onLogo, onSave, onClose, on
       <h2>{comp.name} — Teilnehmer</h2>
       <p>
         Hier legst du die 36 Teilnehmer der Ligaphase fest. Die deutschen Klubs (DE) qualifizieren sich
-        beim Abschluss aller Ligen automatisch über die Bundesliga-Tabelle und den DFB-Pokal, ihre Stärke
-        kommt aus der Liga. Alle anderen Vereine kannst du umbenennen, austauschen, mit Logo versehen und
+        beim Abschluss aller Ligen automatisch über die Bundesliga-Tabelle und den DFB-Pokal, die englischen
+        (EN) beim Abschluss der Premier League über deren Tabelle. Ihre Stärke kommt aus der jeweiligen Liga. Alle anderen Vereine kannst du umbenennen, austauschen, mit Logo versehen und
         mit einer Stärke belegen. Die Stärken sind Schätzungen auf der Skala der Bundesliga.
         {hasRun ? " Eine Runde läuft gerade: Namen und Stärken gelten erst ab der nächsten Auslosung, Logos sofort." : ""}
       </p>
@@ -5989,7 +6027,12 @@ function EuroTeamsModal({ comp, list, active, logos, onLogo, onSave, onClose, on
       <div className="lr-team-head kader"><span>Verein</span><span>Logo</span><span>Stärke</span><span /></div>
       {rows.map((r, i) => (
         <div className="lr-team-row kader" key={i}>
-          {r.de ? (
+          {r.en ? (
+            <select className="lr-team-in" value={r.name} aria-label={`Englischer Teilnehmer ${i + 1}`}
+              onChange={(e) => setRow(i, { name: e.target.value })}>
+              {ENGLAND.flatMap((g) => g.teams).map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+          ) : r.de ? (
             <select className="lr-team-in" value={r.name} aria-label={`Deutscher Teilnehmer ${i + 1}`}
               onChange={(e) => setRow(i, { name: e.target.value })}>
               {!alleDeutschen.some((g) => g.teams.indexOf(r.name) >= 0) && <option value={r.name}>{r.name}</option>}
@@ -6014,11 +6057,11 @@ function EuroTeamsModal({ comp, list, active, logos, onLogo, onSave, onClose, on
                 onClick={() => onLogo(names[i], null)}>×</button>
             )}
           </span>
-          {r.de
+          {r.de || r.en
             ? <span className="lr-team-str" title="Stärke aus der Liga">{euroStrength(r, active)}</span>
             : <StrengthCell value={Number(r.strength) || 60} index={i} onSet={(k, v) => setRow(k, { strength: v })} />}
-          {r.de
-            ? <span className="lr-bulk-hint" style={{ textAlign: "center" }}>DE</span>
+          {r.de || r.en
+            ? <span className="lr-bulk-hint" style={{ textAlign: "center" }}>{r.en ? "EN" : "DE"}</span>
             : <button type="button" className="lr-btn lr-btn-sm" aria-label={`${names[i] || "Verein"} entfernen`}
                 onClick={() => setRows((x) => x.filter((_, k) => k !== i))}>Entfernen</button>}
         </div>
@@ -6368,7 +6411,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
               <li key={i}>
                 <span className="eu-n">{i + 1}</span>
                 <span className="eu-nm"><Logo name={t.name} />{t.name}</span>
-                {t.de ? <span className="eu-de">DE</span> : null}
+                {t.de ? <span className="eu-de">DE</span> : t.en ? <span className="eu-de">EN</span> : null}
                 <span className="eu-s">{euroStrength(t, data.active)}</span>
               </li>
             ))}
@@ -6593,7 +6636,9 @@ function CloseModal({ league, season, rows, playedGames, totalGames, onClose, on
   const champ = rows[0];
   const upDown = [];
   if (league.id === "pl") {
-    upDown.push(["Europapokal-Plätze", rows.slice(0, 7)]);
+    upDown.push(["Champions League", rows.slice(0, EURO_PLACES_EN.cl)]);
+    upDown.push(["Europa League", rows.slice(EURO_PLACES_EN.cl, EURO_PLACES_EN.cl + EURO_PLACES_EN.el)]);
+    upDown.push(["Conference League", rows.slice(EURO_PLACES_EN.cl + EURO_PLACES_EN.el, EURO_PLACES_EN.cl + EURO_PLACES_EN.el + EURO_PLACES_EN.ecl)]);
   } else if (league.id === "bl1") {
     upDown.push(["Relegation", [rows[n - 3]]]);
     upDown.push(["Absteiger", [rows[n - 2], rows[n - 1]]]);
@@ -6631,7 +6676,7 @@ function CloseModal({ league, season, rows, playedGames, totalGames, onClose, on
       <p style={{ marginTop: 18, marginBottom: 0 }}>
         Die Saison wandert in die Historie, danach startet {league.name} {nextLabel(season.label)}{" "}
         mit denselben Mannschaften, ihren Stärkewerten und einem neuen Spielplan.
-        {league.id === "pl" ? " In England gibt es keinen Auf- und Abstieg." : " Für echten Auf- und Abstieg nimm den zweiten Knopf."}
+        {league.id === "pl" ? " In England gibt es keinen Auf- und Abstieg; die Europapokal-Plätze gehen in die Teilnehmerlisten." : " Für echten Auf- und Abstieg nimm den zweiten Knopf."}
       </p>
       <div className="lr-modal-foot">
         <button className="lr-btn" onClick={onClose}>Abbrechen</button>
