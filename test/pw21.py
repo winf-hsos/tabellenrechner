@@ -24,6 +24,10 @@ with sync_playwright() as p:
     ok("38" in pg.locator(".lr-md-num").inner_text(), "38 Spieltage")
     pg.get_by_role("button", name="Spieltag simulieren").first.click(); pg.wait_for_timeout(700)
     d = state(pg); pl = d["active"]["pl"]
+    en0 = {c: [t["name"] for t in d["euro"]["teams"][c] if t.get("en")] for c in ("cl", "el", "ecl")}
+    ok([len(en0[c]) for c in ("cl", "el", "ecl")] == [5, 3, 1], f"Startlisten: 5 englische Klubs in der CL, 3 in der EL, 1 in der ECL")
+    ok(all(len(d["euro"]["teams"][c]) == 36 for c in ("cl", "el", "ecl")), "alle Europapokal-Listen haben 36 Teilnehmer")
+    ok(all(n in pl["teams"] for c in en0 for n in en0[c]), "alle englischen Teilnehmer sind Premier-League-Klubs")
     ok(len(pl["teams"]) == 20 and len(set(pl["teams"])) == 20, "20 verschiedene Teams im Speicher")
     sq = {t: [x["n"] for x in pl["squads"][i]["p"]] for i, t in enumerate(pl["teams"])}
     ok(all(len(v) == 18 for v in sq.values()), "jeder Kader hat 18 Spieler")
@@ -32,7 +36,7 @@ with sync_playwright() as p:
     ok(len(allnames) == len(set(allnames)), "Spielernamen sind in England eindeutig")
     de_names = {x["n"] for l in ("bl1", "bl2", "bl3", "bl4", "bl5") for q in d["active"][l]["squads"] for x in q["p"]}
     ok(not (set(allnames) & de_names), "keine Spieler in England und Deutschland gleichzeitig")
-    ok(max(pl["strengths"]) >= 94 and 69 <= min(pl["strengths"]) <= 72, f"Stärken {min(pl['strengths'])}–{max(pl['strengths'])}")
+    ok(max(pl["strengths"]) == 94 and min(pl["strengths"]) == 74, f"Stärken {min(pl['strengths'])}–{max(pl['strengths'])} (soll 74–94)")
     # Torjäger England
     pg.get_by_role("button", name="Rest der Saison").click(); pg.wait_for_timeout(900)
     pg.locator(".lr-tab", has_text="Torjäger").click(); pg.wait_for_timeout(300)
@@ -56,6 +60,10 @@ with sync_playwright() as p:
     pg.locator("#playall-go").click(); pg.wait_for_timeout(1500)
     d = state(pg)
     ok([e["leagueId"] for e in d["history"]] == ["pl"] and d["history"][0]["label"] == "2026/27", "Historie: genau ein Eintrag Premier League 2026/27")
+    tab = [r["name"] for r in d["history"][0]["table"]]
+    en1 = {c: [t["name"] for t in d["euro"]["teams"][c] if t.get("en")] for c in ("cl", "el", "ecl")}
+    ok(en1["cl"] == tab[:5] and en1["el"] == tab[5:8] and en1["ecl"] == tab[8:9], f"Europapokal-Plätze aus der Tabelle: CL {en1['cl']}, EL {en1['el']}, ECL {en1['ecl']}")
+    ok(all(len(d["euro"]["teams"][c]) == 36 and len({t["name"] for t in d["euro"]["teams"][c]}) == 36 for c in ("cl", "el", "ecl")), "Listen bleiben bei 36 verschiedenen Teilnehmern")
     ok(d["active"]["pl"]["label"] == "2027/28" and d["active"]["pl"]["results"] == {}, "nächste Saison 2027/28 beginnt")
     ok(d["active"]["bl1"]["label"] == "2026/27" and d["active"]["bl1"]["results"] == {}, "Deutschland unverändert")
     ok("Premier League" in pg.locator(".lr-wrap").last.inner_text(), "Historie England zeigt die Saison")
@@ -69,6 +77,11 @@ with sync_playwright() as p:
     pg.locator("#playall-open").click(); pg.locator("#playall-go").click(); pg.wait_for_timeout(2500)
     d = state(pg)
     ok("pl" in d["active"] and d["active"]["pl"]["label"] == "2027/28", "England bleibt nach dem deutschen Saisonwechsel erhalten")
+    for c in ("cl", "el", "ecl"):
+        e = [h for h in d["history"] if h["leagueId"] == c][0]
+        teilnehmer = {r["name"] for r in e["table"]}
+        ok(set(en1[c]) <= teilnehmer and len(en1[c]) == len(en0[c]), f"{c.upper()}: die {len(en1[c])} englischen Qualifikanten aus der Premier-League-Tabelle spielen mit")
+    ok(all(len(d["euro"]["teams"][c]) == 36 and sorted(t["name"] for t in d["euro"]["teams"][c] if t.get("en")) == sorted(en1[c]) for c in ("cl", "el", "ecl")), "deutscher Saisonwechsel lässt die englischen Qualifikanten stehen")
     ok(sum(1 for e in d["history"] if e["leagueId"] == "pl") == 1 and sum(1 for e in d["history"] if e["leagueId"] != "pl") == 9, "Historie: 1 englischer und 9 deutsche Einträge")
     # Abschnitt bleibt nach Neuladen
     pg.locator("#sec-en").click(); pg.wait_for_timeout(900)

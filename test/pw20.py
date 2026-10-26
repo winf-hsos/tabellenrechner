@@ -6,7 +6,7 @@ errs = []
 def ok(c, m):
     print(("OK   " if c else "FEHLER ") + m)
     if not c: errs.append(m)
-SOLL = {"bl1": (95, 70), "bl2": (80, 60), "bl3": (74, 56), "bl4": (65, 52), "bl5": (60, 45)}
+SOLL = {"bl1": (95, 70), "bl2": (80, 60), "bl3": (74, 56), "bl4": (65, 52), "bl5": (60, 45), "pl": (94, 74)}
 EURO = {"cl": (99, 65), "el": (88, 60), "ecl": (85, 55)}
 def pruefe(d, wann):
     for liga, (hi, lo) in SOLL.items():
