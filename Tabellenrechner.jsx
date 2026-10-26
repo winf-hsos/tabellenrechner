@@ -3653,6 +3653,13 @@ const CSS = `
 .lr-unb-n { color: var(--chalk-dim); }
 .lr-unb-t { display: flex; align-items: center; min-width: 0; }
 .lr-unb-row small { grid-column: 2 / 4; color: var(--chalk-dim); }
+.eu-eng { list-style: none; margin: 0; padding: 0; }
+.eu-eng li { display: grid; grid-template-columns: 22px 1fr 30px; gap: 2px 8px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.eu-eng .eu-n { color: var(--chalk-dim); font-size: 11px; text-align: right; }
+.eu-eng .eu-nm { display: flex; align-items: center; min-width: 0; }
+.eu-eng .eu-nm .lr-logo { width: 22px; height: 22px; margin: 0 8px 0 0; }
+.eu-eng .eu-s { text-align: right; font-weight: 600; color: var(--chalk-dim); }
+.eu-eng small { grid-column: 2 / 4; color: var(--chalk-dim); font-size: 12px; }
 .lr-sections { display: flex; gap: 8px; margin: 14px 0 10px; }
 .lr-sec-btn { background: transparent; border: 1px solid var(--line-2); color: var(--chalk-dim); border-radius: 999px; padding: 6px 16px; font: inherit; font-size: 13px; cursor: pointer; }
 .lr-sec-btn[data-on="1"] { background: var(--chalk); color: var(--bg); border-color: var(--chalk); font-weight: 600; }
@@ -4298,7 +4305,7 @@ export default function Tabellenrechner() {
         // Nur übernehmen, was zum gespeicherten Stand passt.
         const sec = ui.section === "en" ? "en" : "de";
         setSection(sec);
-        const okTabs = sec === "en" ? [...ENG_IDS, "top", "cal", "hist"] : [...LEAGUE_IDS, "cup", "euro", "top", "cal", "hist"];
+        const okTabs = sec === "en" ? [...ENG_IDS, "eneuro", "top", "cal", "hist"] : [...LEAGUE_IDS, "cup", "euro", "top", "cal", "hist"];
         if (typeof ui.tab === "string" && okTabs.indexOf(ui.tab) >= 0) setTab(ui.tab);
         else if (sec === "en") setTab("pl");
         if (ui.md && typeof ui.md === "object") setMd({ ...ZERO_MD, ...ui.md });
@@ -4399,6 +4406,22 @@ export default function Tabellenrechner() {
       LEAGUE_IDS.forEach((id) => {
         const s = d.active[id];
         const squads = s.squads.map((q, i) => (FIFA_STRENGTH[s.teams[i]] != null ? scaleSquadTo(q, FIFA_STRENGTH[s.teams[i]]) : q));
+        active[id] = { ...s, squads, strengths: squads.map(squadStrength) };
+      });
+      return { ...d, active };
+    });
+    return n;
+  };
+
+  /** Stärken der Premier League auf die Startwerte (94–74) setzen, ohne den Spielstand zu löschen. Gibt die Anzahl zurück. */
+  const applyPlStart = () => {
+    let n = 0;
+    ENG_IDS.forEach((id) => data.active[id].teams.forEach((t) => { if (PL_START[t] != null) n++; }));
+    setData((d) => {
+      const active = { ...d.active };
+      ENG_IDS.forEach((id) => {
+        const s = d.active[id];
+        const squads = s.squads.map((q, i) => (PL_START[s.teams[i]] != null ? scaleSquadTo(q, PL_START[s.teams[i]]) : q));
         active[id] = { ...s, squads, strengths: squads.map(squadStrength) };
       });
       return { ...d, active };
@@ -4906,6 +4929,7 @@ export default function Tabellenrechner() {
 
   const rootAccent =
     tab === "cup" ? accentVars(CUP_ACCENT)
+      : tab === "eneuro" ? accentVars("#4C8BF5")
       : tab === "euro" ? accentVars(EURO_BY_ID[euSel].accent)
       : tab === "cal" ? accentVars("#7FB5A0")
         : tab === "hist" ? accentVars("#C9C3B0")
@@ -4956,6 +4980,12 @@ export default function Tabellenrechner() {
               <button className="lr-tab" data-on={tab === "cup" ? "1" : "0"}
                 style={tab === "cup" ? accentVars(CUP_ACCENT) : undefined} onClick={() => setTab("cup")}>
                 DFB-Pokal
+              </button>
+            )}
+            {section === "en" && (
+              <button className="lr-tab" data-on={tab === "eneuro" ? "1" : "0"} id="tab-eneuro"
+                style={tab === "eneuro" ? accentVars("#4C8BF5") : undefined} onClick={() => setTab("eneuro")}>
+                Europa
               </button>
             )}
             {section !== "en" && (
@@ -5252,6 +5282,8 @@ export default function Tabellenrechner() {
           onTeams={() => setModal({ type: "euteams", comp: euSel })} />
       )}
 
+      {tab === "eneuro" && section === "en" && data.active.pl && <EnglandEuropa data={data} />}
+
       {tab === "top" && (
         <div className="lr-wrap">
         <section style={accentVars("#D98C5F")}>
@@ -5346,7 +5378,7 @@ export default function Tabellenrechner() {
 
       {modal && modal.type === "teams" && season && (
         <TeamsModal season={season} leagueName={league.name} onClose={() => setModal(null)}
-          logos={allLogos} onLogo={setLogo} onFifa={applyFifa}
+          leagueId={league.id} logos={allLogos} onLogo={setLogo} onFifa={league.id === "pl" ? applyPlStart : applyFifa}
           onStrength={(i, ziel) => updateSeason(league.id, (s) => {
             const squads = [...s.squads];
             const strengths = [...s.strengths];
@@ -5611,7 +5643,7 @@ function StrengthCell({ value, index, onSet }) {
   );
 }
 
-function TeamsModal({ season, leagueName, onClose, onSave, onSquad, logos, onLogo, onFifa, onStrength }) {
+function TeamsModal({ season, leagueId, leagueName, onClose, onSave, onSquad, logos, onLogo, onFifa, onStrength }) {
   const [fifaStep, setFifaStep] = useState(0);
   const [fifaMsg, setFifaMsg] = useState("");
   const [fehler, setFehler] = useState("");
@@ -5650,20 +5682,20 @@ function TeamsModal({ season, leagueName, onClose, onSave, onSquad, logos, onLog
       <div className="lr-bulk lr-fifa">
         {fifaStep === 0 && (
           <button type="button" className="lr-btn lr-btn-sm" id="fifa-start" onClick={() => { setFifaStep(1); setFifaMsg(""); }}>
-            Stärken nach EA FC 27 setzen
+            {leagueId === "pl" ? "Startstärken setzen (94–74)" : "Stärken nach EA FC 27 setzen"}
           </button>
         )}
         {fifaStep === 1 && (
           <>
             <button type="button" className="lr-btn lr-btn-sm lr-btn-p" id="fifa-ok"
-              onClick={() => { const n = onFifa(); setFifaStep(0); setFifaMsg(`${n} Klubs auf ihre FIFA-Stärke gesetzt.`); }}>
+              onClick={() => { const n = onFifa(); setFifaStep(0); setFifaMsg(leagueId === "pl" ? `${n} Klubs auf ihre Startstärke gesetzt.` : `${n} Klubs auf ihre FIFA-Stärke gesetzt.`); }}>
               Ja, Stärken überschreiben
             </button>
             <button type="button" className="lr-btn lr-btn-sm" onClick={() => setFifaStep(0)}>Abbrechen</button>
           </>
         )}
         <span className="lr-bulk-hint">
-          {fifaMsg || "Gilt für Bundesliga, 2. Bundesliga und 3. Liga: Jeder Klub bekommt die Stärke, die seinem FIFA-Wert entspricht, die Abstände bleiben wie bei FIFA. Klubs der 4. und 5. Liga bleiben unverändert. Eigene Stärken und Kaderwerte dieser Klubs werden überschrieben."}
+          {fifaMsg || (leagueId === "pl" ? "Setzt alle 20 Klubs auf die Startstärken der Premier League zwischen 94 (Manchester City) und 74 (Hull City). Ergebnisse und Historie bleiben erhalten." : "Gilt für Bundesliga, 2. Bundesliga und 3. Liga: Jeder Klub bekommt die Stärke, die seinem FIFA-Wert entspricht, die Abstände bleiben wie bei FIFA. Klubs der 4. und 5. Liga bleiben unverändert. Eigene Stärken und Kaderwerte dieser Klubs werden überschrieben.")}
         </span>
       </div>
       <div className="lr-bulk" onDragOver={(e) => e.preventDefault()}
@@ -7073,6 +7105,80 @@ function LiveTicker({ games, season, fixtures, mdIdx, onClose, onFinish }) {
         </div>
       </div>
     </Modal>
+  );
+}
+
+/* ---------------- England im Europapokal ---------------- */
+
+/** Wie weit ist ein Klub im laufenden Europapokal? Ohne laufende Runde: qualifiziert. */
+function euroClubStatus(run, name) {
+  if (!run) return "qualifiziert, Runde noch nicht gestartet";
+  const idx = run.teams.findIndex((t) => t.name === name);
+  if (idx < 0) return "in dieser Runde nicht dabei";
+  const row = euroTable(run).find((r) => r.idx === idx);
+  const phase = `Ligaphase: Platz ${row.pos}, ${row.pkt} Punkte nach ${row.sp} Spielen`;
+  if (!run.ko.length) return phase;
+  let status = null;
+  for (const rd of run.ko) {
+    const two = rd.name !== "Finale";
+    const tie = rd.ties.find((t) => t.h === idx || t.a === idx);
+    if (!tie) continue;
+    const w = tieWinner(tie, two);
+    if (!w) { status = `spielt im ${rd.name}`; break; }
+    if ((w === "h" ? tie.h : tie.a) !== idx) { status = `ausgeschieden im ${rd.name}`; break; }
+    status = rd.name === "Finale" ? "Sieger" : `${rd.name} gewonnen`;
+  }
+  if (!status) status = row.pos <= 8 ? "direkt im Achtelfinale" : "ausgeschieden in der Ligaphase";
+  return `${phase} · ${status}`;
+}
+
+/** Welche Premier-League-Klubs spielen in CL, EL und ECL, und wer qualifiziert sich nach der aktuellen Tabelle? */
+function EnglandEuropa({ data }) {
+  const pl = data.active.pl;
+  const gespielt = Object.keys(pl.results).length > 0;
+  const tabelle = computeTable(pl.teams, makeFixtures(pl.teams.length, pl.seed), pl.results).map((r) => r.name);
+  const spaeter = euroQualifiersEn(tabelle, euroPlacesEn(data.euro.teams));
+  return (
+    <div className="lr-wrap">
+      <section style={accentVars("#4C8BF5")}>
+        <h2>Europapokal — England</h2>
+        <p className="lr-hint">
+          Diese Klubs der Premier League spielen in der Europapokal-Saison mit. Stärke und Kader kommen
+          live aus der Liga. Für die nächste Saison zählt die Tabelle der Premier League: Plätze
+          {" "}1–{EURO_PLACES_EN.cl} Champions League, {EURO_PLACES_EN.cl + 1}–{EURO_PLACES_EN.cl + EURO_PLACES_EN.el} Europa League,
+          {" "}{EURO_PLACES_EN.cl + EURO_PLACES_EN.el + 1} Conference League.
+        </p>
+        <div className="lr-top-grid">
+          {EURO_COMPS.map((c) => {
+            const liste = (data.euro.teams[c.id] || []).filter((t) => t.en);
+            const run = data.euro.runs[c.id];
+            return (
+              <div key={c.id} data-comp={c.id}>
+                <div className="lr-top-h" style={{ "--accent": c.accent }}>
+                  <b>{c.name}</b>
+                  <span>{liste.length} aus England</span>
+                </div>
+                <ol className="eu-eng">
+                  {liste.map((t, i) => (
+                    <li key={t.name}>
+                      <span className="eu-n">{i + 1}</span>
+                      <span className="eu-nm"><Logo name={t.name} />{t.name}</span>
+                      <span className="eu-s">{euroStrength(t, data.active)}</span>
+                      <small>{euroClubStatus(run, t.name)}</small>
+                    </li>
+                  ))}
+                </ol>
+                {gespielt && spaeter[c.id].length > 0 && (
+                  <p className="lr-hint" style={{ marginTop: 10 }}>
+                    Nach der aktuellen Tabelle in der nächsten Saison: {spaeter[c.id].join(", ")}.
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }
 

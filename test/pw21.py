@@ -18,7 +18,7 @@ with sync_playwright() as p:
     ok(de_tabs[0] == "Bundesliga" and "DFB-Pokal" in de_tabs and "Europa" in de_tabs, f"Deutschland: {de_tabs}")
     pg.locator("#sec-en").click(); pg.wait_for_timeout(300)
     en_tabs = tabs(pg)
-    ok(en_tabs[0] == "Premier League" and en_tabs[1:] == ["Torjäger", "Kalender", "Historie"], f"England: {en_tabs}")
+    ok(en_tabs[0] == "Premier League" and en_tabs[1:] == ["Europa", "Torjäger", "Kalender", "Historie"], f"England: {en_tabs}")
     ok(pg.locator(".lr-tbl tbody tr").count() == 20, "Premier League hat 20 Mannschaften")
     ok(pg.locator(".lr-tbl tbody tr img.lr-logo").count() == 20, "alle 20 Klubs haben ein Logo")
     ok("38" in pg.locator(".lr-md-num").inner_text(), "38 Spieltage")
