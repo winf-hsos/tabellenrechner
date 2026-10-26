@@ -3660,6 +3660,8 @@ const CSS = `
 .eu-eng .eu-nm .lr-logo { width: 22px; height: 22px; margin: 0 8px 0 0; }
 .eu-eng .eu-s { text-align: right; font-weight: 600; color: var(--chalk-dim); }
 .eu-eng small { grid-column: 2 / 4; color: var(--chalk-dim); font-size: 12px; }
+.lr-ctag { font-size: 10px; letter-spacing: 0.06em; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 0 4px; margin-left: 8px; flex: none; font-weight: 400; }
+.lr-build { font-size: 11px; color: var(--chalk-dim); }
 .lr-sections { display: flex; gap: 8px; margin: 14px 0 10px; }
 .lr-sec-btn { background: transparent; border: 1px solid var(--line-2); color: var(--chalk-dim); border-radius: 999px; padding: 6px 16px; font: inherit; font-size: 13px; cursor: pointer; }
 .lr-sec-btn[data-on="1"] { background: var(--chalk); color: var(--bg); border-color: var(--chalk); font-weight: 600; }
@@ -4015,7 +4017,7 @@ function TeamMeta({ rank, strength, onStrength, onOpen, onKader, name }) {
   );
 }
 
-function Table({ rows, leagueId, strengths, compact }) {
+function Table({ rows, leagueId, strengths, compact, tags }) {
   const n = rows.length;
   return (
     <>
@@ -4040,7 +4042,7 @@ function Table({ rows, leagueId, strengths, compact }) {
             return (
               <tr key={r.idx != null ? r.idx : r.name}>
                 <td className="pos" style={{ "--zc": z ? ZONE_META[z].color : "transparent" }}>{r.pos}</td>
-                <td className="name"><Logo name={r.name} />{r.name}{!compact && <Form form={r.form} />}</td>
+                <td className="name"><Logo name={r.name} />{r.name}{tags && tags[r.idx] ? <span className="lr-ctag">{tags[r.idx]}</span> : null}{!compact && <Form form={r.form} />}</td>
                 {strengths ? <td className="str lr-hide-sm">{strengths[r.idx]}</td> : null}
                 <td>{r.sp}</td>
                 <td className="lr-hide-sm">{r.s}</td>
@@ -4175,7 +4177,7 @@ function playAllCompetitions(d) {
       const teams = d.euro.teams[c.id].map((t) => {
         const strength = euroStrength(t, out.active);
         const name = t.name.trim();
-        return { name, de: !!t.de, strength, squad: euroSquadFor({ ...t, name }, strength, out.active) };
+        return { name, de: !!t.de, en: !!t.en, strength, squad: euroSquadFor({ ...t, name }, strength, out.active) };
       });
       const seed = Math.floor(Math.random() * 1e9);
       r = { label, seed, teams, fixtures: euroDraw(teams, seed), results: {}, ko: [], rank: null };
@@ -4258,6 +4260,16 @@ function autoPromotionPlan(d) {
     newcomers: topAufsteiger(d.regional || [], 4),
   };
 }
+
+/** Herkunft eines Europapokal-Teilnehmers: deutsche und englische Klubs sind markiert. */
+const euroTagOf = (t) => (t && t.de ? "DE" : t && (t.en || PL_NAMES.has(t.name)) ? "EN" : null);
+function CTag({ t }) {
+  const tag = euroTagOf(t);
+  return tag ? <span className="lr-ctag" title={tag === "EN" ? "Premier League" : "Deutschland"}>{tag}</span> : null;
+}
+
+/** Stand der gebauten Seite (wird beim Bauen eingesetzt), damit man sieht, welche Version läuft. */
+const BUILD_INFO = typeof __BUILD_INFO__ !== "undefined" ? __BUILD_INFO__ : "Entwicklung";
 
 /** Die längsten Serien ohne Niederlage (Liste aus `unbeatenRuns`). */
 function UnbeatenBox({ runs }) {
@@ -4953,6 +4965,7 @@ export default function Tabellenrechner() {
             </div>
             <div className="lr-top-r">
               <div className="lr-status">{status}</div>
+              <span className="lr-build" id="build-info" title="Stand dieser Seite">Stand {BUILD_INFO}</span>
               <button className="lr-btn lr-btn-sm" id="playall-open" onClick={() => setModal({ type: "playall" })}
                 title="Alle Wettbewerbe zu Ende spielen und in die Historie legen">Saison durchspielen</button>
               <button className="lr-btn lr-btn-sm" id="reset-open" onClick={() => setModal({ type: "reset" })}>Zurücksetzen</button>
@@ -6137,7 +6150,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
       const teams = d.euro.teams[selId].map((t) => {
         const strength = euroStrength(t, d.active);
         const name = t.name.trim();
-        return { name, de: !!t.de, strength, squad: euroSquadFor({ ...t, name }, strength, d.active) };
+        return { name, de: !!t.de, en: !!t.en, strength, squad: euroSquadFor({ ...t, name }, strength, d.active) };
       });
       const seed = Math.floor(Math.random() * 1e9);
       const neu = { label: d.active.bl1.label, seed, teams, fixtures: euroDraw(teams, seed), results: {}, ko: [], rank: null };
@@ -6357,7 +6370,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
         <div className="lr-slot">{label}</div>
         <div className="lr-game">
           <div className="lr-game-h">
-            <div className={`lr-name ${cls(hIdx)}`}><Logo name={run.teams[hIdx].name} />{run.teams[hIdx].name}</div>
+            <div className={`lr-name ${cls(hIdx)}`}><Logo name={run.teams[hIdx].name} />{run.teams[hIdx].name}<CTag t={run.teams[hIdx]} /></div>
             <TeamMeta rank={rankOf[hIdx]} strength={run.teams[hIdx].strength} name={run.teams[hIdx].name} onStrength={(v) => setStr(hIdx, v)} onKader={() => setKm(hIdx)} />
           </div>
           <div className="lr-mid">
@@ -6375,7 +6388,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
             ) : null}
           </div>
           <div className="lr-game-a">
-            <div className={`lr-name ${cls(aIdx)}`}><Logo name={run.teams[aIdx].name} />{run.teams[aIdx].name}</div>
+            <div className={`lr-name ${cls(aIdx)}`}><Logo name={run.teams[aIdx].name} />{run.teams[aIdx].name}<CTag t={run.teams[aIdx]} /></div>
             <TeamMeta rank={rankOf[aIdx]} strength={run.teams[aIdx].strength} name={run.teams[aIdx].name} onStrength={(v) => setStr(aIdx, v)} onKader={() => setKm(aIdx)} />
           </div>
         </div>
@@ -6501,7 +6514,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
                     return (
                       <div className="lr-game" key={gi}>
                         <div className="lr-game-h">
-                          <div className={`lr-name ${hw ? "lr-win" : aw ? "lr-lose" : ""}`}><Logo name={run.teams[h].name} />{run.teams[h].name}</div>
+                          <div className={`lr-name ${hw ? "lr-win" : aw ? "lr-lose" : ""}`}><Logo name={run.teams[h].name} />{run.teams[h].name}<CTag t={run.teams[h]} /></div>
                           <TeamMeta rank={rankOf[h]} strength={run.teams[h].strength} name={run.teams[h].name} onStrength={(v) => setStr(h, v)} onKader={() => setKm(h)} />
                         </div>
                         <div className="lr-mid">
@@ -6521,7 +6534,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
                           ) : null}
                         </div>
                         <div className="lr-game-a">
-                          <div className={`lr-name ${aw ? "lr-win" : hw ? "lr-lose" : ""}`}><Logo name={run.teams[a].name} />{run.teams[a].name}</div>
+                          <div className={`lr-name ${aw ? "lr-win" : hw ? "lr-lose" : ""}`}><Logo name={run.teams[a].name} />{run.teams[a].name}<CTag t={run.teams[a]} /></div>
                           <TeamMeta rank={rankOf[a]} strength={run.teams[a].strength} name={run.teams[a].name} onStrength={(v) => setStr(a, v)} onKader={() => setKm(a)} />
                         </div>
                       </div>
@@ -6530,7 +6543,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
                 </section>
                 <section>
                   <h2 className="lr-sec-h">Tabelle der Ligaphase</h2>
-                  <Table rows={table} leagueId="eu" strengths={run.teams.map((t) => t.strength)} />
+                  <Table rows={table} leagueId="eu" strengths={run.teams.map((t) => t.strength)} tags={run.teams.map((t) => euroTagOf(t))} />
                 </section>
               </div>
             </>
