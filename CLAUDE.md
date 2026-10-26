@@ -7,6 +7,7 @@ Die gesamte App ist **eine einzige React-Datei: `Tabellenrechner.jsx`** (~6350 Z
 - 5 deutsche Ligen (`bl1`…`bl5`: 18/18/20/22/16 Teams) mit Auf-/Abstieg, 64er-DFB-Pokal, Europapokal (CL/EL/ECL, Ligaphase 36 Teams + K.o.).
 - Echte Kader (18 Spieler: 2 TW, 6 ABW, 6 MF, 4 ST), Torschützen, Vereinslogos, EA-FC-27-Stärken, Simulation nach Teamstärke.
 - Kalender, Historie (nach Wettbewerb gruppiert), Sichern/Wiederherstellen als Text.
+- **Abschnitte Deutschland/England**: Umschalter oben (`section` "de"/"en"). England = Premier League 2026/27 (`ENGLAND`, id `pl`, 20 Klubs, echte Kader aus der Fantasy Premier League, Logos von football-logos.cc), ohne Auf-/Abstieg, ohne Pokal/Europa. Beide Abschnitte teilen sich `data.history` (England = Einträge mit `leagueId === "pl"`, Filter `sectionHistory`), haben aber eigene Tabs für Torjäger, Kalender und Historie. `pl` steht bewusst nicht in `LEAGUE_IDS` (die deutschen Saisonwechsel iterieren darüber); `applyPromotion` und `neuBeginnen` müssen `active.pl` erhalten.
 
 ## Schnellstart
 ```bash
