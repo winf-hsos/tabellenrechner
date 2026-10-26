@@ -4,7 +4,8 @@ set -e
 cd "$(dirname "$0")"
 mkdir -p ../dist
 cp ../Tabellenrechner.jsx new.jsx
-./node_modules/.bin/esbuild entry.jsx --bundle --minify --loader:.jsx=jsx --format=iife --platform=browser --define:process.env.NODE_ENV='"production"' --outfile=app.js --log-level=warning
+BUILD_INFO="$(date '+%d.%m.%Y %H:%M')$(git rev-parse --short HEAD 2>/dev/null | sed 's/^/ · /')"
+./node_modules/.bin/esbuild entry.jsx --bundle --minify --define:__BUILD_INFO__="\"${BUILD_INFO}\"" --loader:.jsx=jsx --format=iife --platform=browser --define:process.env.NODE_ENV='"production"' --outfile=app.js --log-level=warning
 python3 - <<'PY'
 js=open("app.js",encoding="utf-8").read().replace("</script","<\\/script")
 head='''<title>Tabellenrechner</title>
