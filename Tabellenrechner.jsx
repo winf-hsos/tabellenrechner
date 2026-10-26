@@ -73,6 +73,34 @@ const LEAGUES = [
   },
 ];
 
+/**
+ * England: die Premier League 2026/27 mit echten Vereinen und Spielern. Läuft als eigener Abschnitt
+ * neben Deutschland (eigene Historie, eigener Kalender, eigene Torjäger), ohne Auf- und Abstieg.
+ */
+const ENGLAND = [
+  {
+    id: "pl",
+    name: "Premier League",
+    accent: "#B07CF0",
+    range: [96, 70],
+    teams: [
+      "Manchester City", "FC Arsenal", "FC Liverpool", "Manchester United",
+      "FC Chelsea", "Tottenham Hotspur", "Aston Villa", "AFC Bournemouth",
+      "Nottingham Forest", "FC Everton", "Newcastle United", "FC Brentford",
+      "Brighton & Hove Albion", "Crystal Palace", "Leeds United", "FC Fulham",
+      "AFC Sunderland", "Ipswich Town", "Coventry City", "Hull City",
+    ],
+  },
+];
+const ENG_IDS = ENGLAND.map((l) => l.id);
+
+/** Startstärken der Premier League (aus den Spielerpreisen der Fantasy Premier League auf 96–70 umgerechnet). */
+const PL_START = {"Manchester City": 96, "FC Arsenal": 91, "FC Liverpool": 87, "Manchester United": 86, "FC Chelsea": 84, "Tottenham Hotspur": 80, "Aston Villa": 79, "AFC Bournemouth": 78, "Nottingham Forest": 77, "FC Everton": 77, "Newcastle United": 77, "FC Brentford": 76, "Brighton & Hove Albion": 76, "Crystal Palace": 74, "Leeds United": 73, "FC Fulham": 72, "AFC Sunderland": 72, "Ipswich Town": 72, "Coventry City": 71, "Hull City": 70};
+
+/** Gehört ein Historieneintrag zum englischen Abschnitt? */
+const isEngHist = (h) => ENG_IDS.indexOf(h.leagueId) >= 0;
+const sectionHistory = (history, section) => (history || []).filter((h) => (section === "en") === isEngHist(h));
+
 /** Die drei Profiligen: nur sie stellen die 56 gesetzten Klubs im DFB-Pokal. */
 const PRO_IDS = ["bl1", "bl2", "bl3"];
 
@@ -94,7 +122,7 @@ const LOWER_STAFFEL = {
   "SSV Jeddeloh II": "Nord",
 };
 
-const LEAGUE_BY_ID = Object.fromEntries(LEAGUES.map((l) => [l.id, l]));
+const LEAGUE_BY_ID = Object.fromEntries([...LEAGUES, ...ENGLAND].map((l) => [l.id, l]));
 const LEAGUE_IDS = LEAGUES.map((l) => l.id);
 const ZERO_MD = Object.fromEntries(LEAGUE_IDS.map((id) => [id, 0]));
 const CUP_ACCENT = "#D8B24C";
@@ -256,6 +284,11 @@ function zoneFor(leagueId, pos, n) {
   } else if (leagueId === "bl4" || leagueId === "bl5") {
     if (pos <= 4) return "auf";
     if (pos > n - 4) return "ab";
+  } else if (leagueId === "pl") {
+    if (pos <= 4) return "cl";
+    if (pos <= 6) return "el";
+    if (pos === 7) return "ecl";
+    if (pos > n - 3) return "ab";
   }
   return null;
 }
@@ -263,6 +296,7 @@ function zoneFor(leagueId, pos, n) {
 function zonesUsed(leagueId) {
   if (leagueId === "eu") return ["ach", "po", "aus"];
   if (leagueId === "bl1") return ["cl", "el", "ecl", "rel", "ab"];
+  if (leagueId === "pl") return ["cl", "el", "ecl", "ab"];
   if (leagueId === "bl4" || leagueId === "bl5") return ["auf", "ab"];
   return ["auf", "rel", "ab"];
 }
@@ -408,7 +442,7 @@ const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni",
   "Juli", "August", "September", "Oktober", "November", "Dezember"];
 
 /** Übliche Saisonstarts: die 3. Liga fängt zuerst an, die Bundesliga zuletzt. */
-const SEASON_START = { bl1: [7, 14], bl2: [7, 7], bl3: [7, 1], bl4: [7, 1], bl5: [7, 8] };
+const SEASON_START = { bl1: [7, 14], bl2: [7, 7], bl3: [7, 1], bl4: [7, 1], bl5: [7, 8], pl: [7, 21] };
 
 /** Pokalrunden im Jahresverlauf: Monat (0-basiert) und Tag. */
 const CUP_DATES = [[7, 15], [9, 28], [11, 16], [1, 3], [3, 7], [4, 22]];
@@ -997,6 +1031,73 @@ function swapIn(squad, benchIdx) {
  * der Vereinsstärke berechnet, denn eine echte Spielerbewertung gibt es nicht.
  */
 const REAL_SQUADS = {
+  // Premier League 2026/27 (Kader aus der Fantasy Premier League, Stand Herbst 2026, nach Marktwert geordnet)
+  "FC Brentford": {
+    TW: ["Caoimhín Kelleher", "Hákon Valdimarsson"],
+    ABW: ["Nathan Collins", "Van den Berg", "Michael Kayode", "Kristoffer Ajer", "Jannik Schuster", "Aaron Hickey"],
+    MF: ["Dango Ouattara", "Jaidon Anthony", "Keane Lewis-Potter", "Mamadou Sangaré", "Mathias Jensen", "Mikkel Damsgaard"],
+    ST: ["Igor Thiago", "Callum Wilson", "Kaye Furo", "Kevin Schade"],
+  },
+  "FC Chelsea": {
+    TW: ["Emiliano Martinez", "Mike Penders"],
+    ABW: ["Maxence Lacroix", "Marco Palestra", "Reece James", "Wesley Fofana", "Pep Chavarria", "Levi Colwill"],
+    MF: ["Cole Palmer", "Morgan Rogers", "Pedro Neto", "Estêvão", "Gittens", "Valentín Barco"],
+    ST: ["João Pedro", "Danny Welbeck", "Emmanuel Emegha", "Shumaira Mheuka"],
+  },
+  "Coventry City": {
+    TW: ["Carl Rushworth", "Ben Wilson"],
+    ABW: ["Ethan Pinnock", "Jay Dasilva", "Bobby Thomas", "Stephen Mfuni", "Jake Bidwell", "van Ewijk"],
+    MF: ["Yann Gboho", "Ephron Mason-Clark", "Loum Tchaouna", "Victor Torp", "Gustavo Hamer", "Jack Rudoni"],
+    ST: ["Taiwo Awoniyi", "Haji Wright", "Brandon Thomas-Asante", "Sidiki Cherif"],
+  },
+  "FC Everton": {
+    TW: ["Jordan Pickford", "Mark Travers"],
+    ABW: ["James Tarkowski", "Jarrad Branthwaite", "Jake O'Brien", "Michael Keane", "Vitalii Mykolenko", "Ainsley Maitland-Niles"],
+    MF: ["Brennan Johnson", "Tyrique George", "Hayden Hackney", "Tyler Dibling", "Harrison Armstrong", "Merlin Röhl"],
+    ST: ["Thierno Barry", "Kiernan Dewsbury-Hall", "Jack Grealish", "James Garner"],
+  },
+  "FC Fulham": {
+    TW: ["Bernd Leno", "Benjamin Lecomte"],
+    ABW: ["Joachim Andersen", "Calvin Bassey", "Timothy Castagne", "David Affengruber", "Antonee Robinson", "Kenny Tete"],
+    MF: ["Oscar Bobb", "Alex Iwobi", "César Palacios", "Smith Rowe", "Kevin", "Shea Charles"],
+    ST: ["Gonzalo García", "Rodrigo Muniz", "Jonah Kusi-Asare", "Josh King"],
+  },
+  "Hull City": {
+    TW: ["Konstantinos Tzolakis", "Jack Butland"],
+    ABW: ["Semi Ajayi", "John Egan", "Nobel Mendy", "Ryan Giles", "Lewie Coyle", "Lucas Herrington"],
+    MF: ["Tim Iroegbunam", "Joe Gelhardt", "Mohamed-Ali Cho", "Christos Mouzakitis", "Elliot Stroud", "Lucas Gourna-Douath"],
+    ST: ["Oli McBurnie", "Robinio Vaz", "Sorba Thomas", "Mohamed Belloumi"],
+  },
+  "Ipswich Town": {
+    TW: ["Christian Walton", "Kjell Scherpen"],
+    ABW: ["Leif Davis", "Dara O'Shea", "Abdoul Ouattara", "Issa Diop", "Jacob Greaves", "Darnell Furlong"],
+    MF: ["Julio Enciso", "Abdul Fatawu", "Jaden Philogene", "Jack Clarke", "Exequiel Palacios", "Saša Lukić"],
+    ST: ["Emersonn", "Zian Flemming", "Chuba Akpom", "Walle Egeli"],
+  },
+  "Leeds United": {
+    TW: ["James Trafford", "Alex Cairns"],
+    ABW: ["Tarik Muharemović", "Jaka Bijol", "Jayden Bogle", "James Justin", "Gabriel Gudmundsson", "Melvin Bard"],
+    MF: ["Anton Stach", "Noah Okafor", "Ethan Ampadu", "Brenden Aaronson", "Ilia Gruev", "Tanaka"],
+    ST: ["Dominic Calvert-Lewin", "Lukas Nmecha", "Mateo Joseph", "Harry Wilson"],
+  },
+  "Newcastle United": {
+    TW: ["Lukás Horníček", "Nick Pope"],
+    ABW: ["Lewis Hall", "Malick Thiaw", "Sven Botman", "Fabian Schär", "Dan Burn", "Tino Livramento"],
+    MF: ["Harvey Barnes", "Anthony Elanga", "Jacob Murphy", "Bazoumana Touré", "Lewis Miley", "Nico Iglesias"],
+    ST: ["Yoane Wissa", "Matias Fernandez-Pardo", "William Osula", "Vakhtang Salia"],
+  },
+  "Nottingham Forest": {
+    TW: ["Matz Sels", "Steven Benda"],
+    ABW: ["Murillo", "Nikola Milenković", "Ousmane Diomande", "Daniel Muñoz", "Neco Williams", "Nicolò Savona"],
+    MF: ["Callum Hudson-Odoi", "James McAtee", "Dan Ndoye", "Xaver Schlager", "Nicolás Dominguez", "Ibrahim Sangaré"],
+    ST: ["Igor Jesus", "Chris Wood", "Liam Delap", "Morgan Gibbs-White"],
+  },
+  "Tottenham Hotspur": {
+    TW: ["Antonín Kinsky", "Brandon Austin"],
+    ABW: ["Marcos Senesi", "Pedro Porro", "Van de Ven", "Van Hecke", "Destiny Udogie", "Andrew Robertson"],
+    MF: ["Dejan Kulusevski", "James Maddison", "Xavi", "Mateus Fernandes", "Mathys Tel", "Wilson Odobert"],
+    ST: ["Omar Marmoush", "Dominic Solanke", "Mohammed Kudus", "Sávio"],
+  },
   // Europapokal 2026/27: Klubs der CL, EL und ECL (Kader Stand Herbst 2026, aus Sekundärquellen, teils lückenhaft)
   "Paris Saint-Germain": {
     TW: ["Lucas Chevalier", "Matvey Safonov"],
@@ -2603,7 +2704,18 @@ const DEFAULT_LOGOS = {
  "Wuppertaler SV": "data:image/png;base64,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",
  "Würzburger Kickers": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAkFBMVEX529v1paW1IyPznJ70d3jpPkD3v8B/AAD2xsbwfoD/Pz/lXV2/f3//H2r73+C/v7//f7/6uroAAAD+/f3jGBrhCArudHXnJCb////0p6jtaGnyl5j85+frSErsV1n4yMjpNzj2trf619fwh4jkHiDeAQL+////v7//AAD/f3//qqr8+/v3t7j0h4j2mpruXmBWniScAAAAMHRSTlNmqAPc1/7/Aon2BAQEA/8EBHsA//7+/f4F//3+//7+//7///3++y4EAQMDSo3Ns/zUpv8FAAAJ/0lEQVR42rVa2WLbthKFrNhNmi73SgRAECRBkKJ3x///d50FGyVKkRuXD7Wi2nMw25kFFLsPPPUj/vem/sjfiA+If97t7jebe/j0nwCQ+K6q+v/Xu9/rTwd4utnVoqnm7lbqt48ocSXAE/zmFy213e+VlP1rjd98HkD9267+0clKtXt43EBKPNafBoDHR+u4fXgmUELsrlNCXHP8+x9waLPPDygxbK5T4qcAf8DvvFdz0+4Xj5JVIyi0fg0AUouO74Pc0fiA5LXsNlf4Wvws9sH6Mh7f9LqqdMO+aJtZf7n/aV6Ly96tN120fjsNVXh6hrAV+fr53wLUN7v7Nz33fPwJDn9g+fCjGclg4OsfPzGTuBQ9opHSsnGGJJ4h9ETfN/MBzHSJOcQF87+CecgYrluI52cgx2/JTBfi9RxADbk7BPMo8OyxeLJTyynRvV7gpjMAD2D+w6w4qU5PHyBIibaf0RH1hwCedveqkhQ9U3VGPn1PR1AzctPDBwCedi8NJ1fbrVgnP7q6xXCywIP3Z4JJrMoXvdQjpeuxfCmPlDignh6S8WVdhxWA7yh/aCmTktyBgXTXBcRBRgg0k9PnEMSKf0F+1xKhBWESor5BgegWR191kBoymAljDXLufRVBnMp/CfL7KJ8KjUJxGr+/RaQ+JDchDGDOdljXQZzKb9g+2b3Dnh1ZyXcuN/CJwqeXMa/dWQRxnF/3J/L53EZWIXDRRpKYosvhFBBOo1Ucy1ccP4vwHINYzbwHmUdQbfEriDBqCdFaXwCoH+u3qkL66Uv5kjIiGJ6cf6BfGhcpcQahBKj/rDeapDWL8GdGHcJPUEZWB9TFkwtiYqDioObbEWuIRYK9DrMlNy7Siz0KbcsYCieUgej3SveJXlvC3NYLbhWLBOiI30yV4p/cyKZR0ULpI0au7PaeE+IAuQF/O+vNooyKZQD15M7AblCL2xynZrapawlBxABEiIRAyTEPX3f/WwEAxSYK0HaIx/cpUEZy6ZiaFu4y8P8RAHAReYFsqWQnimAVuQBvOIAaVoBbCQbgMGpyVzSNMYgYYIzkaij9IOHqY4CH3ddhNuQ5OlgVWglWhixStF700cgE4BK5MmkUwSpiBQYGaugseH55G8zxDYUcsnv33hTN3WEJIIO7QJ9tHR0tQgeBDsjZHwS2fYh0naVmrK7UAA7h4Qtd4Sn9rF9j/REhAzaafMgZILmxMppEDN8O0iepCWuUDeJHDTA+LEwQZNspO1qkDLDJQOxsOD7Jf2/3HB57dnps4u3sIT6TibgT66qDZqoH3nuOAERxpHrMSkdEIAeIWEtS47mNZIeThQyyDwPI4BqsIQ0dRL5xRgucHuttoOSYwgzQgzzNx44CIHmDExx/15PnnIqTCcaqJ0jI6IcAgAYyzGeFBm6imG0po2IcDYmzYVTLADHEZE78ae4pGwRTRMMt0KEAYDoDcW0Tk5kSih2OGTi4JUBI+0MViEShkUQ2UFE/XDK5bj3Hkoq5xU4gJgVJXQHQybIEwmE24GfxdzJQViABQBzexiTFP2oivQVryoHDNPonPorDDGNVPNYhgsoC6OKoV3bTXdfxCeBD8pbsjhyQVYDjgZEEpljL88oBGG4cx7sAYKvjpk4efeAGKZtTKvhzj16w7DGIJPHSB57vIqtBDDsujCvdLv0ouuGsAcaajfzYhRjpX4QNvzIejgFOe10Zn1WAMA4RdR/G4HYrthy2kJOJl9cBILEb6+ExU58qfQngCw3YCeDWrYAkUMlEVW+MmaoVAJi73eiNnSZrvXM2+r8AgF6A/xyeJgShuhdQaKSLTmYrVPLuGED2492kmvgoM9qDzADOsY34z6tDiBKMU4GluDsKU0rWBYAdQWoBoHozFvXAN8tA7VMQPYkaa5kNs94ZAD22nW3em56lN73qbG9j20Ljwb7gsgPzyiAn4AoB2RyKTVbhCEA7M1ljPdioJ/GNMfBv66CPDUWf2VbJPJJg84RsJ7BcfuNfS1xx5GRv71pIIPCuQSsp8LVxYztaD1QSAMgodzLnscf+6CHQNRhpWqjQjxlAgrTAlmZytnfGRqqanF5WtCH1LlT4v9dc0R7ASHRoK6MK2sZeR3ZumyMRmiXlMz9boFfsn7Amm2ijPpA1ty4idO1lT8F91xQ+GJsbIkizpp3yv43r0mEkQIzRw+SAh1T0n2PNcbltj3zQudwJjRb6ymmcFipguZtCsoAXKSJNcEBqW6Ct4L5OHY/14IF84Mk1aoIQ8oUKujgM/uyPOi8Rt8Yb9tNwTHDeZml+ghRTjc9Gcr5Zkq4OvWMaQ0Tqrb+RG9zRaD94n+3he4UAKvePrbFysVrg7vf95bg3xVh9JzcspxtoCF1WQKECSBOFVqYsZJRi01z276Kcbygb+tINEmgtyrKmZwTgugK11DfMOK/FYkQUE9pGz35ZmxGgTRvNiRVQSBVZA710gKuWU5ooZ9gtObp0QwHgTRMBemtXAKil+0sDxe1WZzTcoinq5EyRDY35K4nqVdRgSrDGJPmUAUPqetfmZMy3buFoqFFuBSB7JkURd+B9yuDVSZ82Of1iEM9hamwGaDLAFJc6DdW0xQB4uqugUFKLVULyZwmgtmP0PA9BmjJYyduvu+8Xty007E/FMkQmcy8AIgEar1l+xyPy68mSVpysk18HWSIMMW0hirKTbUxuXieQfItD/smKVpwsrHEhYjNComtnVER4tyYqMCT7QKu/qU9XwOL0xqD+wQgNx9LgbDjt9J4SzQdMVEATxcD5f6zIX1kK4lJZU7/K3C0jt6U4BQuNvPB3iYDg/OvrX7G+ttbkB0P9rjQcSc58W5BdO0FrpGlMxMw5s14W64txoCXFe2s00x0jWP/OCmxp3zWNOFPSXkSBf8+sr8WZ1fsGGk2aaWjz7qnGjMinkGVUg7xF+bwAbebhnPwzy/H6ES8PcB0K4z4gSOhXIB/uthbbIpDvoAMeJLdYbYcL/t/qD633IR+ANQ68xsFA6Tw0Xm6yUDO48VLxjmIckB9u6g9eUOx+372oMC/4W1SiszgauHGLQ4LC0ZM2SjAVvF+6AhEXrqDyFZElO+leWehKp2bAAYSvWKb5/Gb/Z7dQz3zJxXO3Iog4QeVLIqnfLl9DXbpHq/majkWNja4OGjNPQ1ipMcy5eBv4/K8v6urvZKaOuXlUgcI136LFi7r6V+4yn3Y1xGuVyBNG8WEaw1WjxDu0x1+5amQzvXyBKI0VbIwf7q64BbzquhcyAn1d2eV1b7iz/uXr3ngl+0UXF+Lg3Vu62br5jAtrJg5SYiqPf+17A9e9lfDMnuDc8oPEi+Td5700EJR47au5H9tmpuNf+wLK1W+G0IshQKCaXhe4wrsffvWk/pOcrfFdgZvPf/Ukvr+xAWp4/G9engl2ohchPvD8A9Ys9BPCA/QhAAAAAElFTkSuQmCC",
  "ZSKA Sofia": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAkFBMVEXkFBTrXFz64NjzoqLdEgr+3BP+5WH+76D5qgDeDQO3BQDcAAAoj13taAD/+wD5bwB8AADqVACnKBzuYwTmXl7/swB2Ujb///9NcUtSlW1tqoeTrJbxhgDfmZmqVQC0tLSlx7I/AAAA//9/fwB//wCIRi6GjXOq/wCq///tPkLxdYIAAAD+/v3cAQH+1QL+AAAy8UjvAAAAMHRSTlP5/v7+JP7//vJaBKD/nAIEAmn/0wgD/wH/////tgUDA/8EAQIC//8DA///AP7+/gJcuqqLAAAIQ0lEQVR42qVah5rjKAwWYHAbZ5LJzM3W2+vNhfd/u5MEdjDFyd3yfTtJbKNf+tUAL4zxOI9tNRbGeayq0Zbu2jZzEZIrp/FaFPI8DgP+yYsfq6tNJ0LmueZSEnIamwb/ZEc3Xpo2nQipkhf9pSCEwJuSeadx0MP4dgBgaXSopG6qU8W/opvP9rIsF/zI3LOniib+aaObqQ/wueVS8uMXrZvSvRbvVWUno/luDMuir/77xob/3TbL0rTuu00m6mUZ4okBwK/VgDY2qD8iNDSu1ck/94yi+RreW+hTN+2P3p/IzZUfXyfqZqh+s1mKLvyQG1oP59CdyJy+3UMuTjfbxyGc2FxKTn5GKbfHWsqrILi6TQqq+HOIfT6N7Q2BsEtOJin+waGKQhrntB4esU82iu3KT9RDt58IkZTOqaLTlLEU6E5GLJ8RmlX/6iDRONAX7YRkskwj/YvO5NqbJXDCH+zzAQApiQyjP5suFtJRoC9XvKcvYxLvXbNOjDSDRElkmCKmtV1aCpqBvJSa9yNPrMjXsXmRky/LFwrAbljiekTuIe+SrxOO3sZhQe+e0NfL5cDJyORAXOATl7hmP48tXnojX1fXdtybd7LXC9mBVwdMz7IPMMdZrH1LOgvS1zmx1dhVNr7ngx9TIpoISdFdjc6MquOCmy3Xb4WJEMfirQbveuVeLuGcSxPvtcxMn+lY2DuVUxz48e4u2wcm3wdgU6q272GegQd+9j2vDKy13wvgpaNooZT0QymBMOAxvgcAJ/9F0oWSUzQkgsx9+zqO9n8DnO34rUXVnXBjAvF1TX/JEIQ4NAIO1UfxpLtBcWZZNuWnaVkQrpaTJIgxSrvHALAUVT0o1l1rSYXSGBI7afpCCHpBYIToqwMj4Eh9R069BGMi7Xc/J3VoBJTkvzr1tdnJR513vw17wxnxXwCQHqe+WaJhoktInWQjqoINUJTP7oykc/DUtYkw8UFCsI8CkHw1bfTrgB83IrvYUwIdYR8DsJt8kqSN3uk6cRxtV/SGK/I2wIH+BFCvPq1lLYM8W2kytV4NE1k/QJq+nv9JbmzQgmGrECvGaoNciZvQD/buBsTa9164JGWhJmDGBf2Wz2gTgddkJ84gT/fvCQIkBPXA0VOv7MpdnRNz+LOmuCIdJIMo6BOSIHWAvNmvkxoKs4oumeDZjBuipWP3yg6owwAMh5pnEWPqoGwAvEZ9Ll6btjBJI81tyn6IeZ4TVLPGmUEL42yAKIKQgTqJ+9vAdplwFOSdRA2q/XIgWjqSh+t9sYwYSjkyYSnESCovHTGFST2TlIYdQzPIghN4ApoQblx2AC5ENwAjswwdceSSYRdIEBtQb7Un0d8xlHIUhDU2VzG/jvktVEch5AqZziaBYwg5Sm7owG0KdkvjHQAVCcO7yCOGMhw5C4yLi72bIedikyVoZSjH0TZNOzfbLAAxRMrwomGaSgzlOGKWqH2bKeIoBOiFe5LqnMnIWBnKJLMzwfWGfSqEAK7PYBmmYMAFTzw2+biWjAYVSENNyRWkHIB3wb5yPjhARVRmD0NcoUZFjKlj0o/H5nNT8wJWZQFcFriQ1rf+9YB8tQvWKfJyArDvkfKuEUFlWgF2NRv2ldTUOsoB9SA9k1+11kbuyhHs8rhez4Pqx3wdelf68yRtDgBkttUUaRIyU/DQ/jARIK1EaSUt+DqqGLfmfwAg86uJnK+hsLyopyMf1KVmLA6iZ8+RqfMAHEW3ZX+5DpXqUdBpsxRxMa33S/KAo4P82ruAGkk20QhA3tQotYKAo1JX40zO1iKyWucpyoWRzFMki8XulayWriObuwwlHNW7lYstNhyd65g3hgAKaVD7nimjphy3zHVfZPJBKsKUkDmARZY6mlu5c+M2kQVyx4rKciR9L18OevJXSk7mcdFKiIShNbfW8hc+AQorpOMWdisvSDY3WBRlcxUqKAUilidijkAJaGiRWsdrR0h2N1Otry+fSU+5K9gqLX/bJTJXvkBDi7Vowxwufs/vtL2R/8CHpyc/a2MoWVKLwCbeGX56enr5W9Ga4qstrq4pmVG3j09Pn9nujRAhc+s8j8q2yicEwB1ctDSNNiBf0QQ1wws+THM8B+nGb6XJ36cPnPIDYP2Aeb9ZhjFjAvzgEBRLUCCn7JCORN42IkEf5owBkQXehHlGL3ycPIIqyJ/cLZb/2REk0t1+ustUyDkATvjkEIQ4AADF8n9y8mcpjneZvu1gWLIbPq1JLLI+kByrq3x0wKySLWAKgBtZJokRPrqUUiI5OZVyXQiggz57+SJ3HJIchjBJG4LgziK5iAKuqRUNIVh16SoI/OHlA+dYd+84p/NuYIQXVyIE+hrCUk0IcqtRH55+9/LTs5DsgVQPkhHASZSSjXAhiz/VzNkolfL75pn8C0hab++fF5EbXjeE1QD6BxQzdJwjhTuyUGKtel5+7jyqdGaHCCroMWgEgxCm8qElMYzk2qzBnWzax04dGUG5iknKoRwJzgouoRwExBzheStL8vPnptYdW1OZBt6akY9hs8SFGddTEA6zfPYLhZPlbz2lKGmqMD2V4riUJJSDylmHyQF8HaA/F86WofhehY72uewLDHwRLIxg22gSLnNJBeI/nV0zQsXvJiSlMb9gEWsecMYhJrLHRB6e78PB+4lf2tlBENOSC4QbrguRCfffUMDh66eqZwgOSJRJuSXRo4pLHQLxe5zq8B0L3HlHRBDgCx0CEDW+z7DyJP74LRHcfYdWtcAvubCAosYTGqFU+KLL/v+3UOFrOlea3MGEK1L+Vd35u98Ent0r2Lbtt2oKfev+i9ADLxv/BWBZCDi2X51rAAAAAElFTkSuQmCC",
- "Omonia Nikosia": "data:image/png;base64,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"
+ "Omonia Nikosia": "data:image/png;base64,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",
+ "FC Brentford": "data:image/png;base64,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",
+ "FC Chelsea": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAkFBMVEXnrA2epNZWX7YUF5nxrwRgHm2jIVPqrQo5Rar8uQFwecJaS2H6fwKYdTszMXh7g8aObkHHJETi3+69weP/wAC1pgzfIzirdR6zhyr/AAAAAP9yciTyqbHsQEz4vcH/wL4GFJX9/v4AAAAACJL+xQApNaTn6PQXJJzV2O2Pls/Hyuf2KjD//wBMVrKvtNz6qQFlKVZbAAAAMHRSTlPv7O31WujrE++l7uoC7e3t7+7v7NEF8AXvAQED7ub08v39AP358fLz8Ozt+QHt7Aa2txWiAAAKUklEQVR42rVafWOiPBJPgihSq1W37e4+e/ckRkhAwe//7W5mEiAE1PbuOf7YdinM+/zmJbDT42uz2uCP1WKxXv84++vHer1YrII/P7jYoz/+um2IOJJmcP18pesn/o5siMnm9uu/ZHC9EnWGxN9etlJqrRO44IeU25c3ZMKIBz35XQa/bqfTX4s10HhLJRCWdCFt9wswkukb8Fgv/jqd7mtxjwGQ3yx+nNnrlohq7UgLUWjPie7K7Ss7/1h80gvfYAA6f4Jt2It05EzDeSm01LVq6I4udnmiSRP54ljc/vo6A5CGyJOUSE2pNs+RQatIA50pWyveKQMs2OKOEjMMrrfTbe3Jy2SHJGrlbcI9A/xZIYPCaM9iDa9dv8IAHlqcz28gOpA0pcrgl0pxUTdkIsegUtbQL63ipKR8O58X9PIzBrfTBsTf4kuZkFqoVuO/qm6dDwoXRVaVwEonSh1LblDVLSixmpopZrA6rRiJj1QtkLAgMzjhSHEEDIyzleTqQJoIeE6QMvL1zOD1xwxWYB72kpBvJYSM5CX5slRaG1DooPIm3+lGaH0E4xmFFiqM0yoBTyxiDmxKf5uA6oIMY22bkQqtajkoZNra2pKDj0ViFfqa105+Sgo0U8yBTehLcqpyLgVJBaigq7rKC5dfaKGE29KC90uwWOUMpCv0iZxwYHP0QcCsIC+geRQFku5RwosLNyrkrV2+cYyGGQ4sjE+kDw/l3pM+cRvjsQGiNimKxHR6yKIqeVOQy8uyMxVyuM0x+DytiD4EjktRk+lGHV0ua5nlvLalgqu0Nc8zp4SpQHAtwFRcGa8icvicMtgQfXqmLImP4OBrZw7BiXR4lVwQayNFrXY1V7Wnj1ZanTYxg+v1xii94Imj2qENjphiQB4MoWavEv0K+XhotLGdheDGlrFVXyJY7+D1+cWBPhhGVUXRom8hyLl6cHEKHTRrbyHMh/P69D5m8A4Ofk06ERxNTAX5kDxelXQgyIMgS17BDe8hgw0aKAjCjB8prMVBPb0OaJtG5WEUS8Zu103A4AYG2uowzAl57ojP7fj/O3i0KEZpsgUj3QYGNzDQWyLjq3Xv1xG9BhN9dLVSypECUr912YAMrpv30EBdtNVOXEizkaMhtkwbcagnwoGR3jdXzwA9/KLjJ5zcuQvVnuJx11Bs5cdR7NqJfC9eBYYpsGJsQt/Jb6kqUlV2+nhIwh9F/UgH7ZOBYQ5PFehErhBNS9Ppo2rh/t4gIiV2bLmpChunwedEgT5+gAGk3cBA+XyqORWlchxLUxWQwW2qAHQlneYY4xkAX0/H+BDAN8ZhnOk5LzBA6fUkhAbJBDUXXiPObdMjDsI6pNmQiuUkkNZAnF0BRV8j3mGcE4ZVA7fumV1Z/fl3+edfgZWqiMwroirDMrYd/aUPmd57dhqMGgj/+fj4+FuVA4tiTGeLxY1tfrskS5Ik9rDHy8ABdWO61xsoEYc/+GfZlH0Qd2jniDH2e8PAQm9wf3lZLpdzChDmlaG9OrQ6uCiT1H6NVABSlyXhxQqcvDinGm+ly49lEnsArWKMNrkdu1E3PMNbDa/CV5wXgFCK4uoUbMQohhJguV/ul+k4hFycGoMCF2LHhxBqQuyj1nIIpBQIoUESiiP2+wdm2eWyTD/2aKT+4SERzIDgM24SPmB7G6KB0uXlkmCunRi5IN0n+32akuEipEy0MROoDKRAx+o6BIz0koISCZgDncBcGiPXj5R8EFX4KimC0WzgwIu2s3qgD9oISO9dyGAyswX1EiA83E1DlOhLojFH3kx00ORZLJSjqMiI2B5MlFJ/sWAeJ0Ap8vBgzj6OCNMq334FLGqf2iObutKc7h018DKLgGhah4kBTYCFEWYoeJUrxtnYpFxHcMQiqNb1DIODsuCIXLUdFuiiLsngWrQ7UUVRN4Jsdv6pZyrlxETKKjeNBXiO0mKPqovyTu3UP89s6LfcRDxpE+EVguQ6hDKyZNVN6EHUliYC1IjBACuhBiA9OGHU+DQ+6HXWQvtYhHkjRy0eGzdEEdL50IY5zURYX/jqZkiEQs1D9pcYWCEGEBoXPa7d82FsTxk8MREO3AEIwX9M0YdzTunGM/XIRI+dXI9NL2AsFq5kdolrVZg6M05+HKaVHLY3FJ1tFQJ2GRt1GqbPEi1zcz108xpNXXZFzXTVYJz700TroMKX0QlUtDnANXIVApRr+2jyEJfpMXo5qOgLfIBFl8tlPwt2pciy4XU97l5rHVUoArs9EOsZOLhGsAbETmfgWsmknesOYfas8sHdg0VTLGcA2B6uqeCkF6hCeH9acCAutJ1DyqIb8u04K6n8pkjRFRwqmVDyUyj5H3izvcdgTF/vuAMiHnVpKZbGPRY1VzKp6EMTgCyxDEVFn/ppG/TVwwYSYjgX0QwtNBVHorV0Rd+1vilqlc60LQODfgVYNIIWFEU5h1sjWti2YOOVSPLKB3YVcjLieQa+tTVHcLb38q6OsoaegfaBYgYHcmy8XN8CxPeXfTKDd9yzPEjdjT5tb6xGxX0mJAEQwh7Ft45d8wt6LWfLsvCQSVtAb0Du8c+o2YLc0aLm92n7znuOYuix/B5EzCgQt+/PBhDcB+XhjHQc/BnpOj+APBmhCLD5ECJaHIO+vp2E0HSEejwEEod2gJnAKBMG94bAh2NsJ1zLOQ/KhbUHrqPH7o6xDwfxbozvcMd0uw+pIzkeDeIPVgn9jCGDMjP0X/xLq4SHy5AuFbRbPgqHfm54Dib9h8uQx+sc515RaBgwhZPYmAYmKl3kNrDho3WOW0iNi0mwkIIAF2rXqKaLoOKoZGmDWG6jE6R4IRWv1HTiUnKoVSWO2/3EXVIrbKP4gcoQbDbHK7VoKUhnBi6r7BeXguj/qj0k95aC4VpTA/2kFp1Uz+j7nh7TvbAeLWiteb23mDXWVsKf931pMetyP0MOwuo7i1mXDFu36pUSooT7d5+slrsyB6Q1t5zatNnV8rAc1+7kjDd1f+h3dzneORXcu4OeibrwO8txjCS/3qcURYGqfri/s97vG27c7beNfxrpfz46oCAGgGUQflne15D4gKK/LXBZwQ99kN49oBiOWGiKzMtS7hTnzehsJT5pgfZrpwi6yqo7PLh7xDLmwHeAbIARpc6bKRB040ILAliITaPdweDjQ6LumEt7UQuFvTB42FYm2lf4mk+ngZlqWmeep8dcwUGdOwrJBe606l1jqmMX8rTd2WWuvGEUa+7jTT8/qAuPGrG8VMccQxbw2eYVBhZ0AOh/fXD4A3mcc23k148aKVr9YamfnEBAPGtsLZihhlqQ40zAqQUCD5W8m/e+eFgaHvd2bTQdB+o61zkvG8pZ/Ie6QOk74m8c90YH1j6ThOWqkbWoW+gWjZCZqngSDLffObCOjty7C2pattPiIDNbcShuhRyR/86ROyrxfvrEbxJegu8cdAgO4e9E/nsfDXSfPbD+s4c7idZ99vD+3c8eph9uxFwIM/6XDzf+/5+exB/PnMcfz5z/gY9n/pnPf/4DeEA58vDGZXgAAAAASUVORK5CYII=",
+ "Coventry City": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAkFBMVEXX3N+XbBgqJiKorrFVIBbYHCNOUlTy8/P+/v5rThO0hyL7+/ulDRPenyIBn92pusQBZpwdSmB5h45wfIKxsbH70QcQNkt3d3fDvLq9ztXPdReBb2/ftUa5vca8xMxUP0BVVar/AADBwL8AAAD7/Pz+/v4CAQFzdndnZ2iTlphUVlfP1diGiIjl6eq1xs+np6jyhtOAAAAAMHRSTlPs/v72/v7+oV7+/ir+/v79/v79/gP//gL+8/7+/7q3/wMB/wD+Bf7+/v3+/P39/vpOL+sNAAAN20lEQVR42o1aiWKjOBItS0SAiZtgJ+nuZHb2MKAT9P9/t6/E4dhjnFYSgg3UUx2qS9D53ui6+X9VFUWeE3mSMkY7jxilJKI8z4uimu997e5SOtNd+virEmFpg9bGOWOMxghp4ASf+Vt8YyMxTjc99WcAHaiTDFqBaoiSfLsxwFcMDKaDzIuV78cAXffzXJFVxtJwQ28YPH6Gf+INMhgXi/M9CLqngCIKmkm2RFFaHXQQpLRTTovggohOtqQtFOHnaYzCVvfkRLfEXwuiwUGHMnoJ5kWAmAUkJYyVXpEXQQ1a2HYQZC304JzGBRqsGYjl9A3AOZcQvTi12kQNPoR1YQBR2JARQ8u/YM+LtpX4a00cXIgGvAEUepfVLQLdMFB50Gita4VsPf6EVwK0pNPGq4EUmJAGLEERymoSsWVpCj2Qi9C6yr8BOOfBYmKkyDkfIrhvPZBWSV+N6ActGcMLGrzir0K4ZYGuGeiGdF+rRtLas5K/HzCEIAfp0rnLz68PAM6F1ekhI+lCwMto0+qaFlg64RUmL3wNND+obXfNwg0H5KZnwpEtFOvYqEyoiRwGe4ccXoPdBlZ0IzKltB0pUZ7Wnim2AcCANLN4zagyjOfnp6dnW1TwON21LOGm8sBXn/k+Papf05MmXt96DZC7WTJeiAxPT8MVZ7il21GcSS13PGdCzOKSNyzQlY2SWYQqEvln5uApyztSAvMUgOUDH1XR+Wy95elZLE8a2uIADEB5Ct4gUhuZYAYRMzXZUbbb7Xe7crff48CnrigicN5VEmUmfkFlcCVKK33FAn31oYNgqbNUzTj4uh7973GUR6ELEiC7KwGz202nqsiNOMpx/O3Huvbt6OZnhci7DYDCZk/Pi1CVhBmNeFbWR8w2lIf9PhPMQV/u94cyVFjWuFiPMCKS2aKy56fsylKvAHSaw6y4LDuNRGBhPEHeJHjuPSZf9un0N3R8xMXf5GudZYu28XimtwAqEqvlzGwYfYJgqavq7LA/iB5z3/V8Wv7rDLk5XFZNdv2UIISU+0ou5KTaeTxnGnEtxBzYACgZADLqBU4BcOaw9xmkmZbC9ATGWN1XMuI2zOgY4f85ovtRnnpdVEUKIwAoSxYRRi9wCoBX/r6oJl3DHxKv7qjD9jo4d97B8aSVD4B6PGGJTQkDAPblXvRsRb3AKXMw0cmhCthbemiEe3L5NkBuZxEZ5mGsnS7YKZxvRJTNIppcRm5UDWtA+JueRejcWgcwlVlfsGasGWXySV0TwJ45YCWL/X5f/r0u/8HgVnV5VF157CsAL56WhZBZiUxktjeov741U7leq9i/2uxiexsAKZyJZRlkcV2OSQ56d/jrUIrDX38dRMmnx0UQfOwKmS0LQYQNV8GE8jh5FmUCdeefKR1MN1N26yqg/9dLJlV4jhyT+jatiEfF+SLnglV3mWCRFy07u/3i7KCDnVoBzskOphw2X8W6EdHupZHwksbCR5eHXckiKlla8KZddZXM3v/wz7SlgN38BNLEAiZHup/HbpcxBzgc9juY+89Fy9WkKJbAa/dd2kLnRLloJ4Bz5Rf6vVClcg4H0eMn5hPHuKWFM+nSLxUP8yKYo0/mV+QUqxlAXgDWoJU+hmnJ4v7hlCcmYM3xm7yIRMD1CiHTzADFBaC3LWWfK0BvixmBhAATLM4UbR5kFXDYoepeyYjZmjkKXQDcAGv/HFo3c0SzjHLkpSyxasxKyrcB4E2tQUQthr6XegbI9UVExGE+owWgDwuXAYtc5vx/Jx55UwRlCf/TBqWm7CP5J6FmegYOMMt+Ey0AbuVyV5aOqtwhoGbXQrpxFT0ZmdvemhVg6IWY6SmsQXacK4DIFz1hcUP8BC9blrTpKs7khLSmxVHL5Aowl4uV9sKh2NA4iAvAawKIAMiEJzjyffnAm5KzAfk/6rMjAzCnBQDEBaOHM/2C+BWgLKWfgobcCvrIE0Y9qF7YAABmvyuQ0hmo2Zh/AigrFh3E5P/6iPnvs3ITAIu2tj7gyWNIABUFZS1om5wWgGwF8HJWclfYydcq+EGEa3neyoui0KP14hQAoCS8NwpBKyEhC2OaJJV9WdeaFyOTyjUD7EpkA3vIqN5MvOxR18GbI4bUMPKqlUhaIgPkrmcpCUx7BtCozNI6QNXumD68YLbnpCBsAkRFp9pKDR3UUuVF3tq8QiDtI0Jar8EC53iqTxix7Q1cbkG1NWKHdBLCYSVn25ldEcQow+hP8iSl48LGEOaIyduh1b1RbDcVlgmfYeUGzYWDKtmEkDaB9p5Pdw9yUxSm1ra1lrJGZns8OoUAWEDBQgMAHAgrY9Y7ZkF2RQ7pIB8WO8QHjqmsAcDIRyIyhDo2nOqj9oNUoxQI/kiXRDTTim5emuY9nUk2oBaZFAdTBLuS6TML/TYHso+j8TaQBn3kgiSdYd8FZQwiTbt/+YHxnnTQIXrlLUI9Ahx+xS7ZKnSwCVBFd7QkSR69suS9J4mqmVNf8CBbOQO8NGy5yFvPsDPqMwhozxUDA5T8T973puwqmtGekGZaaBkAI5w3Zwko3VLtBhNtQN8M3CnyuHZ+/W8eod8JAMlAmcyUzpsAQqEExtSPMnEgheRQSC4swdI2jVzOteaoTCrbp1FOLKAMkuetKjM31p4i/HGAlCAhGhtCfNPh0jcI8nLOmToqwSQhTH0/2dGuRL6xVYBEgSrej5xrWhRoI2hXUP3XBsgXAN9LVAe7iQGuPBP97FhtxgMOyTqgmqhPPoD+CKnn9P7yhWiMX7h5afLczQD7VOWylV4tg+ugj0Wro+TSVI+eAcZatOblh7rPQfOj+WzLFWBCKK+N6LZXEUU4WtQr8pToj1LR+48fzaX1YvRFQjAp4Jf7BWLi4Dqg3XAAm9DSgoUxHQBgAlvmIpdBvSQrnSwKa6KJXrDwWQOJgx2W/nZ2zSz0xwAW5vEbVSqv3VlGsknrbO6rKFx4ca1i489mEETmm47UbccLNaO1ckaoR2eb5BsC6v72M51j2oFbpZ/v6Zym2idRZxlxWfco+e1a936aWaihgl8g86K8h3UlXtJ4UZ/aemJ+mhyFHXxplpYBkPKvVfi9tib8gjihMOUxqvgLpjLpNTY/1jFLSeOizFWWohlzUV6Hy3udX1zHnHQCGK0g+d7E1SrXsditbN4BwKJBwGGM8E3fdE4umomBWshCCn9ZV6uI7Gqqgqj/2GUfHHDw8/e5+qZ3zabqJgmNTUA41+1ilrSysK6LoTVwdgfEYlD/EB9Z/p/vmuNsqYkBOSpTFFaoFeAiI3XpxztENK7aoIaP7IASueq+aY5zhl2nHyTiuTkqWruzi4xWCQ0DccREHAZ5gByErag6PzJTZNhGjfAWtXSyiagXnBwWBLi9BuPlnZZu7CDZgt4AcDgwAFLrtngIwC2jGllFXSukRkJGdzLtwkOwv9IIdpn/AAs6TD/79C9DffFoJacSRNb6WB8N/kvErxFZORFzIVc/pwnUB26eig+eO5KKt4mHj55XwvmBs3MK4j/p+v1Us8MAM2pmwV+c9qCGxACqQRB9K0E+ATAXO9ltN2ZRo7kR4rFaCqGP8HQqCNlwZ0ep93GxJzDznr5yfZLQYf8G2m8spcOhfADACjjhOa3VyQxczdi8+F/j+hce75I54UFtfE9fCcMkd29vb/vy7W1XfuBTdhWRbxuzjeOtMq0arYu8SLtjRQxBJHJmWNrWHBaYPpc0M8LhbS/Sudu0Ik6U5x54CyaqL1uBNiE0fm2MJwZg9Llm4rs9H8rDG+iLoThviIgbIXR0WfZvVHlKoRjlVlZEdMjzKBqWEedKnM5YADQi5vkv24MuVPzGDZIyy3qBnHCzZ1d5kVq/3AcVwVNERcmqdFR4BZqGuIbFARISjnKfeuEu5dVl2mx45u0ERZu96+Pau356eu5RjY/IH8caTqnKpUKKjbSSG6ri3cUcKQhnBrgDl/rLc0+PCpALwHMWfMutTV5v3D4tchncPD4ld1dI8a4LV+atD2t7GQDhQZW5iEhJbs3ydMf6KEyKs12R9m9o2Xvlli/WIvJgbstKtTy71d5Pj0CiWeYsJj81B7msz1LJ0r3ehA2sGqgKN0zNQDwSXHpEb3cdq4u7EWn/Z+r2ZznXGjzSEnqtpg9pi2W959Ktkg83ieYAOYjs+esm0TJ+/vx5eTq/NGOf100i2t4kStFsZgF1uJp3udZtru5ql2vZ5pr2uZxc9q8ebXNdbdQhnKCW4i0g4dI2HU27+Pm02iXvDvLWlDJH6eFtl4069yjgcLEfZkGukZj8tLE/jbS9P204Bt5GXl34stUYHjdmO+/mzVIbpG//ZK+UQ6dEjP2TzdLUoospotBJaBOM8ankuAvkB485GMv7OMaRmviovuv8psAlXauRBIs2QCLWaacAhvLMWpBArsLy5m8EHK8ly9vwxFoevtuwZhai0shOSZg2AkDAvkW0jqzQSNUFSnv+AqoRCJoKHIRBDyIKrwUCVfwudUwvDUhyklArDSbAWiPjuDaqoMkhA3CwFDmQFzAzYbV2RvoQqbWG2EV1f/LiRmHn5NAP7RDg9QxE5uDrLH6FhcAMZGUCwX7b+T0Lav7otYepd8etNB2vX9AYPLzNkIIaYs6N1j1CB4rmey+43H/1pCvITq+UfN1Xv2ug87sn9o9fPbl6eYaXGBZXenMmhPReTnpHZ36BJl3gkJoc+M8/fzvnH6///J428Zns9I5OegPoj17/+T9cfb3olOTf2gAAAABJRU5ErkJggg==",
+ "FC Everton": "data:image/png;base64,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",
+ "FC Fulham": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAkFBMVEXT09NCHR3b4uKdnZ1iYmK3xMQbJiY8QEA/Pz8AAAD+/v4AAADQAQFHSEj////t7e00AgLl6OhQAACOAACPmppsAACHiIiyAACwt7f///9RVVUXFxdxdnbV2dn///8tKSk2NjbHyclmZ2d6iIhYZGSpq6v////+/v739/f9/f0wFxfY2NjkBQVGOzuYpqa5ubnmnpolAAAAMHRSTlMX//8GBf///wQA/v7//gEP/////////v//zv78/v+Q/v7//v///q9tLVL/Ev///wt54cqXAAAFR0lEQVR42u2Z6XqqPBSFbW1PP1JBZpkHLYND7f3f3ZdsATOBeEj/nfxp9cH1JmvvZCdhpYnNgNZ9WLXtsWmyug7DEHUN/1vXWdMc23Yl+w3dVhLx23/rtsW6IGqlZVC5vp/soSW+71ZBmVoAw6Rjz5FAVpw8/NliadJfq6z8vZ5/jra82PtVSUAhxmx7yNQItPaYgbS71+NBJsK9xp0OSmgBGU6yj4q8eyIu9i7BYEr73/gIDM0A8dKPuk7r0D8LjbfbGLt+RH5JLDuuNWMEkKEgKe4G6Ghm0++/KZIAZXKAoZ3RnnH4bwC47dGZItCALffkXwJ0tP0H+GWAGwW/CviyHdP9RcCXvdlsOIJKAOjzBIWATp8jqAMM+ixBGaD3x+MIqgC9/iHiCIoAgz5WZAlqAJQ+T1AC6PTtQ6dJE1QAev1k8J0iKAD0+ekUloSwHHDPf5FQKgD0/jgiwcmt5YDB/28g5BRhl6fLLbrnp1XwhFO6PMh0/gsEa3maMvMLoT8cYTEgsS+0/tXccbm0FODbtL5ritm61KLEluhzLi0LcmLbrL4HNtGEhWnquqx+FNwI1IxTslz3+vjbgBuDEgClLxBUABh9nqAA0Ok7f/ovGMJywJCffUINBIj0YgCV/yZLuHhfCgBD/ouEnRkomAd9/rsiwbwuj8GgT5Y6jhBXy7OI0u8/3AkK5gGjT1xhCYsBKaufun9sCWEB4DXf3fUD3fZ2u9t8iEpF9SA9OZebfhrBtqWvB2aiqB6kuQ361YmSh0HoiupBCuXAvxVj3HXPxkZtyCT+UFgP/G6x8E6RG1SHbxuWiUgZoOoWU/PQZf6VGHaxVZ0P0tOt+x/pgEwhvU6vagA6xNf+onMfoF6iBBDA5PK+2Ol7ILv3kxLAN5SWD/66jgzBDp4B/ITSK7USBtDZTTXC9Q6SK7XwRwrAX9aVDABeeAckAzh7EVDVo7eOjSUD6LvBbKYRi5xIBFjNKKBlH+0AL5u+p0x7tzfSEehoNQIQPKIA3lW8RyO564nHWNYhDnBEIsAiAPtdAMBhxxaPUOg4AWCvZqkRSAD4OHVxdGEesNey3OW4oWWWCIB0vCIZwXwXABZzsSwAVvTDHSBx+mzhCXkiLHYRG2Lh/YGWpQIA0sUs592bptwAhBcULYqEpaLAHu2KWYAItcYUgI0Cs9jdDzT+afxilo+ACDC2KBGW68i7kK26i5ej1yuuZmYwAkjQ1jAevCTSGhQLFS0nOb/zXnAjxZIn9IAYNZrx8C3UWxgIgDR34Dze7Yo2u89SBqjCN+MRAFakSCj6r4VH7Vh2diI76eMICwMQAfAqJxYPgYnpDPJ5JYtBjDJRXwbAJpWSY2yavNieh3dF3648TUuJQTIAmORLb37Lq+sGryPzwJcZJAXAqho9+wYk4lbRKQCEoXgOUEgDMArApQcH+glAjGrNmA/Az65rK8a2zmr+Z2zVa7n+CAD2MOlMAtZPmZ3KHACpboSQPNZPiP55TH8UoK1vhOiR/n5afxxAylttFZ/F1NteXDY/c6tejetPAEgcapIgwbh+QFKt/pnQnwKQn2WkOvjj4cVByrQp/UkAyewj9DKVyad4fgWkAkzpTwPIb1ehhYVcyStNPNWtsH2g/wAAoc6IFTq3qyh1Yl02af8sABE4ght7Kp0sHBns21F7qP8YQCzYZqiKP2O/Q1g+/lChevvInnmA2yBC4hMgiDx2J5zT/ZkA0tG3BnyJfSKPK3KzntP9uQDo6zkDBMhn53ndnw+A7m4bPLewS9lWm9n9JwA3yVUThs35CXlN+x9MLatFfZDJaAAAAABJRU5ErkJggg==",
+ "Hull City": "data:image/png;base64,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",
+ "Ipswich Town": "data:image/png;base64,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",
+ "Leeds United": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAkFBMVEUAX6djnsqqyuEAX6ccba0AZqpFhJJWingAM38AAP+IpGEAP7/m1C0Af//564ve6ekA//85g7q+vj735GBAfoYAVVzAvz2sw6iNueGsv4oAAAD93RsCYan+5BQAWa78/f11mWfv1yMAVqnOxjQyeIyQp1eutkeOuNf+98nV5fD+9LUAYKgYapsAf3/F2usAXaYkWzHiAAAAMHRSTlOf//9c+xj+/wMB/wT/Av//Af////8D/////wD//v/+//7/B//+////////z/4C/y9przPDAAAIxklEQVR42q1aiXbiuBK1jDBLQkO27nlYkncbD9j8/9+9Km2WbEMgPepzknSQ6qqqbi2SEhzvj93ygN+W10UQnM9MjvM5CBbXJf5+87L7RkBw78Mux6/5ItCShR7qfzRYSJC8+yFAjuKXi7MRzS5lWUYRfLkwA0MXVzPzWQBcc5XSQdYlSqvfRRbHHEYcZ8V7lUYXBXJGPTb5kwBSfCCls3L7nnGuRKuh/pcVVcQkRrDQSx4F2IFjF4GUHlWFK9od+HuDgRCb3YMAqC7aRohyVdwQ7oAUVYkQZ4DIN48AgPil3P1nHd+XbjDi+lNqsZyzUzDdfi7FR/Uj0g1GHUmIfKrECGAnrQPGeUK8hpCGAjt19wByZZ1L9Zx4BVFdlJ3WtwHy4xW3v8r4PGcUrE9ZZ0a2AiXOV98RgSd/gdufWkeSvq7SFYZxGa3Sqi5iPjOtvkgzrecBvqT88pVPWFJUK8pMGtLf6aoqJizjr6VE+JoD6I5XWL2K+ZjnaWkyjxA0ItT8DFRIxxg8XsGnV8fTgUNQsH86Ep9hFAmTSymJCLEQEqSsshFECn5Yb6YAqIAo/bkZEEPLAmms6fu2IW3fh2z4LVDO5wQHKy0HFQLXw6LiI95ZQSApDEmftG3Sk8ZBkBCuErwS4IV8AvByDJh4HybyonTEgxzSNm2ShGGStE3feB+JsnAW1oIFx+WMiSDEBmV5xVwZaCAQnySE4Nc2HH866M5fIdxmTHTszqJ0XeXtkRHSoOTwz/9C/N4QwnwlHHqU4jxlUXfMmYi4QwXGRghhE/5Jkj1YqQkJUGk0wyLwSLD8eBgB7JBEZg4vRqthgGnCaLv/9Wv/EYESDRtPEcYPuLvlcTcCkCTa8hsKMEH7Hky/T17jZL+Hn/q3yRS7va1Lo2COpajkBAB8sO9ReotkaqcAxsA+Tw3AGgFqbt00Xs1CgnK3SbL9g2QK6WRK6fB0SHhzADy7THwgGowAAsEcviVJH4bTGRdN8nkAGWfaTcDk6XLa9kmvqBomfUunM0wUIUUCEHgHoGDTIWgTSvmA0EwNhKO4B7DEQHZmzCC8kRBt0+9DEs1OcPY35IpZgHp2PSFvYds0bQg5e3bC+98BMIoFoWmGcjAGqO8BeD6oxa1BqaA3P6y/dfJvMyP90TD7e58D8AKN/3A8GmhwAIB/w9A/Z87wPhgtUQD3c5HdDr/VZbmK+ktu5CJoGm0+BB9UKWoDVX+7Tbfbrdzcxy87PuS8KlUfcr3E+ABy8XUC0Dn1AFl0wf6LrxQ9lGYnFceQqpOTS7YSW6msFLRyAboRwMapaPy3KDMlX/JbL/xXyW/I2z8nN15EJDuu0tJUVrTNpCZ/2ZrMiwtqq8uOLSQKoKWQq0+DtXHGSpqTGo5ATT5MG68DBIJOuPxVyq8G+dJ/EqAntGmkifhoD7xQPoBkD2FwmACs3VDm493h5hSAaKBintA+rpaV2YUJ5PUEYOkW5cG+6EGwb8ozBdAw/IoAFZ3xk2XpcqZ1vLqtRyFrjnE2tQCUWADxqcCFm+lMUzFtHTcYCCX35SuypthWSYA2pMkAoM0nEQSzXYtsfjcz7fvxbL2sirJahDtSAGHTMxq2++YfBaCd605WPj4fZ9p35WWVT1XNFOzdOFsBkDdo7ygDK52G3w/qaoDfno89ACcbodrSrMrZ2kTYfCWtNZGlDyJAU+H4eH3jCGVjGc1SKfkOgB2ngcZmF9IhOo6XswAQG2fTwKPcraO9PBn+i/0Etl+kxUDTzlUIlUlYPGPggsPsKVMWtdpMU9ZV/pOZQ7IoYQ2Ggoxklz6AUPDh+LGeBZCRoBWNa+S4z0A0EdKUhTqbuvC81iRdeVEwOukvKbP9X2xiyBZzBEAFaJKcvGhRIR1bki5vnfQdGzk9tv0NABAQTkMDYClQ2sP1xEKjqwTHRl6W0SZqwToylk9GSVsR+LDIv6zwTLRZn4fuy8vElWQRgcaaNoam9Sjn6gg9+1dGHsCLk1GVAjoZMBUHlLQEjsuhjoMhX9tSJQ83LzcB1lg3S+ecZtOZAoCutA8xnyoAkwodP5VYLdf3LqQGN2PF19VAzEeyrdwmCysX53duvHbOhQWoYEv/CKA32VTR59NWwhJdvLt3Z9e5KlTWyAagJxGlJAptNlUm3LoK3L2zUw2eLTuDEzUAIehoN5umQzGWCizGN5vja83uSL1gq0ww6IqGiUIXfb+puaHABECpYNdsh9ZK+SBkvY7kabmfU2B687tDL9hF1EkFmK4JZRHRACqVDIfLakqheYClf+TVrYUE6JM301WYZOgdrpcTC83eXQfevYOuBspErWgtgIzAYWY6q8AMwGGdu1cnK5URJEDYqrZImUie2C3joNazfH145Hrf8zPPpPxMAeCtVKtoKg80vMj4PQ/feKDwjSRzZmp60z0hjU52lRsCNww0D9CBn71geLepooeSlphsWvud7IyHbz2xSCPR4YawpFsdaIw4ye5ij30ZvWGgW49E0kiR0wmbVMHcbFq4t3TBjVeieYBNtzx7vbY6H7SCDAD1u9tPn/Nu88wz15e8KR9ack1T0ScDTd1CD1n667mHOtmpssI9ISNAOwDE7lFiMXr3eOAlUPYwF/feG03UqFuvk3uDfnGvJh4H2OSHwKYhOT7gAEXV1fKHIx8iLNjkm+cfSzv5oFDGHoJs3l35GMHn/ND95DW2OyLCp4PwKoP59OrI/xTYKnY/e0/OZUS7CKjEr9iXP+rknnqwziVZXT/Erx+xb/9v5N8HmEN4Uv43APrpjhZz73IFnT7LPQ0Ay9HTrJ4g8JpJ/+bHvwNQz5vCez7SJV7gw+V38r8HgC7gCxFSl0w8Th+U/wAAkly+QQ6OwBequafdHwJA8pYIrDb3f2h+kN9tjv8NAGY++Q6cqrNhql51Xx5a+hgAHk3wJRsfyt9L9S79mPxHAYwjRJqKh83/FMDw1wTzfxvw9wDyTxoW2E8vjg+w8ycAxw4SeADb33VPLPo/NG/IhrX5sC8AAAAASUVORK5CYII=",
+ "Newcastle United": "data:image/png;base64,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",
+ "Nottingham Forest": "data:image/png;base64,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",
+ "Tottenham Hotspur": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAkFBMVEUAAAAACjwAC0AAAjoACToAAFMACTsACTsACTsACTsACTsAAH8AGDcAEUQAC0EACkIAAP8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACqk+Z2AAAAMHRSTlMA/P4JMAPPUG6QrwIKD4XTAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADNlql2AAADiklEQVR42tVZ25LbIAxFIISQd9v+/9dWIk5ibO90W6SH8pKZZMIBXY6OREp/WIWFAEBaClkbQ4ZM3AmkbBEIyKLnb5gaSNpibtEUIbfUMqYasH2pA6HXRBICoBCpQ+aUGGIspMdG6B9FL1KCEFKBpvdAwCiABH0H2P5TgAIcCVBHCgT6oCbR+ImLIo3S3FMtmgcxANsHGUlYukXlcbaj6yfF7M8AVIcnYrgIlenAgiiRJcPJP8thu1UrZ1oKlFVvABQfFyNIHTAQdJ+RbdOPqQmQg4Gs4EBvJwANX3mYr65fYEDkCeBRh/T7O8N9e33CYVm6XfYHwiUSOgIczf36Sc9fVnIgTwgHNi1PUBrFaN0Fs7kn57AbALzZDg9f/nuCXwHkcdgy/UB+PoBnKhQ6+r78O0CD8zKP1slCsFImEG4QLqZbqUN0ReDyitFlgBsnGGfIETbnJS1Qbq4wx1XnVvzI4rSoLcuAayq8bUPWVW2llEUEuUfIvSSnGn2PwF7bK4H22/09FQZf7ZM8VZ5SA81mouKrkDR3+6nyOEuwOpnJ2UBvMx3IJ6ARKS/amNRFCAKGNeS4WMG+x94hLp7UEAdZ6MWtGAcw2p3Afn+vPxhporYkFb95AwoMIvNB5kgnaxRRSnEISbsyrFaMP6MSTfPYBpG9hPlYmHtULthcR6WitrRBY5fBpsJYwmJIdqEbEkR1tCPaQ5WI7attalkscTT0GExQjH1K6/TuoNwhZgkvLSCI6NR2eIfPRfuKp/Iqrb37vbx/+pUEtX+jvbkk4dYQsRkZFS92YBmdbKbedGcRIsNB9qEjYx+7gPZ79hq1m2jQXXMCEGpqnIYd8qkbZx/Jnrnljgw3Db9DabZxtbmV7hvZTw8CUg8gfNGKt/UroDQ19led/rLKrolJWejLG4iHC9TLeAmh5VndG8BSCiwJDn7Oz3xweK9AzjjyjLHJfg1SvmBxAtAq30YtsNTVawyaY+UKJSSF9RFyLT+5zrxBKHkcXxPQ4cVFAQiPwzrGyqLBq9GFsN4nbEPrHsdFmfkHFjUQ/sS+/i5oSuhlox2gZwstXdXl3dGeiHAaI6vFshCr0x2YYsjp+QrAOBRMx/7xy0dPK1dMg0eLUV3kJeALaejTXGuAyK1R22yaJuVMRo6t7JjX9XPNaY7ycUulZ5kYVdC7FUet/U1e4jQFjATRsou7aAz95Z9/A4LwFrRK0RBCAAAAAElFTkSuQmCC"
 };
 
 /* ---------------- EA FC 27: Teamwertungen ---------------- */
@@ -2741,6 +2853,9 @@ function freshData() {
     const werte = l.teams.map((n, i) => (FIFA_STRENGTH[n] != null ? FIFA_STRENGTH[n] : std[i]));
     active[l.id] = newSeason(l.teams, werte, "2026/27", defaultStart(l.id, "2026/27"));
   });
+  ENGLAND.forEach((l) => {
+    active[l.id] = newSeason(l.teams, l.teams.map((n) => PL_START[n]), "2026/27", defaultStart(l.id, "2026/27"));
+  });
   return { active, cup: null, history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
     regional: startPool() };
 }
@@ -2789,6 +2904,19 @@ function normalize(d0) {
       ...s, squads: frisch, strengths: frisch.map(squadStrength),
       start: s.start || defaultStart(id, s.label),
     };
+  });
+  // England: ältere Speicherstände kennen die Premier League noch nicht.
+  ENGLAND.forEach((l) => {
+    const s = d.active[l.id];
+    if (!s || !Array.isArray(s.teams)) {
+      out.active[l.id] = newSeason(l.teams, l.teams.map((n) => PL_START[n]), "2026/27", defaultStart(l.id, "2026/27"));
+      return;
+    }
+    const strengths = Array.isArray(s.strengths) && s.strengths.length === s.teams.length
+      ? s.strengths.map((v) => Number(v) || 1) : s.teams.map((n) => PL_START[n] || 60);
+    const squads = Array.isArray(s.squads) && s.squads.length === s.teams.length
+      ? s.squads.map((q, i) => fixSquad(q, s.teams[i], strengths[i])) : makeSquads(s.teams, strengths);
+    out.active[l.id] = { ...s, squads, strengths: squads.map(squadStrength), start: s.start || defaultStart(l.id, s.label) };
   });
   // Ältere Speicherstände kennen die 4. und 5. Liga noch nicht: aus der Definition anlegen.
   // Steht ein Klub schon in einer anderen Liga (z. B. durch einen früheren Aufstieg), rückt der
@@ -3489,6 +3617,9 @@ const CSS = `
 .lr-unb-n { color: var(--chalk-dim); }
 .lr-unb-t { display: flex; align-items: center; min-width: 0; }
 .lr-unb-row small { grid-column: 2 / 4; color: var(--chalk-dim); }
+.lr-sections { display: flex; gap: 8px; margin: 14px 0 10px; }
+.lr-sec-btn { background: transparent; border: 1px solid var(--line-2); color: var(--chalk-dim); border-radius: 999px; padding: 6px 16px; font: inherit; font-size: 13px; cursor: pointer; }
+.lr-sec-btn[data-on="1"] { background: var(--chalk); color: var(--bg); border-color: var(--chalk); font-weight: 600; }
 .lr-top-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 
 .lr-tabs { display: flex; gap: 2px; margin-top: 22px; flex-wrap: wrap; }
@@ -4109,6 +4240,7 @@ export default function Tabellenrechner() {
   const allLogos = useMemo(() => ({ ...DEFAULT_LOGOS, ...((data && data.logos) || {}) }), [data && data.logos]);
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState("bl1");
+  const [section, setSection] = useState("de");
   const [md, setMd] = useState(ZERO_MD);
   const [cupRound, setCupRound] = useState(0);
   const [euSel, setEuSel] = useState("cl");
@@ -4128,7 +4260,11 @@ export default function Tabellenrechner() {
       setData(s || freshData());
       if (s && ui) {
         // Nur übernehmen, was zum gespeicherten Stand passt.
-        if (typeof ui.tab === "string" && ui.tab) setTab(ui.tab);
+        const sec = ui.section === "en" ? "en" : "de";
+        setSection(sec);
+        const okTabs = sec === "en" ? [...ENG_IDS, "top", "cal", "hist"] : [...LEAGUE_IDS, "cup", "euro", "top", "cal", "hist"];
+        if (typeof ui.tab === "string" && okTabs.indexOf(ui.tab) >= 0) setTab(ui.tab);
+        else if (sec === "en") setTab("pl");
         if (ui.md && typeof ui.md === "object") setMd({ ...ZERO_MD, ...ui.md });
         if (Number.isFinite(ui.cupRound)) setCupRound(ui.cupRound);
         if (typeof ui.euSel === "string") setEuSel(ui.euSel);
@@ -4146,16 +4282,16 @@ export default function Tabellenrechner() {
     if (firstRun.current) { firstRun.current = false; return; }
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      persistUi({ tab, md, cupRound, euSel, euPh, euMd });
+      persistUi({ tab, section, md, cupRound, euSel, euPh, euMd });
       const ok = await persist(data);
       setStatus(ok ? "Gespeichert" : "Nicht gespeichert — unter Historie „Sichern“ eine Kopie anlegen");
       if (ok) setTimeout(() => setStatus(""), 1800);
     }, 500);
     return () => clearTimeout(saveTimer.current);
-  }, [data, ready, tab, md, cupRound, euSel, euPh, euMd]);
+  }, [data, ready, tab, section, md, cupRound, euSel, euPh, euMd]);
 
   // Beim Schließen oder Wechseln der Seite sofort speichern, ohne die 500 ms abzuwarten.
-  latest.current = { data: ready ? data : null, ui: { tab, md, cupRound, euSel, euPh, euMd } };
+  latest.current = { data: ready ? data : null, ui: { tab, section, md, cupRound, euSel, euPh, euMd } };
   useEffect(() => {
     const flush = () => {
       const { data: d, ui } = latest.current;
@@ -4173,7 +4309,7 @@ export default function Tabellenrechner() {
   const drawShare = DRAW_SHARE[drawBias] != null ? DRAW_SHARE[drawBias] : 0;
   const surprise = data && data.surpriseBias != null ? data.surpriseBias : 1;
 
-  const isLeagueTab = LEAGUE_IDS.includes(tab);
+  const isLeagueTab = LEAGUE_IDS.includes(tab) || ENG_IDS.includes(tab);
   const league = isLeagueTab ? LEAGUE_BY_ID[tab] : LEAGUES[0];
   const season = data && data.active ? data.active[league.id] : null;
 
@@ -4491,6 +4627,7 @@ export default function Tabellenrechner() {
         },
         regional,
         active: {
+          ...d.active,
           bl1: newSeason(bl1Teams, st(bl1Teams), nextLabel(d.active.bl1.label), shiftYear(d.active.bl1.start, 1), sq(bl1Teams)),
           bl2: newSeason(bl2Teams, st(bl2Teams), nextLabel(d.active.bl2.label), shiftYear(d.active.bl2.start, 1), sq(bl2Teams)),
           bl3: newSeason(bl3Teams, st(bl3Teams), nextLabel(d.active.bl3.label), shiftYear(d.active.bl3.start, 1), sq(bl3Teams)),
@@ -4634,6 +4771,41 @@ export default function Tabellenrechner() {
     setTab("hist");
   };
 
+  const switchSection = (sec) => {
+    setSection(sec);
+    setTab(sec === "en" ? "pl" : "bl1");
+    setOpenHist(null);
+  };
+
+  /** England: die Premier League zu Ende spielen, ins Archiv legen und die nächste Saison beginnen. */
+  const playAllEn = () => {
+    setData((d) => {
+      let cur = d;
+      ENG_IDS.forEach((id) => {
+        const s = cur.active[id];
+        const results = { ...s.results };
+        makeFixtures(s.teams.length, s.seed).forEach((round, i) => round.forEach(([h, a], gi) => {
+          if (parsedResult(results, i, gi)) return;
+          const [hg, ag] = simulateMatch(s.strengths[h], s.strengths[a], false, drawShare, surprise,
+            formationTilt(s.squads[h].f), formationTilt(s.squads[a].f));
+          results[`${i}:${gi}`] = { h: String(hg), a: String(ag), sc: makeGoals(s.squads[h], s.squads[a], hg, ag) };
+        }));
+        const voll = { ...cur, active: { ...cur.active, [id]: { ...s, results } } };
+        const eintrag = archive(voll, id);
+        cur = {
+          ...voll,
+          history: [eintrag, ...voll.history],
+          active: { ...voll.active, [id]: newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads.map(driftSquad)) },
+        };
+      });
+      return cur;
+    });
+    setMd((m) => ({ ...m, pl: 0 }));
+    setOpenHist(null);
+    setModal(null);
+    setTab("hist");
+  };
+
   /** Alle Wettbewerbe zu Ende spielen, ins Archiv legen und die nächste Saison beginnen. */
   const playAll = () => {
     const played = playAllCompetitions(data);
@@ -4655,7 +4827,7 @@ export default function Tabellenrechner() {
   const neuBeginnen = () => {
     setData((d) => {
       const active = {};
-      LEAGUE_IDS.forEach((id) => {
+      [...LEAGUE_IDS, ...ENG_IDS].forEach((id) => {
         const alt = d.active[id];
         active[id] = {
           ...alt,
@@ -4672,6 +4844,7 @@ export default function Tabellenrechner() {
     setOpenHist(null);
     setModal(null);
     setTab("bl1");
+    setSection("de");
   };
 
   const exportJson = () => {
@@ -4711,8 +4884,9 @@ export default function Tabellenrechner() {
             <div>
               <h1 className="lr-title">Tabellenrechner</h1>
               <p className="lr-sub">
-                Ergebnisse eintragen oder nach Stärke simulieren. Fünf Ligen, DFB-Pokal,
-                Saisonabschluss mit Auf- und Abstieg — und alles bleibt in der Historie.
+                {section === "en"
+                  ? "Ergebnisse eintragen oder nach Stärke simulieren. Die Premier League mit echten Klubs und Spielern — mit eigener Historie, eigenem Kalender und eigenen Torjägern."
+                  : "Ergebnisse eintragen oder nach Stärke simulieren. Fünf Ligen, DFB-Pokal, Saisonabschluss mit Auf- und Abstieg — und alles bleibt in der Historie."}
               </p>
             </div>
             <div className="lr-top-r">
@@ -4723,21 +4897,35 @@ export default function Tabellenrechner() {
             </div>
           </div>
 
+          <div className="lr-sections" role="group" aria-label="Abschnitt">
+            <button className="lr-sec-btn" id="sec-de" data-on={section === "de" ? "1" : "0"} onClick={() => switchSection("de")}>Deutschland</button>
+            <button className="lr-sec-btn" id="sec-en" data-on={section === "en" ? "1" : "0"} onClick={() => switchSection("en")}>England</button>
+          </div>
+
           <nav className="lr-tabs">
-            {LEAGUES.map((l) => (
+            {section === "en" ? ENGLAND.map((l) => (
+              <button key={l.id} className="lr-tab" data-on={tab === l.id ? "1" : "0"}
+                style={tab === l.id ? accentVars(l.accent) : undefined} onClick={() => setTab(l.id)}>
+                {l.name}
+              </button>
+            )) : LEAGUES.map((l) => (
               <button key={l.id} className="lr-tab" data-on={tab === l.id ? "1" : "0"}
                 style={tab === l.id ? accentVars(l.accent) : undefined} onClick={() => setTab(l.id)}>
                 {l.name}
               </button>
             ))}
-            <button className="lr-tab" data-on={tab === "cup" ? "1" : "0"}
-              style={tab === "cup" ? accentVars(CUP_ACCENT) : undefined} onClick={() => setTab("cup")}>
-              DFB-Pokal
-            </button>
-            <button className="lr-tab" data-on={tab === "euro" ? "1" : "0"} id="tab-euro"
-              style={tab === "euro" ? accentVars(EURO_BY_ID[euSel].accent) : undefined} onClick={() => setTab("euro")}>
-              Europa
-            </button>
+            {section !== "en" && (
+              <button className="lr-tab" data-on={tab === "cup" ? "1" : "0"}
+                style={tab === "cup" ? accentVars(CUP_ACCENT) : undefined} onClick={() => setTab("cup")}>
+                DFB-Pokal
+              </button>
+            )}
+            {section !== "en" && (
+              <button className="lr-tab" data-on={tab === "euro" ? "1" : "0"} id="tab-euro"
+                style={tab === "euro" ? accentVars(EURO_BY_ID[euSel].accent) : undefined} onClick={() => setTab("euro")}>
+                Europa
+              </button>
+            )}
             <button className="lr-tab" data-on={tab === "top" ? "1" : "0"}
               style={tab === "top" ? accentVars("#D98C5F") : undefined} onClick={() => setTab("top")}>
               Torjäger
@@ -4748,7 +4936,7 @@ export default function Tabellenrechner() {
             </button>
             <button className="lr-tab" data-on={tab === "hist" ? "1" : "0"}
               style={tab === "hist" ? accentVars("#C9C3B0") : undefined} onClick={() => setTab("hist")}>
-              Historie{data.history.length ? ` (${data.history.length})` : ""}
+              Historie{sectionHistory(data.history, section).length ? ` (${sectionHistory(data.history, section).length})` : ""}
             </button>
           </nav>
         </div>
@@ -5035,7 +5223,14 @@ export default function Tabellenrechner() {
             steht, ist am Saisonende Torschützenkönig und wandert in die Historie.
           </p>
           <div className="lr-top-grid">
-          {[...LEAGUES.map((l) => ({
+          {(section === "en"
+            ? ENGLAND.map((l) => ({
+              key: l.id, name: l.name, accent: l.accent,
+              liste: scorerList(
+                seasonGames(data.active[l.id], makeFixtures(data.active[l.id].teams.length, data.active[l.id].seed)),
+                squadIndex(ENG_IDS.map((x) => data.active[x]))),
+            }))
+            : [...LEAGUES.map((l) => ({
               key: l.id, name: l.name, accent: l.accent,
               liste: scorerList(
                 seasonGames(data.active[l.id], makeFixtures(data.active[l.id].teams.length, data.active[l.id].seed)),
@@ -5047,7 +5242,7 @@ export default function Tabellenrechner() {
               const run = data.euro && data.euro.runs[c.id];
               return { key: c.id, name: c.name, accent: c.accent, liste: run ? scorerList(euroGames(run), euroIndex(run)) : [] };
             }),
-          ].map((blk) => (
+          ]).map((blk) => (
             <div key={blk.key}>
               <div className="lr-top-h" style={{ "--accent": blk.accent }}>
                 <b>{blk.name}</b>
@@ -5087,6 +5282,7 @@ export default function Tabellenrechner() {
         <div className="lr-wrap">
           <Kalender
             data={data}
+            section={section}
             onJump={(leagueId, idx, ev) => {
               if (EURO_BY_ID[leagueId]) {
                 setTab("euro"); setEuSel(leagueId);
@@ -5102,7 +5298,7 @@ export default function Tabellenrechner() {
 
       {tab === "hist" && (
         <div className="lr-wrap">
-          <Historie history={data.history} open={openHist} setOpen={setOpenHist}
+          <Historie history={sectionHistory(data.history, section)} section={section} open={openHist} setOpen={setOpenHist}
             onExport={exportJson} onBackup={() => setModal({ type: "backup" })} onReset={() => setModal({ type: "reset" })}
             onRestart={() => setModal({ type: "restart" })}
             onRegional={() => setModal({ type: "regional" })}
@@ -5291,17 +5487,26 @@ export default function Tabellenrechner() {
 
       {modal && modal.type === "playall" && (
         <Modal onClose={() => setModal(null)}>
-          <h2>Saison durchspielen</h2>
-          <p>
-            Alle noch offenen Spiele der fünf Ligen, des DFB-Pokals und der drei Europapokale werden
-            ausgewürfelt (bereits eingetragene Ergebnisse bleiben). Anschließend kommen alle Wettbewerbe
-            in die Historie, die Relegationen werden per Hin- und Rückspiel entschieden, und die
-            nächste Saison beginnt mit Auf- und Abstieg und neuen Stärken.
-          </p>
+          <h2>{section === "en" ? "Saison durchspielen — England" : "Saison durchspielen"}</h2>
+          {section === "en" ? (
+            <p>
+              Alle noch offenen Spiele der Premier League werden ausgewürfelt (bereits eingetragene
+              Ergebnisse bleiben). Anschließend kommt die Saison in die englische Historie, und die
+              nächste beginnt mit denselben Mannschaften und neuen Stärken (höchstens ±5).
+              Deutschland bleibt unberührt.
+            </p>
+          ) : (
+            <p>
+              Alle noch offenen Spiele der fünf Ligen, des DFB-Pokals und der drei Europapokale werden
+              ausgewürfelt (bereits eingetragene Ergebnisse bleiben). Anschließend kommen alle Wettbewerbe
+              in die Historie, die Relegationen werden per Hin- und Rückspiel entschieden, und die
+              nächste Saison beginnt mit Auf- und Abstieg und neuen Stärken. England bleibt unberührt.
+            </p>
+          )}
           <p>Das lässt sich nicht rückgängig machen. Vorher unter Historie „Sichern“ eine Kopie anlegen.</p>
           <div className="lr-modal-foot">
             <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
-            <button className="lr-btn lr-btn-p" id="playall-go" onClick={playAll}>Alles durchspielen</button>
+            <button className="lr-btn lr-btn-p" id="playall-go" onClick={section === "en" ? playAllEn : playAll}>Alles durchspielen</button>
           </div>
         </Modal>
       )}
@@ -5324,6 +5529,7 @@ export default function Tabellenrechner() {
               setEuPh({ cl: 0, el: 0, ecl: 0 });
               setEuMd({ cl: 0, el: 0, ecl: 0 });
               setTab("bl1");
+              setSection("de");
               setOpenHist(null);
               setModal(null);
             }}>Alles zurücksetzen</button>
@@ -6386,7 +6592,9 @@ function CloseModal({ league, season, rows, playedGames, totalGames, onClose, on
   const n = rows.length;
   const champ = rows[0];
   const upDown = [];
-  if (league.id === "bl1") {
+  if (league.id === "pl") {
+    upDown.push(["Europapokal-Plätze", rows.slice(0, 7)]);
+  } else if (league.id === "bl1") {
     upDown.push(["Relegation", [rows[n - 3]]]);
     upDown.push(["Absteiger", [rows[n - 2], rows[n - 1]]]);
   } else if (league.id === "bl4" || league.id === "bl5") {
@@ -6422,13 +6630,13 @@ function CloseModal({ league, season, rows, playedGames, totalGames, onClose, on
       </div>
       <p style={{ marginTop: 18, marginBottom: 0 }}>
         Die Saison wandert in die Historie, danach startet {league.name} {nextLabel(season.label)}{" "}
-        mit denselben Mannschaften, ihren Stärkewerten und einem neuen Spielplan. Für echten
-        Auf- und Abstieg nimm den zweiten Knopf.
+        mit denselben Mannschaften, ihren Stärkewerten und einem neuen Spielplan.
+        {league.id === "pl" ? " In England gibt es keinen Auf- und Abstieg." : " Für echten Auf- und Abstieg nimm den zweiten Knopf."}
       </p>
       <div className="lr-modal-foot">
         <button className="lr-btn" onClick={onClose}>Abbrechen</button>
-        <button className="lr-btn" onClick={onPromotion}>Alle Ligen mit Auf- und Abstieg</button>
-        <button className="lr-btn lr-btn-p" onClick={onConfirm}>Nur diese Liga abschließen</button>
+        {league.id !== "pl" && <button className="lr-btn" onClick={onPromotion}>Alle Ligen mit Auf- und Abstieg</button>}
+        <button className="lr-btn lr-btn-p" onClick={onConfirm}>{league.id === "pl" ? "Saison abschließen" : "Nur diese Liga abschließen"}</button>
       </div>
     </Modal>
   );
@@ -6827,29 +7035,32 @@ function LiveTicker({ games, season, fixtures, mdIdx, onClose, onFinish }) {
 /*  Kalender                                                          */
 /* ================================================================== */
 
-function Kalender({ data, onJump }) {
+function Kalender({ data, onJump, section }) {
   const [filter, setFilter] = useState("alle");
 
   const events = useMemo(() => {
     const out = [];
-    LEAGUE_IDS.forEach((id) => {
+    const eng = section === "en";
+    (eng ? ENG_IDS : LEAGUE_IDS).forEach((id) => {
       const s = data.active[id];
       const count = s.teams.length * 2 - 2;
       matchdayDates(s.start, count).forEach((d, i) => {
         out.push({ date: d, comp: id, name: LEAGUE_BY_ID[id].name, accent: LEAGUE_BY_ID[id].accent, idx: i, what: `${i + 1}. Spieltag` });
       });
     });
-    if (data.cup) {
+    if (!eng && data.cup) {
       data.cup.rounds.forEach((r, i) => {
         out.push({ date: cupRoundDate(data.cup.label, i), comp: "cup", name: "DFB-Pokal", accent: CUP_ACCENT, idx: i, what: r.name });
       });
     }
-    EURO_COMPS.forEach((c) => {
-      const run = data.euro && data.euro.runs[c.id];
-      euroEvents(c.id, run ? run.label : data.active.bl1.label).forEach((e) => out.push(e));
-    });
+    if (!eng) {
+      EURO_COMPS.forEach((c) => {
+        const run = data.euro && data.euro.runs[c.id];
+        euroEvents(c.id, run ? run.label : data.active.bl1.label).forEach((e) => out.push(e));
+      });
+    }
     return out.sort((a, b) => a.date - b.date);
-  }, [data]);
+  }, [data, section]);
 
   const shown = filter === "alle" ? events : events.filter((e) => e.comp === filter);
 
@@ -6871,19 +7082,23 @@ function Kalender({ data, onJump }) {
           <select className="lr-jump" value={filter} onChange={(e) => setFilter(e.target.value)}
             aria-label="Wettbewerb filtern">
             <option value="alle">alle</option>
-            {LEAGUES.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-            <option value="cup">DFB-Pokal</option>
-            {EURO_COMPS.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {(section === "en" ? ENGLAND : LEAGUES).map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+            {section !== "en" && <option value="cup">DFB-Pokal</option>}
+            {section !== "en" && EURO_COMPS.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
       </div>
 
       <p className="lr-hint" style={{ paddingBottom: 12 }}>
-        Alle Termine der Saison, nach Monat sortiert. Gespielt wird nicht über die
+        {section === "en"
+          ? `Alle Termine der Premier League, nach Monat sortiert. Der Spielplan folgt demselben
+        Rhythmus wie in Deutschland: Pause vom 20. Dezember bis zum 9. Januar und in den vier
+        Länderspielpausen im September, Oktober, November und März. Ein Klick springt zum Spieltag.`
+          : `Alle Termine der Saison, nach Monat sortiert. Gespielt wird nicht über die
         Winterpause vom 20. Dezember bis zum 9. Januar und nicht in den vier
         Länderspielpausen im September, Oktober, November und März. Die Europapokale
         spielen dienstags (Champions League) und donnerstags (Europa und Conference League).
-        Ein Klick springt zum Spieltag.
+        Ein Klick springt zum Spieltag.`}
       </p>
 
       {months.map((m) => (
@@ -6907,11 +7122,11 @@ function Kalender({ data, onJump }) {
 /*  Historie                                                          */
 /* ================================================================== */
 
-function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromotion, onRestart, onRegional }) {
+function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromotion, onRestart, onRegional, section }) {
   const [filter, setFilter] = useState("all");
   const titles = useMemo(() => {
     const out = { cup: {}, cl: {}, el: {}, ecl: {} };
-    LEAGUES.forEach((l) => { out[l.id] = {}; });
+    [...LEAGUES, ...ENGLAND].forEach((l) => { out[l.id] = {}; });
     history.forEach((h) => {
       if (h.type === "euro") {
         if (h.winner && h.winner !== "—" && out[h.leagueId]) out[h.leagueId][h.winner] = (out[h.leagueId][h.winner] || 0) + 1;
@@ -6928,22 +7143,26 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
     return out;
   }, [history]);
 
-  const boards = [
-    ...LEAGUES.map((l) => ({
-      key: l.id, accent: l.accent,
-      head: `${l.id === "bl1" ? "Meisterschaften" : "Titel"} — ${l.name}`,
-    })),
-    { key: "cup", accent: CUP_ACCENT, head: "Pokalsiege — DFB-Pokal" },
-    ...EURO_COMPS.map((c) => ({ key: c.id, accent: c.accent, head: `Titel — ${c.name}` })),
-  ].filter((b) => Object.keys(titles[b.key]).length > 0);
+  const boards = (section === "en"
+    ? ENGLAND.map((l) => ({ key: l.id, accent: l.accent, head: `Meisterschaften — ${l.name}` }))
+    : [
+      ...LEAGUES.map((l) => ({
+        key: l.id, accent: l.accent,
+        head: `${l.id === "bl1" ? "Meisterschaften" : "Titel"} — ${l.name}`,
+      })),
+      { key: "cup", accent: CUP_ACCENT, head: "Pokalsiege — DFB-Pokal" },
+      ...EURO_COMPS.map((c) => ({ key: c.id, accent: c.accent, head: `Titel — ${c.name}` })),
+    ]).filter((b) => Object.keys(titles[b.key]).length > 0);
 
   /** Einträge nach Wettbewerb ordnen, jeweils die neueste Saison zuerst. */
   const groups = useMemo(() => {
-    const defs = [
-      ...LEAGUES.map((l) => ({ key: l.id, name: l.name, accent: l.accent })),
-      { key: "cup", name: "DFB-Pokal", accent: CUP_ACCENT },
-      ...EURO_COMPS.map((c) => ({ key: c.id, name: c.name, accent: c.accent })),
-    ];
+    const defs = section === "en"
+      ? ENGLAND.map((l) => ({ key: l.id, name: l.name, accent: l.accent }))
+      : [
+        ...LEAGUES.map((l) => ({ key: l.id, name: l.name, accent: l.accent })),
+        { key: "cup", name: "DFB-Pokal", accent: CUP_ACCENT },
+        ...EURO_COMPS.map((c) => ({ key: c.id, name: c.name, accent: c.accent })),
+      ];
     const keyOf = (h) => (h.type === "cup" ? "cup" : h.leagueId);
     return defs
       .map((d) => ({
@@ -6960,8 +7179,8 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
       <div className="lr-bar">
         <h2 className="disp" style={{ fontSize: 20 }}>Historie</h2>
         <div className="lr-spacer" />
-        <button className="lr-btn lr-btn-sm" onClick={onPromotion}>Alle Ligen abschließen</button>
-        <button className="lr-btn lr-btn-sm" onClick={onRegional}>Regionalliga-Topf</button>
+        {section !== "en" && <button className="lr-btn lr-btn-sm" onClick={onPromotion}>Alle Ligen abschließen</button>}
+        {section !== "en" && <button className="lr-btn lr-btn-sm" onClick={onRegional}>Regionalliga-Topf</button>}
         <button className="lr-btn lr-btn-sm" id="backup-open" onClick={onBackup}>Sichern</button>
         <button className="lr-btn lr-btn-sm" onClick={onExport}>Exportieren</button>
         <button className="lr-btn lr-btn-sm" onClick={onRestart}>Neu beginnen</button>
