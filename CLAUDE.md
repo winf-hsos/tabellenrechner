@@ -13,6 +13,8 @@ Die gesamte App ist **eine einzige React-Datei: `Tabellenrechner.jsx`** (~6350 Z
 
 - **Neue Stärken nur per Knopf**: Saisonwechsel (alle Abschnitte, `closeOne`, `applyPromotion`) lässt Kader und Stärken unverändert; der Header-Knopf „Neue Stärken“ (`#newstr-open`/`#newstr-go`, `driftLeagues`) würfelt für alle Klubs des aktuellen Abschnitts ±5 (Deutschland: auch Regionalliga-Topf und ausländische Euro-Teams). Tests `run.mjs`, `pw18.py`, `pw20.py`.
 
+- **3D-Ansicht** (`Match3D`, Abschnitt „3D-Ansicht“ vor dem Liveticker): Knopf „3D“ bei jedem Spiel (Liga, Pokal, Europapokal Ligaphase und K.-o.). Reines Canvas-2D mit eigener Perspektivprojektion (kein WebGL/three.js). `m3Build` erzeugt aus Ergebnis, Torschützen und Seed eine Zeitleiste (Tore in den eingetragenen Minuten), `m3Players`/`m3Draw` rendern zu jeder Spielminute (frei spulbar). Offene Spiele werden ausgewürfelt und per „Ergebnis übernehmen“ gespeichert (`spec.onTake`). Test `pw28.py`.
+
 ## Schnellstart
 ```bash
 cd test && npm install           # esbuild, react, jsdom (node_modules nicht einchecken)
