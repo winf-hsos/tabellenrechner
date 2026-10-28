@@ -14,7 +14,7 @@ with sync_playwright() as p:
     pg.goto(D + "index.html"); pg.wait_for_selector(".lr-tab")
     pg.locator("#sec-en").click(); pg.wait_for_timeout(300)
     tabs = [t.strip() for t in pg.locator(".lr-tab").all_inner_texts()]
-    ok(tabs == ["Premier League", "Championship", "League One", "League Two", "FA Cup", "Europa", "Torjäger", "Kalender", "Historie"], f"England-Tabs: {tabs}")
+    ok(tabs == ["Premier League", "Championship", "League One", "League Two", "FA Cup", "Europa", "Torjäger", "Kalender", "Nachrichten", "Vereine", "Historie"], f"England-Tabs: {tabs}")
     pg.locator("#tab-eneuro").click(); pg.wait_for_timeout(300)
     n = {c: pg.locator(f"[data-comp='{c}'] .eu-eng li").count() for c in ("cl", "el", "ecl")}
     ok(n == {"cl": 5, "el": 3, "ecl": 1}, f"englische Teilnehmer: {n}")

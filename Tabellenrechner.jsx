@@ -624,6 +624,7 @@ function zoneFor(leagueId, pos, n) {
 }
 
 function zonesUsed(leagueId) {
+  if (leagueId === "partial") return [];
   if (leagueId === "eu") return ["ach", "po", "aus"];
   if (leagueId === "bl1") return ["cl", "el", "ecl", "rel", "ab"];
   if (leagueId === "pl") return ["cl", "el", "ecl", "ab"];
@@ -4518,7 +4519,7 @@ function matchLogoName(fileName, teams) {
 }
 
 /** Bilddatei auf höchstens 96 Pixel verkleinern und als PNG-Datenadresse liefern. */
-function logoFromFile(file) {
+function logoFromFile(file, max = 96, type = "image/png", quality) {
   return new Promise((resolve, reject) => {
     // Über eine Datenadresse laden: blob:-Adressen sind in manchen Umgebungen gesperrt.
     const reader = new FileReader();
@@ -4527,14 +4528,13 @@ function logoFromFile(file) {
       const img = new Image();
       img.onload = () => {
         try {
-          const max = 96;
           const k = Math.min(1, max / Math.max(img.width, img.height, 1));
           const w = Math.max(1, Math.round(img.width * k));
           const h = Math.max(1, Math.round(img.height * k));
           const c = document.createElement("canvas");
           c.width = w; c.height = h;
           c.getContext("2d").drawImage(img, 0, 0, w, h);
-          resolve(c.toDataURL("image/png"));
+          resolve(c.toDataURL(type, quality));
         } catch (e) { reject(e); }
       };
       img.onerror = () => reject(new Error("Bild nicht lesbar"));
@@ -5235,7 +5235,7 @@ function freshData() {
   [...ENGLAND, ...SPAIN, ...ITALY, ...FRANCE].forEach((l) => {
     active[l.id] = newSeason(l.teams, l.teams.map((n) => TEAM_START[n]), "2026/27", defaultStart(l.id, "2026/27"));
   });
-  return { active, cup: null, facup: null, copa: null, coppa: null, coupe: null, history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
+  return { active, cup: null, facup: null, copa: null, coppa: null, coupe: null, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
     regional: startPool() };
 }
 
@@ -5252,7 +5252,7 @@ function normalize(d0) {
       [id, s && Array.isArray(s.teams) ? { ...s, teams: s.teams.map(alias) } : s])),
     regional: Array.isArray(d0.regional) ? d0.regional.map((c) => ({ ...c, name: alias(c.name) })) : d0.regional,
   };
-  const out = { euro: normEuro(d.euro), logos: d.logos && typeof d.logos === "object" ? d.logos : {}, active: {}, cup: d.cup || null, facup: d.facup || null, copa: d.copa || null, coppa: d.coppa || null, coupe: d.coupe || null, history: d.history || [], drawBias: Number(d.drawBias) || 0, surpriseBias: d.surpriseBias == null ? 1 : Number(d.surpriseBias) };
+  const out = { euro: normEuro(d.euro), logos: d.logos && typeof d.logos === "object" ? d.logos : {}, active: {}, cup: d.cup || null, facup: d.facup || null, copa: d.copa || null, coppa: d.coppa || null, coupe: d.coupe || null, news: normNews(d.news), clubInfo: normObj(d.clubInfo), playerInfo: normObj(d.playerInfo), matchInfo: normObj(d.matchInfo), favorites: Array.isArray(d.favorites) ? d.favorites.map(String) : [], history: d.history || [], drawBias: Number(d.drawBias) || 0, surpriseBias: d.surpriseBias == null ? 1 : Number(d.surpriseBias) };
   // Vereine, für die inzwischen eine echte Kaderliste dazugekommen ist, bekommen sie
   // nachträglich — aber jeder nur einmal, damit eigene Änderungen erhalten bleiben.
   out.regional = Array.isArray(d.regional) && d.regional.length
@@ -6209,6 +6209,104 @@ const CSS = `
 .lr-status { font-size: 12px; color: var(--chalk-dim); }
 .lr-modal:has(> .lr-live) { max-width: 940px; }
 .lr-modal:has(> .lr-m3) { max-width: 980px; }
+.lr-tl { cursor: pointer; border-bottom: 1px dotted transparent; }
+.lr-tl:hover, .lr-tl:focus-visible { border-bottom-color: var(--chalk-dim); outline: none; }
+.lr-sim.lr-rep { opacity: .9; }
+.lr-sections { align-items: center; flex-wrap: wrap; }
+.lr-k-search { position: relative; margin-left: auto; flex: 1 1 220px; max-width: 320px; }
+.lr-k-search input { width: 100%; padding: 7px 10px; }
+.lr-k-dd { position: absolute; right: 0; left: 0; top: 100%; z-index: 30; background: var(--board-2); border: 1px solid var(--line-2); border-radius: 4px; max-height: 340px; overflow: auto; margin-top: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.lr-k-dd button { display: flex; width: 100%; align-items: center; gap: 8px; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); color: var(--chalk); padding: 8px 10px; cursor: pointer; font-size: 13px; }
+.lr-k-dd button:hover { background: var(--accent-tint); }
+.lr-k-dd small { margin-left: auto; color: var(--chalk-dim); font-size: 11px; }
+.lr-modal:has(> .lr-k) { max-width: 760px; }
+.lr-k-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.lr-k-logo img { width: 56px; height: 56px; object-fit: contain; }
+.lr-k-title { flex: 1; min-width: 0; }
+.lr-k-title h2 { margin: 0; }
+.lr-k-sub { font-size: 12px; color: var(--chalk-dim); }
+.lr-k-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line-2); margin-bottom: 12px; flex-wrap: wrap; }
+.lr-k-tab { background: none; border: 0; color: var(--chalk-dim); padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent; }
+.lr-k-tab[data-on="1"] { color: var(--chalk); border-bottom-color: var(--accent); }
+.lr-k-body { min-height: 120px; }
+.lr-k-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; margin: 6px 0 10px; }
+.lr-k-stats > div { background: var(--board); border: 1px solid var(--line); border-radius: 4px; padding: 8px 6px; text-align: center; }
+.lr-k-stats b { display: block; font-size: 19px; }
+.lr-k-stats span { font-size: 11px; color: var(--chalk-dim); }
+.lr-k-card { background: var(--board); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; margin-bottom: 10px; }
+.lr-k-card > small { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--chalk-dim); margin-bottom: 6px; }
+.lr-k-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.lr-k-row:last-child { border-bottom: 0; }
+.lr-k-row em { color: var(--chalk-dim); font-size: 11px; font-style: normal; }
+.lr-k-g { color: var(--accent); font-size: 12px; }
+.lr-k-match, .lr-k-game, .lr-k-art { display: flex; width: 100%; align-items: center; gap: 10px; background: none; border: 0; color: var(--chalk); cursor: pointer; padding: 7px 4px; font-size: 13px; text-align: left; border-bottom: 1px solid var(--line); }
+.lr-k-match { justify-content: center; font-size: 15px; }
+.lr-k-match span { flex: 1; } .lr-k-match span:first-child { text-align: right; }
+.lr-k-match b { min-width: 52px; text-align: center; font-size: 18px; }
+.lr-k-game:hover, .lr-k-match:hover, .lr-k-art:hover { background: var(--accent-tint); }
+.lr-k-game small { width: 96px; color: var(--chalk-dim); }
+.lr-k-opp { flex: 1; display: flex; align-items: center; gap: 6px; }
+.lr-k-opp i { font-style: normal; font-size: 10px; border: 1px solid var(--line-2); border-radius: 3px; padding: 0 4px; color: var(--chalk-dim); }
+.lr-k-game b { min-width: 52px; text-align: center; }
+.lr-k-game b[data-r="s"] { color: #6fcf8f; } .lr-k-game b[data-r="n"] { color: #f0867f; }
+.lr-k-art { flex-direction: column; align-items: flex-start; gap: 2px; } .lr-k-art small { color: var(--chalk-dim); }
+.lr-k-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.lr-k-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--chalk-dim); margin-bottom: 8px; }
+.lr-k-field.wide { grid-column: 1 / -1; }
+.lr-k-field textarea { resize: vertical; font-family: inherit; line-height: 1.5; }
+.lr-k-ev { display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.lr-k-ev small { width: 38px; color: var(--chalk-dim); text-align: right; }
+.lr-k-ev > span { flex: 1; }
+.lr-k-ic { display: inline-block; width: 10px; height: 14px; border-radius: 2px; margin-right: 8px; vertical-align: -2px; background: var(--chalk); }
+.lr-k-ic[data-k="tor"] { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid #222; }
+.lr-k-ic[data-k="gelb"] { background: #f3c93b; } .lr-k-ic[data-k="rot"] { background: #e4514a; }
+.lr-k-ic[data-k="gelbrot"] { background: linear-gradient(90deg, #f3c93b 50%, #e4514a 50%); }
+.lr-k-x { background: none; border: 0; color: var(--chalk-dim); cursor: pointer; font-size: 18px; }
+.lr-k-addcard { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line-2); }
+.lr-k-pitch { width: 100%; border-radius: 4px; margin-bottom: 12px; }
+.lr-k-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 640px) { .lr-k-two { grid-template-columns: 1fr; } }
+.lr-k-cmp { display: grid; grid-template-columns: 54px 1fr 54px; gap: 8px; align-items: center; text-align: center; margin-bottom: 4px; }
+.lr-k-cmp small { grid-column: 1 / -1; color: var(--chalk-dim); font-size: 11px; margin-bottom: 8px; }
+.lr-k-cmp b.lead { color: var(--accent); }
+.lr-k-bar { height: 8px; background: rgba(76,139,245,.55); border-radius: 4px; overflow: hidden; }
+.lr-k-bar i { display: block; height: 100%; background: var(--accent); }
+.lr-k-tag { color: var(--accent) !important; text-transform: uppercase; letter-spacing: .06em; font-size: 11px; }
+.lr-k-article h2 { font-size: 26px; margin: 6px 0; }
+.lr-k-teaser { font-size: 16px !important; color: var(--chalk) !important; }
+.lr-k-img { width: 100%; max-height: 360px; object-fit: cover; border-radius: 4px; margin-bottom: 12px; }
+.lr-k-text p { font-size: 15px; line-height: 1.65; color: var(--chalk); margin: 0 0 12px; }
+.lr-k-img-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+.lr-k-thumb { width: 64px; height: 44px; object-fit: cover; border-radius: 3px; }
+.lr-k-newsgrid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; }
+@media (max-width: 900px) { .lr-k-newsgrid { grid-template-columns: 1fr; } }
+.lr-k-newshead { display: flex; align-items: center; gap: 10px; margin: 6px 0 10px; }
+.lr-k-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.lr-k-chip { background: var(--board); border: 1px solid var(--line-2); color: var(--chalk-dim); padding: 4px 11px; border-radius: 14px; font-size: 12px; cursor: pointer; }
+.lr-k-chip[data-on="1"] { background: var(--accent-soft); color: var(--chalk); border-color: var(--accent); }
+.lr-k-news { display: grid; grid-template-columns: 150px 1fr; gap: 14px; padding: 12px; background: var(--board-2); border: 1px solid var(--line); border-radius: 4px; margin-bottom: 10px; cursor: pointer; }
+.lr-k-news:hover { border-color: var(--line-2); }
+.lr-k-news[data-pin="1"] { border-color: var(--accent); }
+.lr-k-news img, .lr-k-noimg { width: 150px; height: 100px; object-fit: cover; border-radius: 3px; background: var(--board); display: flex; align-items: center; justify-content: center; }
+.lr-k-noimg img { width: 56px; height: 56px; object-fit: contain; }
+.lr-k-news h3 { margin: 3px 0 4px; font-size: 17px; }
+.lr-k-news p { margin: 0 0 4px; font-size: 13px; color: var(--chalk-dim); }
+.lr-k-news small { color: var(--chalk-dim); font-size: 11px; }
+@media (max-width: 560px) { .lr-k-news { grid-template-columns: 1fr; } .lr-k-news img, .lr-k-noimg { width: 100%; } }
+.lr-k-fav { padding: 6px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; }
+.lr-k-fav:last-child { border-bottom: 0; }
+.lr-k-link, .lr-k-mini { background: none; border: 0; color: var(--chalk); cursor: pointer; text-align: left; padding: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+.lr-k-mini { font-weight: 400; color: var(--chalk-dim); font-size: 12px; }
+.lr-k-res { display: flex; width: 100%; align-items: center; gap: 6px; background: none; border: 0; border-bottom: 1px solid var(--line); color: var(--chalk); cursor: pointer; padding: 5px 2px; font-size: 12px; }
+.lr-k-res span { flex: 1; } .lr-k-res span:first-child { text-align: right; } .lr-k-res b { min-width: 38px; text-align: center; }
+.lr-k-res:hover { background: var(--accent-tint); }
+.lr-k-lh { margin: 18px 0 8px; font-size: 15px; }
+.lr-k-clubs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.lr-k-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--board-2); border: 1px solid var(--line); border-radius: 4px; padding: 12px 6px; color: var(--chalk); cursor: pointer; font-size: 13px; text-align: center; }
+.lr-k-tile:hover { border-color: var(--accent); }
+.lr-k-tile img { width: 40px; height: 40px; object-fit: contain; }
+.lr-k-tile small { color: var(--chalk-dim); font-size: 11px; }
+
 .lr-m3-hud { display: flex; align-items: center; gap: 12px; margin: 8px 0 10px; }
 .lr-m3-t { flex: 1; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
 .lr-m3-t.r { justify-content: flex-end; text-align: right; }
@@ -6640,7 +6738,7 @@ function Table({ rows, leagueId, strengths, compact, tags }) {
             return (
               <tr key={r.idx != null ? r.idx : r.name}>
                 <td className="pos" style={{ "--zc": z ? ZONE_META[z].color : "transparent" }}>{r.pos}</td>
-                <td className="name"><Logo name={r.name} />{r.name}{tags && tags[r.idx] ? <span className="lr-ctag">{tags[r.idx]}</span> : null}{!compact && <Form form={r.form} />}</td>
+                <td className="name"><Logo name={r.name} /><TeamLink name={r.name} />{tags && tags[r.idx] ? <span className="lr-ctag">{tags[r.idx]}</span> : null}{!compact && <Form form={r.form} />}</td>
                 {strengths ? <td className="str lr-hide-sm">{strengths[r.idx]}</td> : null}
                 <td>{r.sp}</td>
                 <td className="lr-hide-sm">{r.s}</td>
@@ -7169,6 +7267,9 @@ export default function Tabellenrechner() {
   const [euMd, setEuMd] = useState({ cl: 0, el: 0, ecl: 0 });
   const [modal, setModal] = useState(null);
   const [m3, setM3] = useState(null);
+  const [kstack, setKstack] = useState([]);
+  const [editor, setEditor] = useState(null);
+  const [tblMode, setTblMode] = useState("all");
   const [status, setStatus] = useState("");
   const [openHist, setOpenHist] = useState(null);
   const saveTimer = useRef(null);
@@ -7184,7 +7285,7 @@ export default function Tabellenrechner() {
         // Nur übernehmen, was zum gespeicherten Stand passt.
         const sec = ui.section === "en" || ui.section === "es" || ui.section === "it" || ui.section === "fr" ? ui.section : "de";
         setSection(sec);
-        const okTabs = [...COUNTRY[sec].ids, "cup", COUNTRY[sec].euroTab || "euro", "top", "cal", "hist"];
+        const okTabs = [...COUNTRY[sec].ids, "cup", COUNTRY[sec].euroTab || "euro", "top", "cal", "hist", "news", "clubs"];
         if (typeof ui.tab === "string" && okTabs.indexOf(ui.tab) >= 0) setTab(ui.tab);
         else if (sec !== "de") setTab(COUNTRY[sec].first);
         if (ui.md && typeof ui.md === "object") setMd({ ...ZERO_MD, ...ui.md });
@@ -7865,6 +7966,27 @@ export default function Tabellenrechner() {
     URL.revokeObjectURL(url);
   };
 
+  const kpush = (v) => setKstack((st) => [...st, v]);
+  const kpop = () => setKstack((st) => st.slice(0, -1));
+  const clubCtx = {
+    openClub: (name) => kpush({ kind: "club", name }),
+    openPlayer: (name) => kpush({ kind: "player", name }),
+    openMatch: (at) => kpush({ kind: "match", at }),
+    openArticle: (id) => kpush({ kind: "article", id }),
+    newArticle: (draft) => setEditor(draft || {}),
+    show3d: (spec) => setM3(spec),
+    favorites: (data && data.favorites) || [],
+  };
+  const saveArticle = (a) => {
+    setData((d) => {
+      const list = d.news || [];
+      const has = list.some((x) => x.id === a.id);
+      return { ...d, news: has ? list.map((x) => (x.id === a.id ? a : x)) : [a, ...list] };
+    });
+    setEditor(null);
+  };
+  const ktop = kstack[kstack.length - 1];
+
   if (!ready) {
     return (
       <div className="lr">
@@ -7878,12 +8000,15 @@ export default function Tabellenrechner() {
     tab === "cup" ? accentVars(cupAccent)
       : (tab === "eneuro" || tab === "eseuro" || tab === "iteuro" || tab === "freuro") ? accentVars("#4C8BF5")
       : tab === "euro" ? accentVars(EURO_BY_ID[euSel].accent)
+      : tab === "news" ? accentVars("#E0B13F")
+      : tab === "clubs" ? accentVars("#5AA9E6")
       : tab === "cal" ? accentVars("#7FB5A0")
         : tab === "hist" ? accentVars("#C9C3B0")
           : accentVars(league.accent);
 
   return (
     <LogoCtx.Provider value={allLogos}>
+    <ClubCtx.Provider value={clubCtx}>
     <div className="lr" style={rootAccent}>
       <style>{CSS}</style>
 
@@ -7921,6 +8046,7 @@ export default function Tabellenrechner() {
             <button className="lr-sec-btn" id="sec-es" data-on={section === "es" ? "1" : "0"} onClick={() => switchSection("es")}>Spanien</button>
             <button className="lr-sec-btn" id="sec-it" data-on={section === "it" ? "1" : "0"} onClick={() => switchSection("it")}>Italien</button>
             <button className="lr-sec-btn" id="sec-fr" data-on={section === "fr" ? "1" : "0"} onClick={() => switchSection("fr")}>Frankreich</button>
+            <SearchBox data={data} />
           </div>
 
           <nav className="lr-tabs">
@@ -7953,6 +8079,14 @@ export default function Tabellenrechner() {
             <button className="lr-tab" data-on={tab === "cal" ? "1" : "0"}
               style={tab === "cal" ? accentVars("#7FB5A0") : undefined} onClick={() => setTab("cal")}>
               Kalender
+            </button>
+            <button className="lr-tab" data-on={tab === "news" ? "1" : "0"} id="tab-news"
+              style={tab === "news" ? accentVars("#E0B13F") : undefined} onClick={() => setTab("news")}>
+              Nachrichten
+            </button>
+            <button className="lr-tab" data-on={tab === "clubs" ? "1" : "0"} id="tab-clubs"
+              style={tab === "clubs" ? accentVars("#5AA9E6") : undefined} onClick={() => setTab("clubs")}>
+              Vereine
             </button>
             <button className="lr-tab" data-on={tab === "hist" ? "1" : "0"}
               style={tab === "hist" ? accentVars("#C9C3B0") : undefined} onClick={() => setTab("hist")}>
@@ -8052,7 +8186,7 @@ export default function Tabellenrechner() {
                   {head ? <div className="lr-slot">{head}</div> : null}
                   <div className="lr-game">
                     <div className="lr-game-h">
-                      <div className={`lr-name ${hw ? "lr-win" : aw ? "lr-lose" : ""}`}><Logo name={season.teams[h]} />{season.teams[h]}</div>
+                      <div className={`lr-name ${hw ? "lr-win" : aw ? "lr-lose" : ""}`}><Logo name={season.teams[h]} /><TeamLink name={season.teams[h]} /></div>
                       <TeamMeta rank={rankByIdx[h]} strength={season.strengths[h]}
                         name={season.teams[h]} onOpen={() => setModal({ type: "squad", team: h })} />
                     </div>
@@ -8071,6 +8205,7 @@ export default function Tabellenrechner() {
                         Spiel simulieren
                       </button>
                       <button className="lr-sim lr-3d" type="button" onClick={() => open3d(gi)} title="Dieses Spiel in 3D ansehen">3D</button>
+                      <button className="lr-sim lr-rep" type="button" onClick={() => clubCtx.openMatch({ leagueId: league.id, md: mdIdx, gi })} title="Spielbericht mit Ticker, Aufstellung und Infos">Bericht</button>
                       {done ? (
                         <button className="lr-sim" type="button" onClick={() => setModal({ type: "goals", gi })}>
                           Torschützen{(r.sc || []).filter((g) => g.p).length ? ` (${(r.sc || []).filter((g) => g.p).length})` : ""}
@@ -8078,7 +8213,7 @@ export default function Tabellenrechner() {
                       ) : null}
                     </div>
                     <div className="lr-game-a">
-                      <div className={`lr-name ${aw ? "lr-win" : hw ? "lr-lose" : ""}`}><Logo name={season.teams[a]} />{season.teams[a]}</div>
+                      <div className={`lr-name ${aw ? "lr-win" : hw ? "lr-lose" : ""}`}><Logo name={season.teams[a]} /><TeamLink name={season.teams[a]} /></div>
                       <TeamMeta rank={rankByIdx[a]} strength={season.strengths[a]}
                         name={season.teams[a]} onOpen={() => setModal({ type: "squad", team: a })} />
                     </div>
@@ -8090,12 +8225,22 @@ export default function Tabellenrechner() {
 
             <section>
               <h2 className="lr-sec-h">Tabelle</h2>
-              <Table rows={rows} leagueId={league.id} strengths={season.strengths} />
+              <div className="lr-k-chips" role="group" aria-label="Tabellenansicht">
+                {[["all", "Gesamt"], ["home", "Heim"], ["away", "Auswärts"], ["first", "Hinrunde"], ["second", "Rückrunde"]].map(([k, l]) => (
+                  <button key={k} className="lr-k-chip" id={`tbl-${k}`} data-on={tblMode === k ? "1" : "0"} onClick={() => setTblMode(k)}>{l}</button>
+                ))}
+              </div>
+              {tblMode === "all"
+                ? <Table rows={rows} leagueId={league.id} strengths={season.strengths} />
+                : <Table rows={partialTable(season.teams, fixtures, season.results, tblMode)} leagueId="partial" strengths={season.strengths} />}
               <UnbeatenBox runs={unbeatenRuns(season.teams, fixtures, season.results)} />
             </section>
           </div>
         </div>
       )}
+
+      {tab === "news" && <NewsTab data={data} section={section} onNew={(d) => setEditor(d)} />}
+      {tab === "clubs" && <ClubsTab data={data} section={section} />}
 
       {tab === "cup" && (
         <div className="lr-wrap">
@@ -8214,7 +8359,7 @@ export default function Tabellenrechner() {
                   return (
                     <div className="lr-game" key={gi}>
                       <div className="lr-game-h">
-                        <div className={`lr-name ${w === g.h ? "lr-win" : w ? "lr-lose" : ""}`}><Logo name={g.h.name} />{g.h.name}</div>
+                        <div className={`lr-name ${w === g.h ? "lr-win" : w ? "lr-lose" : ""}`}><Logo name={g.h.name} /><TeamLink name={g.h.name} /></div>
                         <TeamMeta strength={g.h.strength} name={g.h.name}
                           onStrength={(v) => setCupStrength(g.h.name, v)} />
                       </div>
@@ -8240,7 +8385,7 @@ export default function Tabellenrechner() {
                         ) : null}
                       </div>
                       <div className="lr-game-a">
-                        <div className={`lr-name ${w === g.a ? "lr-win" : w ? "lr-lose" : ""}`}><Logo name={g.a.name} />{g.a.name}</div>
+                        <div className={`lr-name ${w === g.a ? "lr-win" : w ? "lr-lose" : ""}`}><Logo name={g.a.name} /><TeamLink name={g.a.name} /></div>
                         <TeamMeta strength={g.a.strength} name={g.a.name}
                           onStrength={(v) => setCupStrength(g.a.name, v)} />
                       </div>
@@ -8482,6 +8627,18 @@ export default function Tabellenrechner() {
         </Modal>
       )}
 
+      {editor ? (
+        <ArticleEditor data={data} draft={editor} onSave={saveArticle} onClose={() => setEditor(null)} />
+      ) : ktop && ktop.kind === "club" ? (
+        <ClubModal key={`c${ktop.name}`} data={data} setData={setData} name={ktop.name} onClose={kpop} />
+      ) : ktop && ktop.kind === "player" ? (
+        <PlayerModal key={`p${ktop.name}`} data={data} setData={setData} name={ktop.name} onClose={kpop} />
+      ) : ktop && ktop.kind === "match" ? (
+        <MatchModal key={`m${JSON.stringify(ktop.at)}`} data={data} setData={setData} at={ktop.at} onClose={kpop} />
+      ) : ktop && ktop.kind === "article" ? (
+        <ArticleModal key={`a${ktop.id}`} data={data} setData={setData} id={ktop.id} onClose={kpop} onEdit={(a) => setEditor(a)} />
+      ) : null}
+
       {m3 && <Match3D spec={m3} onClose={() => setM3(null)} />}
 
       {modal && modal.type === "live" && season && (
@@ -8615,7 +8772,7 @@ export default function Tabellenrechner() {
         <Modal onClose={() => setModal(null)}>
           <h2>Alles zurücksetzen</h2>
           <p>
-            Löscht laufende Saisons, den Pokal und die komplette Historie samt dem im Browser
+            Löscht laufende Saisons, den Pokal, die komplette Historie, alle Artikel und Vereinsinfos samt dem im Browser
             gespeicherten Stand und startet neu mit der Saison 2026/27. Eigene Logos gehen
             ebenfalls verloren. Vorher unter Historie „Sichern“ eine Kopie anlegen.
           </p>
@@ -8637,6 +8794,7 @@ export default function Tabellenrechner() {
         </Modal>
       )}
     </div>
+    </ClubCtx.Provider>
     </LogoCtx.Provider>
   );
 }
@@ -9388,7 +9546,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
         <div className="lr-slot">{label}</div>
         <div className="lr-game">
           <div className="lr-game-h">
-            <div className={`lr-name ${cls(hIdx)}`}><Logo name={run.teams[hIdx].name} />{run.teams[hIdx].name}<CTag t={run.teams[hIdx]} /></div>
+            <div className={`lr-name ${cls(hIdx)}`}><Logo name={run.teams[hIdx].name} /><TeamLink name={run.teams[hIdx].name} /><CTag t={run.teams[hIdx]} /></div>
             <TeamMeta rank={rankOf[hIdx]} strength={run.teams[hIdx].strength} name={run.teams[hIdx].name} onStrength={(v) => setStr(hIdx, v)} onKader={() => setKm(hIdx)} />
           </div>
           <div className="lr-mid">
@@ -9415,7 +9573,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
             ) : null}
           </div>
           <div className="lr-game-a">
-            <div className={`lr-name ${cls(aIdx)}`}><Logo name={run.teams[aIdx].name} />{run.teams[aIdx].name}<CTag t={run.teams[aIdx]} /></div>
+            <div className={`lr-name ${cls(aIdx)}`}><Logo name={run.teams[aIdx].name} /><TeamLink name={run.teams[aIdx].name} /><CTag t={run.teams[aIdx]} /></div>
             <TeamMeta rank={rankOf[aIdx]} strength={run.teams[aIdx].strength} name={run.teams[aIdx].name} onStrength={(v) => setStr(aIdx, v)} onKader={() => setKm(aIdx)} />
           </div>
         </div>
@@ -9541,7 +9699,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
                     return (
                       <div className="lr-game" key={gi}>
                         <div className="lr-game-h">
-                          <div className={`lr-name ${hw ? "lr-win" : aw ? "lr-lose" : ""}`}><Logo name={run.teams[h].name} />{run.teams[h].name}<CTag t={run.teams[h]} /></div>
+                          <div className={`lr-name ${hw ? "lr-win" : aw ? "lr-lose" : ""}`}><Logo name={run.teams[h].name} /><TeamLink name={run.teams[h].name} /><CTag t={run.teams[h]} /></div>
                           <TeamMeta rank={rankOf[h]} strength={run.teams[h].strength} name={run.teams[h].name} onStrength={(v) => setStr(h, v)} onKader={() => setKm(h)} />
                         </div>
                         <div className="lr-mid">
@@ -9572,7 +9730,7 @@ function EuropaTab({ data, setData, drawShare, surprise, selId, setSelId, ph, se
                           ) : null}
                         </div>
                         <div className="lr-game-a">
-                          <div className={`lr-name ${aw ? "lr-win" : hw ? "lr-lose" : ""}`}><Logo name={run.teams[a].name} />{run.teams[a].name}<CTag t={run.teams[a]} /></div>
+                          <div className={`lr-name ${aw ? "lr-win" : hw ? "lr-lose" : ""}`}><Logo name={run.teams[a].name} /><TeamLink name={run.teams[a].name} /><CTag t={run.teams[a]} /></div>
                           <TeamMeta rank={rankOf[a]} strength={run.teams[a].strength} name={run.teams[a].name} onStrength={(v) => setStr(a, v)} onKader={() => setKm(a)} />
                         </div>
                       </div>
@@ -10071,6 +10229,987 @@ function CupStartModal({ onClose, onStart, unten }) {
         </button>
       </div>
     </Modal>
+  );
+}
+
+/* ---------------- Nachrichten, Vereins- und Spielerseiten, Spielberichte ---------------- */
+
+const NEWS_CATS = ["Liga", "Verein", "Transfer", "Spielbericht", "Pokal & Europa", "Sonstiges"];
+const LEAGUE_ALL_IDS = [...LEAGUE_IDS, ...ENG_IDS, ...ES_IDS, ...IT_IDS, ...FR_IDS];
+const SECTION_KEYS = ["de", "en", "es", "it", "fr"];
+
+const todayISO = () => {
+  const t = new Date();
+  return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}`;
+};
+const newId = (p) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+const normObj = (o) => (o && typeof o === "object" && !Array.isArray(o) ? o : {});
+
+/** Artikel prüfen und mit Standardwerten auffüllen (alte Speicherstände haben keine). */
+function normNews(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter((x) => x && (x.title || x.body)).map((x) => ({
+    id: String(x.id || newId("a")),
+    title: String(x.title || ""),
+    teaser: String(x.teaser || ""),
+    body: String(x.body || ""),
+    date: String(x.date || todayISO()),
+    cat: NEWS_CATS.indexOf(x.cat) >= 0 ? x.cat : "Sonstiges",
+    section: SECTION_KEYS.indexOf(x.section) >= 0 ? x.section : "",
+    team: String(x.team || ""),
+    pinned: !!x.pinned,
+    img: typeof x.img === "string" ? x.img : "",
+  }));
+}
+
+function sectionOfLeagueId(id) {
+  return SECTION_KEYS.find((sec) => COUNTRY[sec].ids.indexOf(id) >= 0) || "de";
+}
+
+/** Verein in den Ligen finden (Liga, Platz im Kader der Saison, Saison). */
+function findClub(data, name) {
+  for (let k = 0; k < LEAGUE_ALL_IDS.length; k++) {
+    const id = LEAGUE_ALL_IDS[k];
+    const s = data.active[id];
+    const i = s ? s.teams.indexOf(name) : -1;
+    if (i >= 0) return { id, i, s, lg: LEAGUE_BY_ID[id], sec: sectionOfLeagueId(id) };
+  }
+  return null;
+}
+
+/** Alle Vereine eines Abschnitts mit Liga und Tabellenplatz. */
+function clubsOfSection(data, sec) {
+  const out = [];
+  COUNTRY[sec].ids.forEach((id) => {
+    const s = data.active[id];
+    if (!s) return;
+    const rows = computeTable(s.teams, makeFixtures(s.teams.length, s.seed), s.results);
+    const pos = {};
+    rows.forEach((r) => { pos[r.idx] = r; });
+    s.teams.forEach((name, i) => out.push({ name, id, lg: LEAGUE_BY_ID[id], i, pos: pos[i] ? pos[i].pos : i + 1, strength: s.strengths[i] }));
+  });
+  return out;
+}
+
+/** Kader eines Vereins: aus der Liga, sonst aus dem Europapokal oder neu erzeugt. */
+function squadOfClub(data, name) {
+  const c = findClub(data, name);
+  if (c) return c.s.squads[c.i];
+  for (const comp of EURO_COMPS) {
+    const run = data.euro && data.euro.runs && data.euro.runs[comp.id];
+    const t = run && run.teams.find((x) => x.name === name);
+    if (t && t.squad) return t.squad;
+  }
+  let st = 40;
+  EURO_COMPS.forEach((comp) => {
+    const t = ((data.euro && data.euro.teams && data.euro.teams[comp.id]) || []).find((x) => x.name === name);
+    if (t) st = Number(t.strength) || st;
+  });
+  return makeSquad(name, st);
+}
+
+/** Spieler suchen: Verein, Eintrag im Kader. */
+function findPlayer(data, name) {
+  for (let k = 0; k < LEAGUE_ALL_IDS.length; k++) {
+    const s = data.active[LEAGUE_ALL_IDS[k]];
+    if (!s) continue;
+    for (let i = 0; i < s.teams.length; i++) {
+      const q = s.squads[i];
+      const idx = playersOf(q).findIndex((p) => p.n === name);
+      if (idx >= 0) return { club: s.teams[i], pl: playersOf(q)[idx], leagueId: LEAGUE_ALL_IDS[k], squad: q };
+    }
+  }
+  return null;
+}
+
+/** Tore eines Spielers in der Ligasaison seines Vereins: Spieltag, Gegner, Minute. */
+function playerGoals(s, clubIdx, name) {
+  const fx = makeFixtures(s.teams.length, s.seed);
+  const out = [];
+  Object.keys(s.results || {}).forEach((key) => {
+    const [mi, gi] = key.split(":").map(Number);
+    const pair = fx[mi] && fx[mi][gi];
+    if (!pair || (pair[0] !== clubIdx && pair[1] !== clubIdx)) return;
+    const home = pair[0] === clubIdx;
+    ((s.results[key] || {}).sc || []).forEach((g) => {
+      if ((g.p || "").trim() === name && g.t === (home ? "h" : "a")) out.push({ md: mi + 1, opp: s.teams[home ? pair[1] : pair[0]], m: g.m || 0, home });
+    });
+  });
+  return out.sort((a, b) => a.md - b.md);
+}
+
+/** Alle Spiele eines Vereins in der Saison mit Datum und Ergebnis. */
+function clubGames(s, clubIdx) {
+  const fx = makeFixtures(s.teams.length, s.seed);
+  const dates = matchdayDates(s.start, fx.length);
+  const out = [];
+  fx.forEach((round, mi) => round.forEach(([h, a], gi) => {
+    if (h !== clubIdx && a !== clubIdx) return;
+    const res = parsedResult(s.results, mi, gi);
+    const home = h === clubIdx;
+    out.push({ md: mi, gi, home, opp: home ? a : h, date: dates[mi], res: res ? (home ? res : [res[1], res[0]]) : null, hg: res ? res[0] : null, ag: res ? res[1] : null });
+  }));
+  return out;
+}
+
+/** Tabelle nach Heim-, Auswärts- oder Halbserienspielen. */
+function partialTable(teams, fixtures, results, mode) {
+  const rows = teams.map((name, i) => ({ idx: i, name, sp: 0, s: 0, u: 0, n: 0, t: 0, gt: 0, pkt: 0, form: [] }));
+  const half = Math.ceil(fixtures.length / 2);
+  fixtures.forEach((md, mi) => md.forEach(([h, a], gi) => {
+    const res = parsedResult(results, mi, gi);
+    if (!res) return;
+    if (mode === "first" && mi >= half) return;
+    if (mode === "second" && mi < half) return;
+    const [hg, ag] = res;
+    const add = (r, f, g) => {
+      r.sp++; r.t += f; r.gt += g;
+      if (f > g) { r.s++; r.pkt += 3; r.form.push("S"); } else if (f < g) { r.n++; r.form.push("N"); } else { r.u++; r.pkt++; r.form.push("U"); }
+    };
+    if (mode !== "away") add(rows[h], hg, ag);
+    if (mode !== "home") add(rows[a], ag, hg);
+  }));
+  rows.forEach((r) => { r.diff = r.t - r.gt; r.form = r.form.slice(-5); });
+  rows.sort((a, b) => b.pkt - a.pkt || b.diff - a.diff || b.t - a.t || a.name.localeCompare(b.name, "de"));
+  rows.forEach((r, i) => { r.pos = i + 1; });
+  return rows;
+}
+
+/** Spielberichte-Schlüssel: Liga, Saison, Spieltag und Spiel. */
+const matchKey = (leagueId, label, md, gi) => `${leagueId}|${label}|${md}:${gi}`;
+
+/** Suche nach Vereinen und Spielern in allen Ligen. */
+function searchAll(data, query) {
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) return { clubs: [], players: [] };
+  const clubs = [];
+  const players = [];
+  LEAGUE_ALL_IDS.forEach((id) => {
+    const s = data.active[id];
+    if (!s) return;
+    s.teams.forEach((t, i) => {
+      if (t.toLowerCase().indexOf(q) >= 0) clubs.push({ name: t, lg: LEAGUE_BY_ID[id].name });
+      if (players.length < 40) {
+        playersOf(s.squads[i]).forEach((p) => {
+          if (p.n && p.n.toLowerCase().indexOf(q) >= 0 && players.length < 40) players.push({ name: p.n, club: t, pos: p.p });
+        });
+      }
+    });
+  });
+  return { clubs: clubs.slice(0, 12), players };
+}
+
+/** Meldungen, die sich automatisch aus den Ergebnissen ergeben (letzter gespielter Spieltag je Liga). */
+function autoNews(data, sec) {
+  const out = [];
+  COUNTRY[sec].ids.forEach((id) => {
+    const s = data.active[id];
+    if (!s) return;
+    const fx = makeFixtures(s.teams.length, s.seed);
+    let last = -1;
+    fx.forEach((round, mi) => { if (round.some((_, gi) => parsedResult(s.results, mi, gi))) last = mi; });
+    if (last < 0) return;
+    fx[last].forEach(([h, a], gi) => {
+      const res = parsedResult(s.results, last, gi);
+      if (!res) return;
+      out.push({ leagueId: id, lg: LEAGUE_BY_ID[id].name, md: last, gi, h: s.teams[h], a: s.teams[a], hg: res[0], ag: res[1], sens: sensation(res[0], res[1], s.strengths[h], s.strengths[a]) });
+    });
+  });
+  return out;
+}
+
+/** Überschrift zu einem Ergebnis wie in einer Meldung. */
+function resultHeadline(r) {
+  if (r.hg === r.ag) return `${r.h} und ${r.a} trennen sich ${r.hg}:${r.ag}`;
+  const w = r.hg > r.ag ? r.h : r.a;
+  const l = r.hg > r.ag ? r.a : r.h;
+  const diff = Math.abs(r.hg - r.ag);
+  const verb = diff >= 4 ? "überrollt" : diff >= 3 ? "fertigt ab" : diff === 1 ? "bezwingt" : "schlägt";
+  return `${w} ${verb} ${l} ${Math.max(r.hg, r.ag)}:${Math.min(r.hg, r.ag)}`;
+}
+
+/**
+ * Spieler wechselt den Verein: Kader und Stärken beider Klubs werden neu berechnet, dazu entsteht eine
+ * Transfermeldung. Ein Klub braucht mindestens 15 Spieler, höchstens 25.
+ */
+function transferPlayer(d, name, toClub) {
+  const from = findPlayer(d, name);
+  const to = findClub(d, toClub);
+  const fc = from ? findClub(d, from.club) : null;
+  if (!from || !to || !fc || from.club === toClub) return d;
+  if (playersOf(from.squad).length <= 15 || playersOf(to.s.squads[to.i]).length >= 25) return d;
+  const active = { ...d.active };
+  const setSquad = (c, fn) => {
+    const s = active[c.id];
+    const squads = s.squads.map((q, i) => (i === c.i ? fn(q) : q));
+    active[c.id] = { ...s, squads, strengths: squads.map(squadStrength) };
+  };
+  setSquad(fc, (q) => autoLineup({ ...q, p: q.p.filter((x) => x.n !== name) }));
+  setSquad(to, (q) => autoLineup({ ...q, p: [...q.p, { ...from.pl, b: true }] }));
+  const article = {
+    id: newId("a"), title: `${name} wechselt zu ${toClub}`, teaser: `${from.club} → ${toClub}`,
+    body: `${name} (${POS_NAMES[from.pl.p] || from.pl.p}, Stärke ${from.pl.s}) verlässt ${from.club} und schließt sich ${toClub} an.`,
+    date: todayISO(), cat: "Transfer", section: to.sec, team: toClub, pinned: false, img: "",
+  };
+  return { ...d, active, news: [article, ...(d.news || [])] };
+}
+
+const ClubCtx = createContext({ openClub: () => {}, openPlayer: () => {}, openMatch: () => {}, favorites: [] });
+
+/** Vereinsname, der die Vereinsseite öffnet. */
+function TeamLink({ name, children }) {
+  const { openClub } = useContext(ClubCtx);
+  return (
+    <span className="lr-tl" role="link" tabIndex={0} title={`Vereinsseite ${name}`}
+      onClick={(e) => { e.stopPropagation(); openClub(name); }}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); openClub(name); } }}>
+      {children || name}
+    </span>
+  );
+}
+
+/** Spielername, der die Spielerseite öffnet. */
+function PlayerLink({ name, children }) {
+  const { openPlayer } = useContext(ClubCtx);
+  return (
+    <span className="lr-tl" role="link" tabIndex={0} title={`Spielerseite ${name}`}
+      onClick={(e) => { e.stopPropagation(); openPlayer(name); }}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); openPlayer(name); } }}>
+      {children || name}
+    </span>
+  );
+}
+
+const POS_NAMES = { TW: "Torwart", ABW: "Abwehr", MF: "Mittelfeld", ST: "Sturm" };
+const lastName = (n) => String(n).trim().split(" ").slice(-1)[0];
+
+/** Kleines Textfeld mit Beschriftung. */
+function KField({ label, value, onChange, placeholder, type, id, wide }) {
+  return (
+    <label className={`lr-k-field${wide ? " wide" : ""}`}>
+      <span>{label}</span>
+      <input className="lr-team-in" id={id} type={type || "text"} value={value} placeholder={placeholder || ""}
+        onChange={(e) => onChange(e.target.value)} />
+    </label>
+  );
+}
+
+/* ---- Vereinsseite ---- */
+
+function ClubModal({ data, setData, name, onClose }) {
+  const { openPlayer, openMatch, openArticle, newArticle, favorites } = useContext(ClubCtx);
+  const club = findClub(data, name);
+  const [tab, setTab] = useState("ueber");
+  const saved = (data.clubInfo || {})[name] || {};
+  const [info, setInfo] = useState({ trainer: saved.trainer || "", stadium: saved.stadium || "", founded: saved.founded || "", colors: saved.colors || "", president: saved.president || "", city: saved.city || "", note: saved.note || "" });
+  const [flash, setFlash] = useState("");
+  const squad = squadOfClub(data, name);
+  const fav = favorites.indexOf(name) >= 0;
+  const toggleFav = () => setData((d) => ({ ...d, favorites: fav ? d.favorites.filter((x) => x !== name) : [...d.favorites, name] }));
+
+  const view = useMemo(() => {
+    if (!club) return null;
+    const { s, i } = club;
+    const fx = makeFixtures(s.teams.length, s.seed);
+    const rows = computeTable(s.teams, fx, s.results);
+    const row = rows.find((r) => r.idx === i);
+    const games = clubGames(s, i);
+    const scorers = scorerList(seasonGames(s, fx), squadIndex([s])).filter((x) => x.verein === name);
+    return { rows, row, games, scorers };
+  }, [club && club.s, name]);
+
+  const articles = (data.news || []).filter((a) => a.team === name).sort((a, b) => (b.date > a.date ? 1 : -1));
+  const goalsOf = (pn) => (view ? (view.scorers.find((x) => x.name === pn) || { tore: 0 }).tore : 0);
+  const byPos = {};
+  playersOf(squad).forEach((p) => { (byPos[p.p] = byPos[p.p] || []).push(p); });
+  const next = view ? view.games.find((g) => !g.res) : null;
+  const lastPlayed = view ? [...view.games].reverse().find((g) => g.res) : null;
+
+  const saveInfo = () => {
+    setData((d) => ({ ...d, clubInfo: { ...(d.clubInfo || {}), [name]: { ...info } } }));
+    setFlash("Gespeichert.");
+    setTimeout(() => setFlash(""), 1800);
+  };
+
+  const tabs = [["ueber", "Übersicht"], ["spiele", "Spiele"], ["kader", "Kader"], ["news", `Nachrichten${articles.length ? ` (${articles.length})` : ""}`], ["info", "Verein"]];
+  return (
+    <Modal onClose={onClose}>
+      <div className="lr-k" id="club-modal">
+        <div className="lr-k-head">
+          <span className="lr-k-logo"><Logo name={name} /></span>
+          <div className="lr-k-title">
+            <h2>{name}</h2>
+            <span className="lr-k-sub">
+              {club ? `${club.lg.name} · ${COUNTRY[club.sec].name}${view && view.row ? ` · Platz ${view.row.pos}` : ""}` : "Europapokal-Teilnehmer"}
+              {" · Stärke "}{club ? club.s.strengths[club.i] : squadStrength(squad)}
+            </span>
+          </div>
+          <button className={`lr-btn lr-btn-sm${fav ? " lr-btn-p" : ""}`} id="club-fav" onClick={toggleFav} title="Zu „Meine Vereine“ hinzufügen">
+            {fav ? "★ Favorit" : "☆ Favorit"}
+          </button>
+        </div>
+        <div className="lr-k-tabs">
+          {tabs.map(([k, l]) => <button key={k} className="lr-k-tab" data-on={tab === k ? "1" : "0"} onClick={() => setTab(k)}>{l}</button>)}
+        </div>
+
+        {tab === "ueber" && (
+          <div className="lr-k-body">
+            {view && view.row ? (
+              <div className="lr-k-stats">
+                <div><b>{view.row.pos}.</b><span>Platz</span></div>
+                <div><b>{view.row.pkt}</b><span>Punkte</span></div>
+                <div><b>{view.row.sp}</b><span>Spiele</span></div>
+                <div><b>{view.row.s}-{view.row.u}-{view.row.n}</b><span>S-U-N</span></div>
+                <div><b>{view.row.t}:{view.row.gt}</b><span>Tore</span></div>
+                <div><b>{view.row.diff > 0 ? `+${view.row.diff}` : view.row.diff}</b><span>Differenz</span></div>
+              </div>
+            ) : <p className="lr-hint">Dieser Verein spielt in keiner der hinterlegten Ligen mit.</p>}
+            {view && view.row && <div style={{ margin: "10px 0" }}><Form form={view.row.form} /></div>}
+            {club && lastPlayed && (
+              <div className="lr-k-card"><small>Letztes Spiel</small>
+                <button className="lr-k-match" onClick={() => openMatch({ leagueId: club.id, md: lastPlayed.md, gi: lastPlayed.gi })}>
+                  <span>{lastPlayed.home ? name : club.s.teams[lastPlayed.opp]}</span><b>{lastPlayed.hg}:{lastPlayed.ag}</b><span>{lastPlayed.home ? club.s.teams[lastPlayed.opp] : name}</span>
+                </button>
+              </div>
+            )}
+            {club && next && (
+              <div className="lr-k-card"><small>Nächstes Spiel · {next.md + 1}. Spieltag{next.date ? ` · ${fmtLong(next.date)}` : ""}</small>
+                <button className="lr-k-match" onClick={() => openMatch({ leagueId: club.id, md: next.md, gi: next.gi })}>
+                  <span>{next.home ? name : club.s.teams[next.opp]}</span><b>–:–</b><span>{next.home ? club.s.teams[next.opp] : name}</span>
+                </button>
+              </div>
+            )}
+            {view && view.scorers.length > 0 && (
+              <div className="lr-k-card"><small>Torschützen der Saison</small>
+                {view.scorers.slice(0, 5).map((x) => (
+                  <div className="lr-k-row" key={x.name}><PlayerLink name={x.name} /><b>{x.tore}</b></div>
+                ))}
+              </div>
+            )}
+            {(info.trainer || info.stadium) && (
+              <p className="lr-hint" style={{ marginTop: 10 }}>{info.trainer ? `Trainer: ${info.trainer}. ` : ""}{info.stadium ? `Stadion: ${info.stadium}.` : ""}</p>
+            )}
+          </div>
+        )}
+
+        {tab === "spiele" && (
+          <div className="lr-k-body" id="club-games">
+            {!view && <p className="lr-hint">Keine Ligaspiele vorhanden.</p>}
+            {view && view.games.map((g) => (
+              <button key={`${g.md}:${g.gi}`} className="lr-k-game" onClick={() => openMatch({ leagueId: club.id, md: g.md, gi: g.gi })}>
+                <small>{g.md + 1}. Spieltag{g.date ? ` · ${pad2(g.date.getDate())}.${pad2(g.date.getMonth() + 1)}.` : ""}</small>
+                <span className="lr-k-opp"><i>{g.home ? "H" : "A"}</i><Logo name={club.s.teams[g.opp]} />{club.s.teams[g.opp]}</span>
+                <b data-r={g.res ? (g.res[0] > g.res[1] ? "s" : g.res[0] < g.res[1] ? "n" : "u") : ""}>{g.res ? `${g.res[0]}:${g.res[1]}` : "–:–"}</b>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {tab === "kader" && (
+          <div className="lr-k-body" id="club-squad">
+            {["TW", "ABW", "MF", "ST"].map((pos) => (byPos[pos] || []).length ? (
+              <div key={pos} className="lr-k-card"><small>{POS_NAMES[pos]}</small>
+                {byPos[pos].map((p) => (
+                  <div className="lr-k-row" key={p.n}>
+                    <span><PlayerLink name={p.n} />{!p.b ? "" : <em> Bank</em>}</span>
+                    <span><span className="lr-k-g">{goalsOf(p.n) ? `${goalsOf(p.n)} Tore` : ""}</span> <b>{p.s}</b></span>
+                  </div>
+                ))}
+              </div>
+            ) : null)}
+          </div>
+        )}
+
+        {tab === "news" && (
+          <div className="lr-k-body">
+            {!articles.length && <p className="lr-hint">Noch keine Artikel zu {name}.</p>}
+            {articles.map((a) => (
+              <button key={a.id} className="lr-k-art" onClick={() => openArticle(a.id)}><small>{a.date} · {a.cat}</small><b>{a.title}</b></button>
+            ))}
+            <button className="lr-btn lr-btn-sm lr-btn-p" id="club-new-article" onClick={() => newArticle({ team: name, cat: "Verein", section: club ? club.sec : "" })}>Artikel zu {name} schreiben</button>
+          </div>
+        )}
+
+        {tab === "info" && (
+          <div className="lr-k-body">
+            <div className="lr-k-form">
+              <KField label="Trainer" id="ci-trainer" value={info.trainer} onChange={(v) => setInfo({ ...info, trainer: v })} />
+              <KField label="Stadion" id="ci-stadium" value={info.stadium} onChange={(v) => setInfo({ ...info, stadium: v })} />
+              <KField label="Stadt" value={info.city} onChange={(v) => setInfo({ ...info, city: v })} />
+              <KField label="Gegründet" value={info.founded} onChange={(v) => setInfo({ ...info, founded: v })} />
+              <KField label="Vereinsfarben" value={info.colors} onChange={(v) => setInfo({ ...info, colors: v })} />
+              <KField label="Präsident" value={info.president} onChange={(v) => setInfo({ ...info, president: v })} />
+            </div>
+            <label className="lr-k-field wide"><span>Notizen</span>
+              <textarea className="lr-team-in" id="ci-note" rows={4} value={info.note} onChange={(e) => setInfo({ ...info, note: e.target.value })} />
+            </label>
+            <div className="lr-modal-foot" style={{ marginTop: 10 }}>
+              <span className="lr-status">{flash}</span>
+              <button className="lr-btn lr-btn-p" id="ci-save" onClick={saveInfo}>Speichern</button>
+            </div>
+          </div>
+        )}
+
+        <div className="lr-modal-foot" style={{ marginTop: 14 }}>
+          <button className="lr-btn" onClick={onClose}>Schließen</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* ---- Spielerseite ---- */
+
+function PlayerModal({ data, setData, name, onClose }) {
+  const { openClub, openMatch } = useContext(ClubCtx);
+  const f = findPlayer(data, name);
+  const saved = (data.playerInfo || {})[name] || {};
+  const [info, setInfo] = useState({ number: saved.number || "", age: saved.age || "", nation: saved.nation || "", height: saved.height || "", foot: saved.foot || "", value: saved.value || "", contract: saved.contract || "", note: saved.note || "" });
+  const [flash, setFlash] = useState("");
+  const [to, setTo] = useState("");
+  const club = f ? findClub(data, f.club) : null;
+  const goals = club ? playerGoals(club.s, club.i, name) : [];
+  const save = () => {
+    setData((d) => ({ ...d, playerInfo: { ...(d.playerInfo || {}), [name]: { ...info } } }));
+    setFlash("Gespeichert.");
+    setTimeout(() => setFlash(""), 1800);
+  };
+  return (
+    <Modal onClose={onClose}>
+      <div className="lr-k" id="player-modal">
+        <div className="lr-k-head">
+          <span className="lr-k-logo"><Logo name={f ? f.club : ""} /></span>
+          <div className="lr-k-title">
+            <h2>{name}</h2>
+            <span className="lr-k-sub">
+              {f ? (<>{POS_NAMES[f.pl.p] || f.pl.p} · <TeamLink name={f.club} /> · Stärke {f.pl.s}{f.pl.b ? " · Bank" : " · Startelf"}</>) : "Spieler nicht in einem Kader gefunden"}
+            </span>
+          </div>
+        </div>
+        <div className="lr-k-stats">
+          <div><b>{goals.length}</b><span>Tore (Liga)</span></div>
+          <div><b>{info.number || "–"}</b><span>Nummer</span></div>
+          <div><b>{info.age || "–"}</b><span>Alter</span></div>
+          <div><b>{info.nation || "–"}</b><span>Nation</span></div>
+          <div><b>{info.value || "–"}</b><span>Marktwert</span></div>
+        </div>
+        {goals.length > 0 && (
+          <div className="lr-k-card"><small>Tore in dieser Saison</small>
+            {goals.map((g, i) => (
+              <button className="lr-k-game" key={i} onClick={() => club && openMatch({ leagueId: club.id, md: g.md - 1, gi: null, opp: g.opp, club: f.club })}>
+                <small>{g.md}. Spieltag</small><span className="lr-k-opp"><i>{g.home ? "H" : "A"}</i><Logo name={g.opp} />{g.opp}</span><b>{g.m ? `${g.m}'` : "–"}</b>
+              </button>
+            ))}
+          </div>
+        )}
+        {f && (
+          <div className="lr-k-card" style={{ marginTop: 12 }}><small>Transfer</small>
+            <div className="lr-k-addcard" style={{ border: 0, margin: 0, padding: 0 }}>
+              <select className="lr-jump" id="pi-to" value={to} aria-label="Neuer Verein" onChange={(e) => setTo(e.target.value)}>
+                <option value="">Neuer Verein …</option>
+                {LEAGUE_ALL_IDS.map((id) => (data.active[id] ? (
+                  <optgroup key={id} label={LEAGUE_BY_ID[id].name}>
+                    {data.active[id].teams.filter((t) => t !== f.club).map((t) => <option key={t} value={t}>{t}</option>)}
+                  </optgroup>
+                ) : null))}
+              </select>
+              <button className="lr-btn lr-btn-sm" id="pi-transfer" disabled={!to || playersOf(f.squad).length <= 15} onClick={() => { setData((d) => transferPlayer(d, name, to)); setTo(""); setFlash(`Wechsel zu ${to} vollzogen.`); }}>Wechsel vollziehen</button>
+            </div>
+            {playersOf(f.squad).length <= 15 && <span className="lr-hint">{f.club} hat nur noch 15 Spieler und kann niemanden abgeben.</span>}
+          </div>
+        )}
+        <h3 className="lr-sec-h" style={{ marginTop: 14 }}>Angaben</h3>
+        <div className="lr-k-form">
+          <KField label="Rückennummer" value={info.number} onChange={(v) => setInfo({ ...info, number: v })} />
+          <KField label="Alter" id="pi-age" value={info.age} onChange={(v) => setInfo({ ...info, age: v })} />
+          <KField label="Nationalität" value={info.nation} onChange={(v) => setInfo({ ...info, nation: v })} />
+          <KField label="Größe" value={info.height} onChange={(v) => setInfo({ ...info, height: v })} />
+          <KField label="Starker Fuß" value={info.foot} onChange={(v) => setInfo({ ...info, foot: v })} />
+          <KField label="Marktwert" value={info.value} onChange={(v) => setInfo({ ...info, value: v })} />
+          <KField label="Vertrag bis" value={info.contract} onChange={(v) => setInfo({ ...info, contract: v })} />
+        </div>
+        <label className="lr-k-field wide"><span>Notizen</span>
+          <textarea className="lr-team-in" id="pi-note" rows={3} value={info.note} onChange={(e) => setInfo({ ...info, note: e.target.value })} />
+        </label>
+        <div className="lr-modal-foot">
+          <span className="lr-status">{flash}</span>
+          {f && <button className="lr-btn" onClick={() => openClub(f.club)}>Zum Verein</button>}
+          <button className="lr-btn lr-btn-p" id="pi-save" onClick={save}>Speichern</button>
+          <button className="lr-btn" onClick={onClose}>Schließen</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* ---- Spielbericht ---- */
+
+const CARD_LABEL = { gelb: "Gelbe Karte", rot: "Rote Karte", gelbrot: "Gelb-Rot" };
+
+function MatchModal({ data, setData, at, onClose }) {
+  const { openClub, openPlayer, show3d, newArticle } = useContext(ClubCtx);
+  const s = data.active[at.leagueId];
+  const fx = useMemo(() => makeFixtures(s.teams.length, s.seed), [s]);
+  let { md, gi } = at;
+  if (gi == null) {
+    const ci = s.teams.indexOf(at.club);
+    const oi = s.teams.indexOf(at.opp);
+    gi = (fx[md] || []).findIndex(([h, a]) => (h === ci && a === oi) || (h === oi && a === ci));
+  }
+  const pair = fx[md] && fx[md][gi];
+  const [tab, setTab] = useState("ticker");
+  const key = pair ? matchKey(at.leagueId, s.label, md, gi) : "";
+  const saved = (data.matchInfo || {})[key] || {};
+  const [info, setInfo] = useState({ stadium: saved.stadium || "", att: saved.att || "", ref: saved.ref || "", report: saved.report || "" });
+  const [events, setEvents] = useState(Array.isArray(saved.events) ? saved.events : []);
+  const [card, setCard] = useState({ t: "h", p: "", m: "", k: "gelb" });
+  const [flash, setFlash] = useState("");
+  if (!pair) return (<Modal onClose={onClose}><div className="lr-k"><h2>Spielbericht</h2><p className="lr-hint">Dieses Spiel wurde nicht gefunden.</p><div className="lr-modal-foot"><button className="lr-btn" onClick={onClose}>Schließen</button></div></div></Modal>);
+  const [h, a] = pair;
+  const home = s.teams[h];
+  const away = s.teams[a];
+  const resRaw = s.results[`${md}:${gi}`];
+  const res = parsedResult(s.results, md, gi);
+  const dates = matchdayDates(s.start, fx.length);
+  const rows = computeTable(s.teams, fx, s.results);
+  const rowOf = (i) => rows.find((r) => r.idx === i);
+  const stadiumDefault = ((data.clubInfo || {})[home] || {}).stadium || "";
+  const sqH = s.squads[h];
+  const sqA = s.squads[a];
+  const goals = res ? fillGoals(resRaw.sc, sqH, sqA, res[0], res[1]) : [];
+  const timeline = [
+    ...goals.map((g) => ({ kind: "tor", t: g.t, p: g.p, m: g.m || 0 })),
+    ...events.map((e, i) => ({ kind: e.k, t: e.t, p: e.p, m: Number(e.m) || 0, i })),
+  ].sort((x, y) => x.m - y.m);
+  let sh = 0;
+  let sa = 0;
+  timeline.forEach((e) => { if (e.kind === "tor") { if (e.t === "h") sh++; else sa++; e.score = `${sh}:${sa}`; } });
+
+  const persist = (patch) => setData((d) => ({ ...d, matchInfo: { ...(d.matchInfo || {}), [key]: { ...((d.matchInfo || {})[key] || {}), ...patch } } }));
+  const saveInfo = () => { persist({ ...info }); setFlash("Gespeichert."); setTimeout(() => setFlash(""), 1800); };
+  const addCard = () => {
+    if (!card.p) return;
+    const next = [...events, { ...card, m: Number(card.m) || 0 }];
+    setEvents(next); persist({ events: next }); setCard({ ...card, p: "", m: "" });
+  };
+  const delCard = (i) => { const next = events.filter((_, k) => k !== i); setEvents(next); persist({ events: next }); };
+
+  const reportText = () => {
+    const list = goals.map((g) => `${g.m || "?"}. Minute: ${g.p || "Tor"} (${g.t === "h" ? home : away})`).join("\n");
+    const sc = res ? `${res[0]}:${res[1]}` : "–:–";
+    return `${home} gegen ${away} endete ${sc}.${list ? `\n\nTore:\n${list}` : ""}${info.att ? `\n\nZuschauer: ${info.att}.` : ""}`;
+  };
+  const publish = () => {
+    const title = res ? resultHeadline({ h: home, a: away, hg: res[0], ag: res[1] }) : `${home} – ${away}`;
+    newArticle({ title, teaser: `${s.label}, ${md + 1}. Spieltag ${LEAGUE_BY_ID[at.leagueId].name}: ${home} ${res ? `${res[0]}:${res[1]}` : "–:–"} ${away}`, body: info.report.trim() || reportText(), cat: "Spielbericht", team: home, section: sectionOfLeagueId(at.leagueId), date: todayISO() });
+  };
+  const open3d = () => {
+    const side = (i) => ({ name: s.teams[i], strength: s.strengths[i], squad: s.squads[i] });
+    const drawShare = DRAW_SHARE[data.drawBias || 0] != null ? DRAW_SHARE[data.drawBias || 0] : 0;
+    const surprise = data.surpriseBias == null ? 1 : Number(data.surpriseBias);
+    show3d({
+      home: side(h), away: side(a), hg: resRaw ? resRaw.h : "", ag: resRaw ? resRaw.a : "", sc: resRaw ? resRaw.sc : null,
+      sim: () => simulateMatch(s.strengths[h], s.strengths[a], false, drawShare, surprise, formationTilt(s.squads[h].f), formationTilt(s.squads[a].f)),
+      onTake: (hg, ag, sc) => setData((d) => ({ ...d, active: { ...d.active, [at.leagueId]: { ...d.active[at.leagueId], results: { ...d.active[at.leagueId].results, [`${md}:${gi}`]: { h: String(hg), a: String(ag), sc } } } } })),
+    });
+  };
+
+  // Aufstellung als Grafik
+  const lay = { h: m3Layout(sqH, home), a: m3Layout(sqA, away) };
+  const colors = { h: "#e4514a", a: "#4c8bf5" };
+  const pt = (team, sl) => (team === "h" ? { x: 4 + sl.u * 68, y: 32 + sl.v * 26 } : { x: 96 - sl.u * 68, y: 32 - sl.v * 26 });
+
+  const cmp = (label, x, y, higherBetter = true) => {
+    const tot = (Number(x) || 0) + (Number(y) || 0) || 1;
+    const wx = Math.round(((Number(x) || 0) / tot) * 100);
+    return (
+      <div className="lr-k-cmp" key={label}>
+        <b className={higherBetter ? ((x >= y) ? "lead" : "") : ((x <= y) ? "lead" : "")}>{x}</b>
+        <div className="lr-k-bar"><i style={{ width: `${wx}%` }} /></div>
+        <b className={higherBetter ? ((y >= x) ? "lead" : "") : ((y <= x) ? "lead" : "")}>{y}</b>
+        <small>{label}</small>
+      </div>
+    );
+  };
+  const rh = rowOf(h);
+  const ra = rowOf(a);
+  const other = fx.flatMap((round, mi) => round.map(([x, y], g2) => ({ mi, g2, x, y }))).find((q) => !(q.mi === md && q.g2 === gi) && ((q.x === h && q.y === a) || (q.x === a && q.y === h)));
+  const otherRes = other ? parsedResult(s.results, other.mi, other.g2) : null;
+
+  const tabs = [["ticker", "Ticker"], ["lineup", "Aufstellung"], ["cmp", "Vergleich"], ["info", "Spielinfos"]];
+  return (
+    <Modal onClose={onClose}>
+      <div className="lr-k" id="match-modal">
+        <p className="lr-k-sub" style={{ margin: 0 }}>{LEAGUE_BY_ID[at.leagueId].name} · {s.label} · {md + 1}. Spieltag{dates[md] ? ` · ${fmtLong(dates[md])}` : ""}</p>
+        <div className="lr-m3-hud" id="mr-hud">
+          <span className="lr-m3-t r"><span><TeamLink name={home} /></span><Logo name={home} /></span>
+          <b className="lr-m3-sc" id="mr-score">{res ? `${res[0]}:${res[1]}` : "–:–"}</b>
+          <span className="lr-m3-t"><Logo name={away} /><span><TeamLink name={away} /></span></span>
+        </div>
+        <div className="lr-k-tabs">
+          {tabs.map(([k, l]) => <button key={k} className="lr-k-tab" data-on={tab === k ? "1" : "0"} onClick={() => setTab(k)}>{l}</button>)}
+        </div>
+
+        {tab === "ticker" && (
+          <div className="lr-k-body" id="mr-ticker">
+            {!res && <p className="lr-hint">Das Spiel wurde noch nicht gespielt. Das Ergebnis lässt sich auf dem Spieltag eintragen, simulieren oder direkt in der 3D-Ansicht übernehmen.</p>}
+            {res && <div className="lr-k-ev"><small>0'</small><span>Anpfiff</span></div>}
+            {timeline.map((e, i) => (
+              <div className="lr-k-ev" key={i} data-k={e.kind}>
+                <small>{e.m ? `${e.m}'` : "–"}</small>
+                <span>
+                  <i className="lr-k-ic" data-k={e.kind} />
+                  {e.kind === "tor" ? <>Tor {e.t === "h" ? home : away}{e.p ? <> — <PlayerLink name={e.p} /></> : ""} <b>{e.score}</b></> : <>{CARD_LABEL[e.kind]} {e.t === "h" ? home : away} — {e.p ? <PlayerLink name={e.p} /> : ""}</>}
+                </span>
+                {e.kind !== "tor" && <button className="lr-k-x" title="Eintrag entfernen" onClick={() => delCard(e.i)}>×</button>}
+              </div>
+            ))}
+            {res && <div className="lr-k-ev"><small>90'</small><span>Abpfiff — {home} {res[0]}:{res[1]} {away}</span></div>}
+            {res && (
+              <div className="lr-k-addcard">
+                <b>Karte eintragen</b>
+                <select className="lr-jump" value={card.t} aria-label="Mannschaft" onChange={(e) => setCard({ ...card, t: e.target.value, p: "" })}>
+                  <option value="h">{home}</option><option value="a">{away}</option>
+                </select>
+                <select className="lr-jump" id="mr-card-p" value={card.p} aria-label="Spieler" onChange={(e) => setCard({ ...card, p: e.target.value })}>
+                  <option value="">Spieler wählen</option>
+                  {playersOf(card.t === "h" ? sqH : sqA).map((p) => <option key={p.n} value={p.n}>{p.n}</option>)}
+                </select>
+                <input className="lr-team-in" style={{ width: 70 }} placeholder="Minute" value={card.m} aria-label="Minute" onChange={(e) => setCard({ ...card, m: e.target.value.replace(/[^0-9]/g, "").slice(0, 2) })} />
+                <select className="lr-jump" id="mr-card-k" value={card.k} aria-label="Art" onChange={(e) => setCard({ ...card, k: e.target.value })}>
+                  <option value="gelb">Gelb</option><option value="gelbrot">Gelb-Rot</option><option value="rot">Rot</option>
+                </select>
+                <button className="lr-btn lr-btn-sm" id="mr-card-add" onClick={addCard} disabled={!card.p}>Hinzufügen</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "lineup" && (
+          <div className="lr-k-body" id="mr-lineup">
+            <svg viewBox="0 0 100 64" className="lr-k-pitch" role="img" aria-label="Aufstellung">
+              <rect x="0" y="0" width="100" height="64" fill="#2f7a3f" />
+              <g stroke="rgba(255,255,255,.7)" strokeWidth=".35" fill="none">
+                <rect x="1" y="1" width="98" height="62" /><line x1="50" y1="1" x2="50" y2="63" /><circle cx="50" cy="32" r="7" />
+                <rect x="1" y="14" width="13" height="36" /><rect x="86" y="14" width="13" height="36" />
+              </g>
+              {["h", "a"].map((team) => lay[team].map((sl, n) => {
+                const p = pt(team, sl);
+                return (
+                  <g key={team + n}>
+                    <circle cx={p.x} cy={p.y} r="1.7" fill={colors[team]} stroke="#fff" strokeWidth=".4" />
+                    <text x={p.x} y={p.y + 4.2} fontSize="2" textAnchor="middle" fill="#fff" stroke="rgba(0,0,0,.55)" strokeWidth=".5" paintOrder="stroke">{lastName(sl.name)}</text>
+                  </g>
+                );
+              }))}
+            </svg>
+            <div className="lr-k-two">
+              {[["h", home, sqH], ["a", away, sqA]].map(([t, nm, sq]) => (
+                <div className="lr-k-card" key={t}><small>{nm} · {sq.f}</small>
+                  {playersOf(sq).filter((p) => !p.b).map((p) => <div className="lr-k-row" key={p.n}><PlayerLink name={p.n} /><b>{p.s}</b></div>)}
+                  <small style={{ marginTop: 8 }}>Bank</small>
+                  {playersOf(sq).filter((p) => p.b).map((p) => <div className="lr-k-row" key={p.n}><PlayerLink name={p.n} /><b>{p.s}</b></div>)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab === "cmp" && (
+          <div className="lr-k-body" id="mr-cmp">
+            {rh && ra && (
+              <>
+                {cmp("Tabellenplatz", rh.pos, ra.pos, false)}
+                {cmp("Punkte", rh.pkt, ra.pkt)}
+                {cmp("Tore", rh.t, ra.t)}
+                {cmp("Gegentore", rh.gt, ra.gt, false)}
+                {cmp("Stärke", s.strengths[h], s.strengths[a])}
+                <div className="lr-k-cmp"><span><Form form={rh.form} /></span><span /><span><Form form={ra.form} /></span><small>Form</small></div>
+              </>
+            )}
+            <div className="lr-k-card"><small>Direkter Vergleich in dieser Saison</small>
+              {other ? (
+                <div className="lr-k-row"><span>{other.mi + 1}. Spieltag: {s.teams[other.x]} – {s.teams[other.y]}</span><b>{otherRes ? `${otherRes[0]}:${otherRes[1]}` : "–:–"}</b></div>
+              ) : <span className="lr-hint">Kein weiteres Duell.</span>}
+            </div>
+          </div>
+        )}
+
+        {tab === "info" && (
+          <div className="lr-k-body" id="mr-info">
+            <div className="lr-k-form">
+              <KField label="Stadion" id="mr-stadium" value={info.stadium} placeholder={stadiumDefault} onChange={(v) => setInfo({ ...info, stadium: v })} />
+              <KField label="Zuschauer" id="mr-att" value={info.att} onChange={(v) => setInfo({ ...info, att: v })} />
+              <KField label="Schiedsrichter" id="mr-ref" value={info.ref} onChange={(v) => setInfo({ ...info, ref: v })} />
+            </div>
+            <label className="lr-k-field wide"><span>Spielbericht</span>
+              <textarea className="lr-team-in" id="mr-report" rows={7} value={info.report} placeholder="Eigenen Spielbericht schreiben – leer gelassen entsteht beim Veröffentlichen ein kurzer Bericht aus den Toren."
+                onChange={(e) => setInfo({ ...info, report: e.target.value })} />
+            </label>
+            <div className="lr-modal-foot" style={{ marginTop: 10 }}>
+              <span className="lr-status">{flash}</span>
+              <button className="lr-btn" id="mr-publish" onClick={() => { saveInfo(); publish(); }}>Als Artikel veröffentlichen</button>
+              <button className="lr-btn lr-btn-p" id="mr-save" onClick={saveInfo}>Speichern</button>
+            </div>
+          </div>
+        )}
+
+        <div className="lr-modal-foot" style={{ marginTop: 14 }}>
+          <button className="lr-btn" id="mr-3d" onClick={open3d}>3D ansehen</button>
+          <button className="lr-btn" onClick={onClose}>Schließen</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* ---- Artikel ---- */
+
+function ArticleModal({ data, setData, id, onClose, onEdit }) {
+  const { openClub } = useContext(ClubCtx);
+  const a = (data.news || []).find((x) => x.id === id);
+  const [ask, setAsk] = useState(false);
+  if (!a) return null;
+  const del = () => { setData((d) => ({ ...d, news: d.news.filter((x) => x.id !== id) })); onClose(); };
+  const togglePin = () => setData((d) => ({ ...d, news: d.news.map((x) => (x.id === id ? { ...x, pinned: !x.pinned } : x)) }));
+  return (
+    <Modal onClose={onClose}>
+      <div className="lr-k lr-k-article" id="article-modal">
+        <small className="lr-k-tag">{a.cat}{a.section ? ` · ${COUNTRY[a.section].name}` : ""}</small>
+        <h2>{a.title}</h2>
+        {a.teaser && <p className="lr-k-teaser">{a.teaser}</p>}
+        {a.img && <img className="lr-k-img" src={a.img} alt="" />}
+        <div className="lr-k-text">{a.body.split(/\n{2,}/).map((p, i) => <p key={i}>{p.split("\n").map((l, j) => <React.Fragment key={j}>{j ? <br /> : null}{l}</React.Fragment>)}</p>)}</div>
+        <p className="lr-hint">{a.date}{a.team ? <> · <TeamLink name={a.team} /></> : ""}</p>
+        <div className="lr-modal-foot">
+          {ask ? (
+            <>
+              <span className="lr-status">Artikel wirklich löschen?</span>
+              <button className="lr-btn" onClick={() => setAsk(false)}>Nein</button>
+              <button className="lr-btn lr-btn-p" id="article-del-ok" onClick={del}>Ja, löschen</button>
+            </>
+          ) : (
+            <>
+              <button className="lr-btn" id="article-del" onClick={() => setAsk(true)}>Löschen</button>
+              <button className="lr-btn" onClick={togglePin}>{a.pinned ? "Nicht mehr anpinnen" : "Anpinnen"}</button>
+              <button className="lr-btn lr-btn-p" id="article-edit" onClick={() => onEdit(a)}>Bearbeiten</button>
+              <button className="lr-btn" onClick={onClose}>Schließen</button>
+            </>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function ArticleEditor({ data, draft, onSave, onClose }) {
+  const [a, setA] = useState({ title: "", teaser: "", body: "", cat: "Sonstiges", section: "", team: "", date: todayISO(), pinned: false, img: "", ...draft });
+  const [err, setErr] = useState("");
+  const teams = useMemo(() => LEAGUE_ALL_IDS.flatMap((id) => (data.active[id] ? data.active[id].teams : [])), [data]);
+  const pick = async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    try { setA((x) => ({ ...x, img: "" })); const url = await logoFromFile(f, 560, "image/jpeg", 0.72); setA((x) => ({ ...x, img: url })); }
+    catch (x) { setErr("Das Bild konnte nicht gelesen werden."); }
+  };
+  const ok = a.title.trim() && (a.body.trim() || a.teaser.trim());
+  return (
+    <Modal onClose={onClose}>
+      <div className="lr-k" id="article-editor">
+        <h2>{a.id ? "Artikel bearbeiten" : "Neuer Artikel"}</h2>
+        <KField label="Überschrift" id="ae-title" wide value={a.title} onChange={(v) => setA({ ...a, title: v })} />
+        <KField label="Unterzeile" id="ae-teaser" wide value={a.teaser} onChange={(v) => setA({ ...a, teaser: v })} />
+        <label className="lr-k-field wide"><span>Text</span>
+          <textarea className="lr-team-in" id="ae-body" rows={9} value={a.body} onChange={(e) => setA({ ...a, body: e.target.value })} placeholder="Leerzeile = neuer Absatz" />
+        </label>
+        <div className="lr-k-form">
+          <label className="lr-k-field"><span>Rubrik</span>
+            <select className="lr-team-in" id="ae-cat" value={a.cat} onChange={(e) => setA({ ...a, cat: e.target.value })}>{NEWS_CATS.map((c) => <option key={c}>{c}</option>)}</select>
+          </label>
+          <label className="lr-k-field"><span>Abschnitt</span>
+            <select className="lr-team-in" id="ae-section" value={a.section} onChange={(e) => setA({ ...a, section: e.target.value })}>
+              <option value="">alle</option>{SECTION_KEYS.map((k) => <option key={k} value={k}>{COUNTRY[k].name}</option>)}
+            </select>
+          </label>
+          <label className="lr-k-field"><span>Verein</span>
+            <input className="lr-team-in" id="ae-team" list="ae-teams" value={a.team} onChange={(e) => setA({ ...a, team: e.target.value })} placeholder="optional" />
+            <datalist id="ae-teams">{teams.map((t) => <option key={t} value={t} />)}</datalist>
+          </label>
+          <KField label="Datum" type="date" id="ae-date" value={a.date} onChange={(v) => setA({ ...a, date: v })} />
+        </div>
+        <div className="lr-k-img-row">
+          <label className="lr-btn lr-btn-sm" style={{ cursor: "pointer" }}>Bild wählen<input type="file" accept="image/*" hidden onChange={pick} /></label>
+          {a.img && <><img className="lr-k-thumb" src={a.img} alt="" /><button className="lr-btn lr-btn-sm" onClick={() => setA({ ...a, img: "" })}>Bild entfernen</button></>}
+          <label className="lr-prog" style={{ display: "flex", gap: 6, alignItems: "center", marginLeft: "auto" }}><input type="checkbox" checked={a.pinned} onChange={(e) => setA({ ...a, pinned: e.target.checked })} />Anpinnen</label>
+        </div>
+        {err && <p className="lr-hint" style={{ color: "#f0867f" }}>{err}</p>}
+        <div className="lr-modal-foot">
+          <button className="lr-btn" onClick={onClose}>Abbrechen</button>
+          <button className="lr-btn lr-btn-p" id="ae-save" disabled={!ok} onClick={() => onSave({ ...a, title: a.title.trim(), id: a.id || newId("a") })}>Speichern</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* ---- Nachrichten-Tab ---- */
+
+function NewsTab({ data, section, onNew }) {
+  const { openArticle, openClub, openMatch, favorites } = useContext(ClubCtx);
+  const [cat, setCat] = useState("Alle");
+  const list = (data.news || [])
+    .filter((a) => (!a.section || a.section === section) && (cat === "Alle" || a.cat === cat))
+    .sort((x, y) => (Number(y.pinned) - Number(x.pinned)) || (y.date > x.date ? 1 : y.date < x.date ? -1 : 0));
+  const results = useMemo(() => autoNews(data, section), [data, section]);
+  const top = COUNTRY[section].top;
+  const topSeason = data.active[top];
+  const topRows = useMemo(() => (topSeason ? computeTable(topSeason.teams, makeFixtures(topSeason.teams.length, topSeason.seed), topSeason.results).slice(0, 5) : []), [topSeason]);
+  const scorers = useMemo(() => (topSeason ? scorerList(seasonGames(topSeason, makeFixtures(topSeason.teams.length, topSeason.seed)), squadIndex([topSeason])).slice(0, 5) : []), [topSeason]);
+  const favInfo = favorites.map((name) => {
+    const c = findClub(data, name);
+    if (!c) return { name, text: "" };
+    const g = clubGames(c.s, c.i);
+    const last = [...g].reverse().find((x) => x.res);
+    const next = g.find((x) => !x.res);
+    return { name, c, last, next };
+  });
+  return (
+    <div className="lr-wrap" id="news-tab">
+      <div className="lr-k-newsgrid">
+        <section>
+          <div className="lr-k-newshead">
+            <h2 className="lr-sec-h" style={{ margin: 0 }}>Nachrichten</h2>
+            <div className="lr-spacer" />
+            <button className="lr-btn lr-btn-sm lr-btn-p" id="news-new" onClick={() => onNew({ section })}>Neuer Artikel</button>
+          </div>
+          <div className="lr-k-chips" role="group" aria-label="Rubrik">
+            {["Alle", ...NEWS_CATS].map((c) => <button key={c} className="lr-k-chip" data-on={cat === c ? "1" : "0"} onClick={() => setCat(c)}>{c}</button>)}
+          </div>
+          {!list.length && <p className="lr-empty">Noch keine Artikel. Mit „Neuer Artikel“ schreibst du den ersten – oder veröffentliche einen Spielbericht direkt aus einem Spiel.</p>}
+          {results.length > 0 && cat === "Alle" && (
+            <div className="lr-k-card" id="news-auto"><small>Aus den Ergebnissen</small>
+              {[...results].sort((x, y) => Number(y.sens) - Number(x.sens) || Math.abs(y.hg - y.ag) - Math.abs(x.hg - x.ag)).slice(0, 6).map((r) => (
+                <button key={`${r.leagueId}${r.gi}`} className="lr-k-art" onClick={() => openMatch({ leagueId: r.leagueId, md: r.md, gi: r.gi })}>
+                  <small>{r.lg} · {r.md + 1}. Spieltag{r.sens ? " · Sensation" : ""}</small><b>{resultHeadline(r)}</b>
+                </button>
+              ))}
+            </div>
+          )}
+          {list.map((a) => (
+            <article className="lr-k-news" key={a.id} data-pin={a.pinned ? "1" : "0"} onClick={() => openArticle(a.id)} role="button" tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter") openArticle(a.id); }}>
+              {a.img ? <img src={a.img} alt="" /> : <div className="lr-k-noimg">{a.team ? <Logo name={a.team} /> : null}</div>}
+              <div>
+                <small className="lr-k-tag">{a.pinned ? "📌 " : ""}{a.cat}{a.section ? ` · ${COUNTRY[a.section].name}` : ""}</small>
+                <h3>{a.title}</h3>
+                {a.teaser && <p>{a.teaser}</p>}
+                <small>{a.date}{a.team ? ` · ${a.team}` : ""}</small>
+              </div>
+            </article>
+          ))}
+        </section>
+        <aside>
+          <div className="lr-k-card" id="news-favs"><small>Meine Vereine</small>
+            {!favInfo.length && <span className="lr-hint">Auf einer Vereinsseite mit „☆ Favorit“ hinzufügen.</span>}
+            {favInfo.map((f) => (
+              <div key={f.name} className="lr-k-fav">
+                <button className="lr-k-link" onClick={() => openClub(f.name)}><Logo name={f.name} />{f.name}</button>
+                {f.c && f.last && <button className="lr-k-mini" onClick={() => openMatch({ leagueId: f.c.id, md: f.last.md, gi: f.last.gi })}>{f.last.home ? `${f.name} ${f.last.hg}:${f.last.ag} ${f.c.s.teams[f.last.opp]}` : `${f.c.s.teams[f.last.opp]} ${f.last.hg}:${f.last.ag} ${f.name}`}</button>}
+                {f.c && f.next && <small>Nächstes: {f.next.home ? `${f.name} – ${f.c.s.teams[f.next.opp]}` : `${f.c.s.teams[f.next.opp]} – ${f.name}`}</small>}
+              </div>
+            ))}
+          </div>
+          <div className="lr-k-card" id="news-results"><small>Ergebnisse des letzten Spieltags</small>
+            {!results.length && <span className="lr-hint">Noch keine Ergebnisse.</span>}
+            {results.slice(0, 14).map((r) => (
+              <button key={`${r.leagueId}${r.gi}`} className="lr-k-res" onClick={() => openMatch({ leagueId: r.leagueId, md: r.md, gi: r.gi })} title={resultHeadline(r)}>
+                <span>{r.h}</span><b>{r.hg}:{r.ag}</b><span>{r.a}</span>
+              </button>
+            ))}
+          </div>
+          {results.filter((r) => r.sens).length > 0 && (
+            <div className="lr-k-card"><small>Sensationen</small>
+              {results.filter((r) => r.sens).slice(0, 4).map((r) => <div key={`${r.leagueId}${r.gi}`} className="lr-k-row"><span>{resultHeadline(r)}</span></div>)}
+            </div>
+          )}
+          {topRows.length > 0 && (
+            <div className="lr-k-card"><small>{COUNTRY[section].topName}: Spitze</small>
+              {topRows.map((r) => <div key={r.name} className="lr-k-row"><span>{r.pos}. <TeamLink name={r.name} /></span><b>{r.pkt}</b></div>)}
+            </div>
+          )}
+          {scorers.length > 0 && (
+            <div className="lr-k-card"><small>Torjäger</small>
+              {scorers.map((x) => <div key={x.name} className="lr-k-row"><span><PlayerLink name={x.name} /> <em>{x.verein}</em></span><b>{x.tore}</b></div>)}
+            </div>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+/* ---- Vereine-Tab ---- */
+
+function ClubsTab({ data, section }) {
+  const { openClub, favorites } = useContext(ClubCtx);
+  const [q, setQ] = useState("");
+  const all = useMemo(() => clubsOfSection(data, section), [data, section]);
+  const match = (c) => !q.trim() || c.name.toLowerCase().indexOf(q.trim().toLowerCase()) >= 0;
+  const favs = all.filter((c) => favorites.indexOf(c.name) >= 0 && match(c));
+  return (
+    <div className="lr-wrap" id="clubs-tab">
+      <div className="lr-k-newshead">
+        <h2 className="lr-sec-h" style={{ margin: 0 }}>Vereine</h2>
+        <div className="lr-spacer" />
+        <input className="lr-team-in" id="clubs-q" style={{ maxWidth: 240 }} placeholder="Verein suchen" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Verein suchen" />
+      </div>
+      {favs.length > 0 && (
+        <>
+          <h3 className="lr-k-lh">★ Meine Vereine</h3>
+          <div className="lr-k-clubs">{favs.map((c) => <ClubTile key={`f${c.name}`} c={c} onOpen={openClub} />)}</div>
+        </>
+      )}
+      {COUNTRY[section].leagues.map((lg) => {
+        const rows = all.filter((c) => c.id === lg.id && match(c)).sort((x, y) => x.pos - y.pos);
+        if (!rows.length) return null;
+        return (
+          <React.Fragment key={lg.id}>
+            <h3 className="lr-k-lh" style={{ color: lg.accent }}>{lg.name}</h3>
+            <div className="lr-k-clubs">{rows.map((c) => <ClubTile key={c.name} c={c} onOpen={openClub} />)}</div>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+function ClubTile({ c, onOpen }) {
+  return (
+    <button className="lr-k-tile" onClick={() => onOpen(c.name)}>
+      <Logo name={c.name} /><span>{c.name}</span><small>{c.pos}. · {c.strength}</small>
+    </button>
+  );
+}
+
+/* ---- Suche ---- */
+
+function SearchBox({ data }) {
+  const { openClub, openPlayer } = useContext(ClubCtx);
+  const [q, setQ] = useState("");
+  const res = useMemo(() => searchAll(data, q), [data, q]);
+  const any = res.clubs.length + res.players.length > 0;
+  const go = (fn, v) => { setQ(""); fn(v); };
+  return (
+    <div className="lr-k-search">
+      <input id="search-q" className="lr-team-in" placeholder="Verein oder Spieler suchen" aria-label="Suche" value={q} onChange={(e) => setQ(e.target.value)} />
+      {q.trim().length >= 2 && (
+        <div className="lr-k-dd" id="search-res">
+          {!any && <span className="lr-hint" style={{ padding: 8 }}>Nichts gefunden.</span>}
+          {res.clubs.map((c) => <button key={`c${c.name}`} onClick={() => go(openClub, c.name)}><Logo name={c.name} />{c.name}<small>{c.lg}</small></button>)}
+          {res.players.map((p) => <button key={`p${p.name}`} onClick={() => go(openPlayer, p.name)}><b>{p.name}</b><small>{p.club} · {POS_NAMES[p.pos] || p.pos}</small></button>)}
+        </div>
+      )}
+    </div>
   );
 }
 
