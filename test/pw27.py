@@ -16,7 +16,7 @@ with sync_playwright() as p:
     pg.goto(D + "index.html"); pg.wait_for_selector(".lr-tab")
     pg.locator("#sec-fr").click(); pg.wait_for_timeout(300)
     tabs = [t.strip() for t in pg.locator(".lr-tab").all_inner_texts()]
-    ok(tabs == ["Ligue 1", "Ligue 2", "Ligue 3", "Coupe de France", "Europa", "Torjäger", "Kalender", "Historie"], f"Frankreich-Tabs: {tabs}")
+    ok(tabs == ["Ligue 1", "Ligue 2", "Ligue 3", "Coupe de France", "Europa", "Torjäger", "Kalender", "Nachrichten", "Vereine", "Historie"], f"Frankreich-Tabs: {tabs}")
     soll = {"fl1": ("Ligue 1", 70, 88, 18, 34), "fl2": ("Ligue 2", 65, 75, 18, 34), "fl3": ("Ligue 3", 55, 65, 18, 34)}
     for lid, (name, lo, hi, n, md) in soll.items():
         pg.locator(".lr-tab", has_text=name).first.click(); pg.wait_for_timeout(250)

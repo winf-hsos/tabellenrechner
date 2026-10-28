@@ -59,6 +59,7 @@ with sync_playwright() as p:
     # --- Europapokal ---
     pg.locator("#tab-euro").click(); pg.locator("#eu-start").click(); pg.wait_for_selector(".lr-game")
     pg.locator(".lr-3d").first.click(); pg.wait_for_selector("#m3-canvas")
+    pg.wait_for_timeout(700)
     ok(pixels(pg)[0] > 500, "Europapokal: 3D-Ansicht zeichnet")
     pg.locator("#m3-take").click(); pg.wait_for_timeout(500)
     run = state(pg)["euro"]["runs"]["cl"]
