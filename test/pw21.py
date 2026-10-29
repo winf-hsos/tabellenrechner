@@ -34,7 +34,7 @@ with sync_playwright() as p:
     ok("João Pedro" in sq["FC Chelsea"] and "Dominic Calvert-Lewin" in sq["Leeds United"], "echte Spieler (z. B. João Pedro bei Chelsea, Calvert-Lewin bei Leeds)")
     allnames = [n for v in sq.values() for n in v]
     ok(len(allnames) == len(set(allnames)), "Spielernamen sind in England eindeutig")
-    de_names = {x["n"] for l in ("bl1", "bl2", "bl3", "bl4", "bl5") for q in d["active"][l]["squads"] for x in q["p"]}
+    de_names = {x["n"] for l in ("bl1", "bl2", "bl3", "rl_n", "rl_no", "rl_w", "rl_sw", "rl_by", "ol_bw", "ol_bn", "ol_bs", "ol_hb", "ol_hh", "ol_he", "ol_mr", "ol_nr", "ol_ns", "ol_non", "ol_nos", "ol_rps", "ol_sh", "ol_we") for q in d["active"][l]["squads"] for x in q["p"]}
     ok(not (set(allnames) & de_names), "keine Spieler in England und Deutschland gleichzeitig")
     ok(max(pl["strengths"]) == 94 and min(pl["strengths"]) == 74, f"Stärken {min(pl['strengths'])}–{max(pl['strengths'])} (soll 74–94)")
     # Torjäger England
@@ -82,7 +82,7 @@ with sync_playwright() as p:
         teilnehmer = {r["name"] for r in e["table"]}
         ok(set(en1[c]) <= teilnehmer and len(en1[c]) == len(en0[c]), f"{c.upper()}: die {len(en1[c])} englischen Qualifikanten aus der Premier-League-Tabelle spielen mit")
     ok(all(len(d["euro"]["teams"][c]) == 36 and sorted(t["name"] for t in d["euro"]["teams"][c] if t.get("en")) == sorted(en1[c]) for c in ("cl", "el", "ecl")), "deutscher Saisonwechsel lässt die englischen Qualifikanten stehen")
-    ok(sum(1 for e in d["history"] if e["leagueId"] in ("pl", "ch", "l1", "l2", "facup")) == 5 and sum(1 for e in d["history"] if e["leagueId"] not in ("pl", "ch", "l1", "l2", "facup")) == 9, "Historie: 5 englische und 9 deutsche Einträge")
+    ok(sum(1 for e in d["history"] if e["leagueId"] in ("pl", "ch", "l1", "l2", "facup")) == 5 and sum(1 for e in d["history"] if e["leagueId"] not in ("pl", "ch", "l1", "l2", "facup")) == 26, "Historie: 5 englische und 26 deutsche Einträge")
     # Abschnitt bleibt nach Neuladen
     pg.locator("#sec-en").click(); pg.wait_for_timeout(900)
     pg.reload(); pg.wait_for_selector(".lr-tab"); pg.wait_for_timeout(500)

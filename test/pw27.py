@@ -35,7 +35,7 @@ with sync_playwright() as p:
     ok(len(alle) == 54 and all(len(v) == 18 for v in alle.values()), "54 französische Klubs mit je 18 Spielern")
     namen = [n for v in alle.values() for n in v]
     ok(len(namen) == len(set(namen)), "alle französischen Spielernamen sind eindeutig")
-    fremd = {x["n"] for l in ("bl1", "bl2", "bl3", "bl4", "bl5", "pl", "ch", "l1", "l2", "ll", "sd", "p1", "p2", "sa", "sb", "sca", "scb", "scc") for q in d["active"][l]["squads"] for x in q["p"]}
+    fremd = {x["n"] for l in ("bl1", "bl2", "bl3", "rl_n", "rl_no", "rl_w", "rl_sw", "rl_by", "ol_bw", "ol_bn", "ol_bs", "ol_hb", "ol_hh", "ol_he", "ol_mr", "ol_nr", "ol_ns", "ol_non", "ol_nos", "ol_rps", "ol_sh", "ol_we", "pl", "ch", "l1", "l2", "ll", "sd", "p1", "p2", "sa", "sb", "sca", "scb", "scc") for q in d["active"][l]["squads"] for x in q["p"]}
     ok(not (set(namen) & fremd), "keine Spieler in Frankreich und den anderen Abschnitten gleichzeitig")
     ok(len(alle["Paris Saint-Germain"]) == 18 and len(alle["Stade Reims"]) == 18 and alle["Olympique Lyon"] != alle["Olympique Marseille"], "echte Kader vorhanden (PSG, Reims, Lyon)")
     # Europapokal-Teilnehmer

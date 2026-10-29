@@ -37,7 +37,7 @@ with sync_playwright() as p:
     # EL starten, unvollständig lassen
     pg.locator("#eu-el").click(); pg.locator("#eu-start").click(); pg.wait_for_selector(".lr-game")
     # ---- alle Ligen durchspielen
-    for name in ["Bundesliga","2. Bundesliga","3. Liga","4. Liga","5. Liga"]:
+    for name in ["Bundesliga","2. Bundesliga","3. Liga"]:
         pg.locator(".lr-tab", has_text=re.compile("^"+re.escape(name)+"$")).click()
         pg.get_by_role("button", name="Rest der Saison").click(); pg.wait_for_timeout(200)
     pg.locator(".lr-tab", has_text=re.compile("^Bundesliga$")).click()

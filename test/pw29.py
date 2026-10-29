@@ -101,7 +101,7 @@ with sync_playwright() as p:
     ok(len(state(pg)["news"]) == 1, "Artikel gelöscht")
     # --- Vereine-Tab, Suche ---
     pg.locator("#tab-clubs").click(); pg.wait_for_selector("#clubs-tab")
-    ok(pg.locator("#clubs-tab .lr-k-tile").count() == 94 + 1, f"Vereine: 94 Klubs + Favoritenkachel ({pg.locator('#clubs-tab .lr-k-tile').count()})")
+    ok(pg.locator("#clubs-tab .lr-k-tile").count() == 342 + 1, f"Vereine: 342 Klubs + Favoritenkachel ({pg.locator('#clubs-tab .lr-k-tile').count()})")
     pg.locator("#clubs-q").fill("Bayern")
     ok(pg.locator("#clubs-tab .lr-k-tile").count() >= 1, "Vereinssuche im Tab")
     pg.locator("#search-q").fill("Kane")
@@ -111,7 +111,7 @@ with sync_playwright() as p:
     ok("Kane" in pg.locator("#player-modal h2").inner_text(), "Suche öffnet die Spielerseite")
     pg.locator("#pi-to").select_option("Borussia Dortmund"); pg.locator("#pi-transfer").click(); pg.wait_for_timeout(1000)
     st = state(pg)
-    sq = lambda t: next(q for l in ("bl1","bl2","bl3","bl4","bl5") for i, tt in enumerate(st["active"][l]["teams"]) if tt == t for q in [st["active"][l]["squads"][i]])
+    sq = lambda t: next(q for l in ("bl1","bl2","bl3","rl_n","rl_no","rl_w","rl_sw","rl_by","ol_bw","ol_bn","ol_bs","ol_hb","ol_hh","ol_he","ol_mr","ol_nr","ol_ns","ol_non","ol_nos","ol_rps","ol_sh","ol_we") for i, tt in enumerate(st["active"][l]["teams"]) if tt == t for q in [st["active"][l]["squads"][i]])
     ok(any(x["n"] == "Harry Kane" for x in sq("Borussia Dortmund")["p"]) and not any(x["n"] == "Harry Kane" for x in sq("FC Bayern München")["p"]), "Transfer: Kane wechselt von Bayern zu Dortmund")
     ok(len(sq("Borussia Dortmund")["p"]) == 19 and len(sq("FC Bayern München")["p"]) == 17, "Kader 19 / 17 Spieler")
     ok(st["news"][0]["cat"] == "Transfer" and "Harry Kane" in st["news"][0]["title"], f"Transfermeldung: {st['news'][0]['title']}")

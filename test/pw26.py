@@ -35,7 +35,7 @@ with sync_playwright() as p:
     ok(len(alle) == 100 and all(len(v) == 18 for v in alle.values()), "100 italienische Klubs mit je 18 Spielern")
     namen = [n for v in alle.values() for n in v]
     ok(len(namen) == len(set(namen)), "alle italienischen Spielernamen sind eindeutig")
-    fremd = {x["n"] for l in ("bl1", "bl2", "bl3", "bl4", "bl5", "pl", "ch", "l1", "l2", "ll", "sd", "p1", "p2") for q in d["active"][l]["squads"] for x in q["p"]}
+    fremd = {x["n"] for l in ("bl1", "bl2", "bl3", "rl_n", "rl_no", "rl_w", "rl_sw", "rl_by", "ol_bw", "ol_bn", "ol_bs", "ol_hb", "ol_hh", "ol_he", "ol_mr", "ol_nr", "ol_ns", "ol_non", "ol_nos", "ol_rps", "ol_sh", "ol_we", "pl", "ch", "l1", "l2", "ll", "sd", "p1", "p2") for q in d["active"][l]["squads"] for x in q["p"]}
     ok(not (set(namen) & fremd), "keine Spieler in Italien und den anderen Abschnitten gleichzeitig")
     ok(len(alle["Juventus Turin"]) == 18 and len(alle["Hellas Verona"]) == 18 and alle["Inter Mailand"] != alle["AC Mailand"], "echte Kader vorhanden (Juventus, Verona, Inter)")
     # Europapokal-Teilnehmer

@@ -33,7 +33,7 @@ with sync_playwright() as p:
     ok(len(alle) == 92 and all(len(v) == 18 for v in alle.values()), "92 englische Klubs mit je 18 Spielern")
     namen = [n for v in alle.values() for n in v]
     ok(len(namen) == len(set(namen)), "alle englischen Spielernamen sind eindeutig")
-    de = {x["n"] for l in ("bl1", "bl2", "bl3", "bl4", "bl5") for q in d["active"][l]["squads"] for x in q["p"]}
+    de = {x["n"] for l in ("bl1", "bl2", "bl3", "rl_n", "rl_no", "rl_w", "rl_sw", "rl_by", "ol_bw", "ol_bn", "ol_bs", "ol_hb", "ol_hh", "ol_he", "ol_mr", "ol_nr", "ol_ns", "ol_non", "ol_nos", "ol_rps", "ol_sh", "ol_we") for q in d["active"][l]["squads"] for x in q["p"]}
     ok(not (set(namen) & de), "keine Spieler in Deutschland und England gleichzeitig")
     ok("Jakub Stolarczyk" in alle["Leicester City"] and "Nicolas Schmid" in alle["Portsmouth"], "echte Spieler (Stolarczyk bei Leicester, Schmid bei Portsmouth)")
     # FA Cup
