@@ -35,7 +35,7 @@ with sync_playwright() as p:
     ok(len(alle) == 82 and all(len(v) == 18 for v in alle.values()), "82 spanische Klubs mit je 18 Spielern")
     namen = [n for v in alle.values() for n in v]
     ok(len(namen) == len(set(namen)), "alle spanischen Spielernamen sind eindeutig")
-    fremd = {x["n"] for l in ("bl1", "bl2", "bl3", "bl4", "bl5", "pl", "ch", "l1", "l2") for q in d["active"][l]["squads"] for x in q["p"]}
+    fremd = {x["n"] for l in ("bl1", "bl2", "bl3", "rl_n", "rl_no", "rl_w", "rl_sw", "rl_by", "ol_bw", "ol_bn", "ol_bs", "ol_hb", "ol_hh", "ol_he", "ol_mr", "ol_nr", "ol_ns", "ol_non", "ol_nos", "ol_rps", "ol_sh", "ol_we", "pl", "ch", "l1", "l2") for q in d["active"][l]["squads"] for x in q["p"]}
     ok(not (set(namen) & fremd), "keine Spieler in Spanien und Deutschland/England gleichzeitig")
     ok("Odysseas Vlachodimos" in alle["Sevilla FC"] and "Paulo Gazzaniga" in alle["Girona FC"], "echte Spieler (Vlachodimos bei Sevilla, Gazzaniga bei Girona)")
     # Europapokal-Teilnehmer

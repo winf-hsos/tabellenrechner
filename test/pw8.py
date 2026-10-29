@@ -11,7 +11,7 @@ with sync_playwright() as p:
         for k in range(4):
             pg.locator("#eu-sim-round").click(); pg.locator("#eu-next").click()
         pg.locator("#eu-sim-round").click(); pg.locator("#eu-close").click(); pg.locator("#eu-close-ok").click()
-    for name in ["Bundesliga","2. Bundesliga","3. Liga","4. Liga","5. Liga"]:
+    for name in ["Bundesliga","2. Bundesliga","3. Liga"]:
         pg.locator(".lr-tab", has_text=re.compile("^"+re.escape(name)+"$")).click()
         pg.get_by_role("button", name="Rest der Saison").click(); pg.wait_for_timeout(150)
     pg.locator(".lr-tab", has_text="Historie").click()
