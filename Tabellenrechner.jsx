@@ -10365,7 +10365,7 @@ function newWorldCup(active, c, label) {
 
 /** Die fünf Abschnitte der App. */
 const COUNTRY = {
-  de: { name: "Deutschland", ids: LEAGUE_IDS, leagues: LEAGUES, first: "bl1", cupKey: "cup", cupName: "DFB-Pokal", cupAccent: CUP_ACCENT },
+  de: { name: "Deutschland", ids: PRO_IDS, leagues: LEAGUES.filter((l) => !l.group), first: "bl1", cupKey: "cup", cupName: "DFB-Pokal", cupAccent: CUP_ACCENT },
   en: {
     name: "England", ids: ENG_IDS, leagues: ENGLAND, first: "pl", cupKey: "facup", cupName: "FA Cup", cupAccent: FA_ACCENT,
     euroTab: "eneuro", flag: "en", top: "pl", topName: "Premier League", places: EURO_PLACES_EN, adj: "englischen",
@@ -12413,8 +12413,10 @@ export default function Tabellenrechner() {
   };
 
   const applyPromotion = (duelA, duelB) => {
-    setData((d) => {
-      const archives = [...LEAGUE_IDS].reverse().map((id) => archive(d, id));
+    setData((d0) => {
+      // Die Regionalligen laufen unsichtbar im Hintergrund: offene Spiele werden vor dem Saisonwechsel ausgewürfelt.
+      const d = playLeagues(d0, DE_RL.map((l) => l.id));
+      const archives = [...PRO_IDS].reverse().map((id) => archive(d, id));
       const t = {};
       const rows = {};
       const strengthOf = {};
@@ -12844,7 +12846,7 @@ export default function Tabellenrechner() {
                   ? "Ergebnisse eintragen oder nach Stärke simulieren. Die drei höchsten spanischen Ligen und die Copa del Rey mit echten Klubs und Spielern — mit eigener Historie, eigenem Kalender und eigenen Torjägern."
                   : section === "en"
                   ? "Ergebnisse eintragen oder nach Stärke simulieren. Premier League, Championship, League One, League Two und FA Cup mit echten Klubs und Spielern — mit eigener Historie, eigenem Kalender und eigenen Torjägern."
-                  : "Ergebnisse eintragen oder nach Stärke simulieren. Von der Bundesliga bis zu den Regionalligen, DFB-Pokal, Saisonabschluss mit Auf- und Abstieg — und alles bleibt in der Historie."}
+                  : "Ergebnisse eintragen oder nach Stärke simulieren. Bundesliga bis 3. Liga, DFB-Pokal, Saisonabschluss mit Auf- und Abstieg — und alles bleibt in der Historie."}
               </p>
             </div>
             <div className="lr-top-r">
@@ -12896,15 +12898,6 @@ export default function Tabellenrechner() {
                 style={tab === l.id ? accentVars(l.accent) : undefined} onClick={() => setTab(l.id)}>
                 {l.name}
               </button>
-            ))}
-            {section === "de" && DE_GROUPS.map((g) => (
-              <select key={g.key} className="lr-tab lr-tab-sel" id={`tab-${g.key}`} aria-label={g.label}
-                data-on={g.ids.indexOf(tab) >= 0 ? "1" : "0"}
-                style={g.ids.indexOf(tab) >= 0 ? accentVars(LEAGUE_BY_ID[tab].accent) : undefined}
-                value={g.ids.indexOf(tab) >= 0 ? tab : ""} onChange={(e) => { if (e.target.value) setTab(e.target.value); }}>
-                <option value="">{g.label} …</option>
-                {g.ids.map((id) => <option key={id} value={id}>{LEAGUE_BY_ID[id].name}</option>)}
-              </select>
             ))}
             <button className="lr-tab" data-on={tab === "cup" ? "1" : "0"} id="tab-cup"
               style={tab === "cup" ? accentVars(cupAccent) : undefined} onClick={() => setTab("cup")}>
@@ -13290,7 +13283,7 @@ export default function Tabellenrechner() {
                 squadIndex(COUNTRY[section].ids.map((x) => data.active[x]))),
             })).concat([{ key: cupKey, name: cupName, accent: cupAccent,
               liste: scorerList(cupGames(data[cupKey]), squadIndex(COUNTRY[section].ids.map((x) => data.active[x]))) }])
-            : [...LEAGUES.map((l) => ({
+            : [...LEAGUES.filter((l) => !l.group).map((l) => ({
               key: l.id, name: l.name, accent: l.accent,
               liste: scorerList(
                 seasonGames(data.active[l.id], makeFixtures(data.active[l.id].teams.length, data.active[l.id].seed)),
@@ -14863,8 +14856,8 @@ function PromotionModal({ data, onClose, onConfirm }) {
     <Modal onClose={onClose}>
       <h2>Alle Ligen abschließen</h2>
       <p>
-        Alle Abschlusstabellen (Bundesligen, 3. Liga und fünf Regionalligen) wandern in die Historie, danach
-        werden die Ligen neu besetzt. Stärkewerte nehmen die Mannschaften unverändert mit in ihre neue Liga (neue Stärken
+        Die Abschlusstabellen von Bundesliga, 2. Bundesliga und 3. Liga wandern in die Historie, danach
+        werden die Ligen neu besetzt. Die fünf Regionalligen werden dabei unsichtbar im Hintergrund mitsimuliert. Stärkewerte nehmen die Mannschaften unverändert mit in ihre neue Liga (neue Stärken
         per Knopf „Neue Stärken“). Aus der 3. Liga steigen die letzten vier ab, aus den Regionalligen die vier punktbesten
         Meister auf; aus den Regionalligen steigt niemand ab.
       </p>
@@ -17597,7 +17590,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
     ? [...COUNTRY[section].leagues.map((l) => ({ key: l.id, accent: l.accent, head: `Meisterschaften — ${l.name}` })),
       { key: COUNTRY[section].cupKey, accent: COUNTRY[section].cupAccent, head: `Pokalsiege — ${COUNTRY[section].cupName}` }]
     : [
-      ...[...LEAGUES, ...LEGACY_LEAGUES].map((l) => ({
+      ...[...LEAGUES.filter((l) => !l.group), ...LEGACY_LEAGUES].map((l) => ({
         key: l.id, accent: l.accent,
         head: `${l.id === "bl1" ? "Meisterschaften" : "Titel"} — ${l.name}`,
       })),
@@ -17610,7 +17603,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
     const defs = section !== "de"
       ? [...COUNTRY[section].leagues.map((l) => ({ key: l.id, name: l.name, accent: l.accent })), { key: COUNTRY[section].cupKey, name: COUNTRY[section].cupName, accent: COUNTRY[section].cupAccent }]
       : [
-        ...[...LEAGUES, ...LEGACY_LEAGUES].map((l) => ({ key: l.id, name: l.name, accent: l.accent })),
+        ...[...LEAGUES.filter((l) => !l.group), ...LEGACY_LEAGUES].map((l) => ({ key: l.id, name: l.name, accent: l.accent })),
         { key: "cup", name: "DFB-Pokal", accent: CUP_ACCENT },
         ...EURO_COMPS.map((c) => ({ key: c.id, name: c.name, accent: c.accent })),
       ];
