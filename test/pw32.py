@@ -17,7 +17,7 @@ with sync_playwright() as p:
     pg.goto(D + "index.html"); pg.wait_for_selector(".lr-tab")
     tabs = pg.locator(".lr-tabs .lr-tab").all_inner_texts()
     ok(not any(t.strip() in ("4. Liga", "5. Liga") for t in tabs), "keine 4./5. Liga")
-    ok(pg.locator("#tab-rl option").count() == 6 and pg.locator("#tab-ol").count() == 0, "Auswahl: 5 Regionalligen, keine Oberligen")
+    ok(pg.locator("#tab-rl").count() == 0 and pg.locator("#tab-ol").count() == 0, "Regionalligen und Oberligen nicht sichtbar")
     pg.get_by_role("button", name="Spieltag simulieren").first.click(); pg.wait_for_timeout(700)
     d = state(pg)
     for i in RL:
@@ -28,18 +28,11 @@ with sync_playwright() as p:
     # Kader: echte Kader für Regionalliga-Klubs
     ok(all(len(q["p"]) >= 16 for i in RL + OL for q in d["active"][i]["squads"]), "alle Unterbau-Kader mit mind. 16 Spielern")
     ok(len({x["n"] for i in RL + OL for q in d["active"][i]["squads"] for x in q["p"]}) == sum(len(q["p"]) for i in RL + OL for q in d["active"][i]["squads"]), "Spielernamen im Unterbau eindeutig")
-    # Auswahl und Zonen
-    pg.select_option("#tab-rl", "rl_n"); pg.wait_for_timeout(300)
-    ok(pg.locator(".lr-tbl tbody tr").count() == 18, "Regionalliga Nord: 18 Zeilen")
-    ok(pg.locator("#tab-rl").evaluate("e => e.getAttribute('data-on')") == "1", "Auswahl Regionalliga markiert")
-    zonen = pg.locator(".lr-tbl tbody tr").evaluate_all("rs => rs.map(r => r.innerHTML.match(/zone-(\\w+)|data-zone=\"(\\w+)\"/g))")
     # Historie/Kalender/Torjäger/Vereine rendern
     for t in ["Torjäger", "Kalender", "Vereine", "Nachrichten"]:
         pg.locator(".lr-tabs .lr-tab", has_text=t).first.click(); pg.wait_for_timeout(200)
         ok(len(pg.locator("body").inner_text()) > 400, f"{t} rendert")
-    # Vereinsseite eines Regionalligisten über die Suche
-    pg.locator(".lr-tabs .lr-tab", has_text="Vereine").first.click(); pg.wait_for_timeout(300)
-    ok("Regionalliga Nord" in pg.locator("body").inner_text(), "Vereine nennt Regionalliga Nord")
+    ok("Regionalliga" not in pg.locator("body").inner_text(), "Vereine/Seite nennen keine Regionalliga")
     ok(not perr, f"keine JS-Fehler {perr[:2]}")
     # Zwei Saisonwechsel über den Knopf
     sizes = [len(d["active"][i]["teams"]) for i in ["bl1", "bl2", "bl3"] + RL + OL]
@@ -49,7 +42,7 @@ with sync_playwright() as p:
         s2 = [len(d2["active"][i]["teams"]) for i in ["bl1", "bl2", "bl3"] + RL + OL]
         a2 = [t for i in ["bl1", "bl2", "bl3"] + RL + OL for t in d2["active"][i]["teams"]]
         ok(s2 == sizes and len(set(a2)) == len(a2), f"Saisonwechsel {k+1}: Größen gleich, keine Doppelten (Label {d2['active']['rl_n']['label']})")
-    ok(len([h for h in d2["history"] if h["type"] == "league"]) == 16, "Historie: 16 Ligatabellen aus zwei Saisonen")
+    ok(len([h for h in d2["history"] if h["type"] == "league"]) == 6, "Historie: 6 Ligatabellen (nur Bundesliga bis 3. Liga) aus zwei Saisonen")
     b.close()
 
     # Migration: alter Stand mit 4./5. Liga und Regionalliga-Topf

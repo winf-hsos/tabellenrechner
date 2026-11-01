@@ -23,7 +23,7 @@ with sync_playwright() as p:
     d = state(pg)
     h = d["history"]
     ids = sorted(e["leagueId"] for e in h)
-    ok(ids == sorted(["bl1", "bl2", "bl3", "rl_n", "rl_no", "rl_w", "rl_sw", "rl_by", "cup", "cl", "el", "ecl"]), f"Historie enthält alle 12 Wettbewerbe: {ids}")
+    ok(ids == sorted(["bl1", "bl2", "bl3", "cup", "cl", "el", "ecl"]), f"Historie enthält alle 7 Wettbewerbe: {ids}")
     ok(all(e["label"] == "2026/27" for e in h), "alle Einträge für 2026/27")
     ok(all(e.get("winner") and e["winner"] != "—" for e in h if e["type"] in ("cup", "euro")), "Pokal und Europapokale haben Sieger: " + ", ".join(f"{e['leagueId']}={e['winner']}" for e in h if e["type"] in ("cup", "euro")))
     liga = {e["leagueId"]: e for e in h if e["type"] == "league"}
@@ -45,7 +45,7 @@ with sync_playwright() as p:
     # zweite Saison direkt hinterher
     pg.locator("#playall-open").click(); pg.locator("#playall-go").click(); pg.wait_for_timeout(2500)
     d2 = state(pg)
-    ok(len(d2["history"]) == 24 and sum(1 for e in d2["history"] if e["label"] == "2027/28") == 12, f"zweite Saison: {len(d2['history'])} Einträge, davon 26 für 2027/28")
+    ok(len(d2["history"]) == 14 and sum(1 for e in d2["history"] if e["label"] == "2027/28") == 7, f"zweite Saison: {len(d2['history'])} Einträge, davon 26 für 2027/28")
     ok(d2["active"]["bl1"]["label"] == "2028/29", "dritte Saison beginnt")
     b.close()
 print("Fehler:", errs)

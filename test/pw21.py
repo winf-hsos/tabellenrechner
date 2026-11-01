@@ -82,7 +82,7 @@ with sync_playwright() as p:
         teilnehmer = {r["name"] for r in e["table"]}
         ok(set(en1[c]) <= teilnehmer and len(en1[c]) == len(en0[c]), f"{c.upper()}: die {len(en1[c])} englischen Qualifikanten aus der Premier-League-Tabelle spielen mit")
     ok(all(len(d["euro"]["teams"][c]) == 36 and sorted(t["name"] for t in d["euro"]["teams"][c] if t.get("en")) == sorted(en1[c]) for c in ("cl", "el", "ecl")), "deutscher Saisonwechsel lässt die englischen Qualifikanten stehen")
-    ok(sum(1 for e in d["history"] if e["leagueId"] in ("pl", "ch", "l1", "l2", "facup")) == 5 and sum(1 for e in d["history"] if e["leagueId"] not in ("pl", "ch", "l1", "l2", "facup")) == 12, "Historie: 5 englische und 12 deutsche Einträge")
+    ok(sum(1 for e in d["history"] if e["leagueId"] in ("pl", "ch", "l1", "l2", "facup")) == 5 and sum(1 for e in d["history"] if e["leagueId"] not in ("pl", "ch", "l1", "l2", "facup")) == 7, "Historie: 5 englische und 7 deutsche Einträge")
     # Abschnitt bleibt nach Neuladen
     pg.locator("#sec-en").click(); pg.wait_for_timeout(900)
     pg.reload(); pg.wait_for_selector(".lr-tab"); pg.wait_for_timeout(500)

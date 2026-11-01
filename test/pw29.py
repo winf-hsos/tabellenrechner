@@ -101,7 +101,7 @@ with sync_playwright() as p:
     ok(len(state(pg)["news"]) == 1, "Artikel gelöscht")
     # --- Vereine-Tab, Suche ---
     pg.locator("#tab-clubs").click(); pg.wait_for_selector("#clubs-tab")
-    ok(pg.locator("#clubs-tab .lr-k-tile").count() == 146 + 1, f"Vereine: 146 Klubs + Favoritenkachel ({pg.locator('#clubs-tab .lr-k-tile').count()})")
+    ok(pg.locator("#clubs-tab .lr-k-tile").count() == 56 + 1, f"Vereine: 56 Klubs + Favoritenkachel ({pg.locator('#clubs-tab .lr-k-tile').count()})")
     pg.locator("#clubs-q").fill("Bayern")
     ok(pg.locator("#clubs-tab .lr-k-tile").count() >= 1, "Vereinssuche im Tab")
     pg.locator("#search-q").fill("Kane")

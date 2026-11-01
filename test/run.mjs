@@ -43,18 +43,15 @@ if (which === "old") {
 console.log("Reiter:", tabs().join(" | ").slice(0, 160));
 const DE_ALL = ["bl1","bl2","bl3","rl_n","rl_no","rl_w","rl_sw","rl_by"];
 const RL = DE_ALL.slice(3, 8);
-ok(tabs().some((t) => t.startsWith("Regionalliga")), "Auswahl Regionalliga vorhanden");
+ok(!tabs().some((t) => /Regionalliga|Oberliga/.test(t)) && !document.querySelector("#tab-rl"), "Regionalligen nicht sichtbar");
 ok(!tabs().includes("4. Liga") && !tabs().includes("5. Liga"), "keine 4./5. Liga mehr");
 await flush();
 const names = (d) => LEAGUES(d).flat();
 const LEAGUES = (d) => DE_ALL.map((id) => d.active[id].teams);
 const pick = async (selId, val) => { const el = document.querySelector("#" + selId); if (!el) throw new Error("Auswahl fehlt " + selId); await act(async () => { el.value = val; el.dispatchEvent(new dom.window.Event("change", { bubbles: true })); }); };
 const rows = () => document.querySelectorAll("tbody tr").length;
-await pick("tab-rl", "rl_w");
-ok(rows() === 18, `Regionalliga West: ${rows()} Zeilen`);
-const sel = document.querySelector("select[aria-label='Spieltag wählen']");
-ok(sel && sel.options.length === 34, `Spieltag-Auswahl hat ${sel && sel.options.length} Spieltage`);
-ok(!document.querySelector("#tab-ol"), "keine Oberligen mehr");
+await click(btn("Bundesliga"));
+ok(rows() === 18, `Bundesliga: ${rows()} Zeilen`);
 await click(btn("Spieltag simulieren")); await flush();
 let d = saved();
 const sizes = DE_ALL.map((id) => d.active[id].teams.length);
@@ -67,12 +64,11 @@ ok(DE_ALL.every((id) => d.active[id].squads.every((q) => q && q.p.length >= 16))
 
 // Alle Ligen komplett simulieren
 for (const t of ["Bundesliga","2. Bundesliga","3. Liga"]) { await click(btn(t)); await click(btn("Rest der Saison")); }
-for (const id of DE_ALL.slice(3)) { await pick("tab-rl", id); await click(btn("Rest der Saison")); }
 await flush();
 d = saved();
 const played = (id) => Object.keys(d.active[id].results).length;
-ok(DE_ALL.every((id) => played(id) === d.active[id].teams.length * (d.active[id].teams.length - 1)), "alle Ligen komplett gespielt");
-ok(DE_ALL.every((id) => Object.values(d.active[id].results).every((r) => r.sc && r.sc.length === Number(r.h) + Number(r.a))), "Torschützen vollständig");
+ok(DE_ALL.slice(0, 3).every((id) => played(id) === d.active[id].teams.length * (d.active[id].teams.length - 1)), "sichtbare Ligen komplett gespielt");
+ok(DE_ALL.slice(0, 3).every((id) => Object.values(d.active[id].results).every((r) => r.sc && r.sc.length === Number(r.h) + Number(r.a))), "Torschützen vollständig");
 // Der Knopf spielt auch Historie und Saisonwechsel? -> nur Spielen. Daten vor dem Abschluss merken
 d = saved();
 const tbl = (id) => { const s = d.active[id]; return s.teams.map((n, i) => ({ n, i })); };
@@ -99,12 +95,12 @@ ok(new Set(all2).size === all2.length && all2.length === all.length, "nach Aufst
 // Auf-/Abstieg prüfen anhand der alten Tabellen
 const order = (dd, id) => { const s = dd.active[id]; return s.teams; };
 const bl3Old = d.active.bl3.teams;
-ok(d.history.length === hist0 && d2.history.length === hist0 + DE_ALL.length, `Historie +${DE_ALL.length} Tabellen (${d2.history.length - hist0})`);
-ok(d2.history.slice(0, DE_ALL.length).map((h) => h.leagueId).join() === [...DE_ALL].reverse().join(), "Historie-Reihenfolge");
-const champ = (id) => d2.history.find((h) => h.leagueId === id).table[0].name;
-const lowChamps = RL.map(champ);
-const inBl3 = lowChamps.filter((n) => d2.active.bl3.teams.includes(n));
-ok(inBl3.length === 4, "vier Regionalliga-Meister in der 3. Liga: " + inBl3);
+ok(d.history.length === hist0 && d2.history.length === hist0 + 3, `Historie +3 Tabellen (${d2.history.length - hist0})`);
+ok(d2.history.slice(0, 3).map((h) => h.leagueId).join() === "bl3,bl2,bl1", "Historie-Reihenfolge");
+const rlOld = new Set(RL.flatMap((id) => d.active[id].teams));
+const inBl3 = d2.active.bl3.teams.filter((n) => rlOld.has(n));
+ok(inBl3.length === 4, "vier Regionalliga-Aufsteiger in der 3. Liga: " + inBl3);
+ok(RL.every((id) => d2.active[id].results && Object.keys(d2.active[id].results).length === 0 && d2.active[id].label === "2027/28"), "Regionalligen im Hintergrund auf neue Saison");
 const bl3Down = d2.history.find((h) => h.leagueId === "bl3").table.slice(16).map((r) => r.name);
 ok(bl3Down.every((n) => RL.some((id) => d2.active[id].teams.includes(n))), "Letzte 4 der 3. Liga in einer Regionalliga: " + bl3Down);
 ok(d2.active.rl_w.label === "2027/28", "neues Label " + d2.active.rl_w.label);
@@ -129,7 +125,7 @@ ok(g1.length === 32 && new Set(cupTeams).size === 64, `Pokal: ${g1.length} Spiel
 await click(btn("Runde simulieren")); await flush();
 for (const t of ["Kalender","Torjäger"]) { await click(btn(t)); ok(document.body.textContent.length > 500, t + " rendert"); }
 await click([...document.querySelectorAll(".lr-tab")].find((b) => b.textContent.startsWith("Historie")));
-ok(document.body.textContent.includes("Regionalliga West"), "Historie nennt Regionalliga West");
+ok(!document.body.textContent.includes("Regionalliga"), "Historie ohne Regionalligen");
 
 // Automatischer Durchlauf: alle Wettbewerbe spielen und die Saison wechseln
 await click(document.querySelector("#playall-open")); await flush();
