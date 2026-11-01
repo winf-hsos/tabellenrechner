@@ -11659,25 +11659,29 @@ const DE_REGION = (() => {
  * Die vier punktbesten Regionalliga-Meister steigen in die 3. Liga auf; jede Regionalliga mit Aufsteiger bekommt einen
  * Absteiger der 3. Liga (möglichst aus der Region); aus den Regionalligen steigt niemand ab. So bleibt jede Liga gleich groß.
  */
-function deLowMoves(rows, absteiger) {
+function deLowMoves(rows, absteiger, aufNamen) {
   const names = (id) => rows[id].map((r) => r.name);
-  const meister = DE_RL.map((l) => ({ ...rows[l.id][0], gid: l.id }));
-  const rang = [...meister].sort((a, b) => b.pkt - a.pkt || b.diff - a.diff || b.gt - a.gt || a.name.localeCompare(b.name, "de"));
-  const hoch = rang.slice(0, 4);
+  const hoch = (aufNamen && aufNamen.length === 4 ? aufNamen : deLowDefault(rows)).map((n) => ({
+    name: n, gid: DE_RL.find((l) => names(l.id).indexOf(n) >= 0).id }));
   const neu = {};
   const rest = [...absteiger];
+  const nimm = (gid, n) => { (neu[gid] = neu[gid] || []).push(n); };
+  const offen = [];
   hoch.forEach((c) => {
     const i = rest.findIndex((n) => DE_REGION[n] === c.gid);
-    if (i >= 0) { neu[c.gid] = rest[i]; rest.splice(i, 1); }
+    if (i >= 0) { nimm(c.gid, rest[i]); rest.splice(i, 1); } else offen.push(c);
   });
-  hoch.forEach((c) => { if (!neu[c.gid]) neu[c.gid] = rest.shift(); });
+  offen.forEach((c) => nimm(c.gid, rest.shift()));
+  const weg = new Set(hoch.map((c) => c.name));
   const lists = {};
-  DE_RL.forEach((l) => {
-    const t = names(l.id);
-    const aufMeister = hoch.some((c) => c.gid === l.id);
-    lists[l.id] = [...t.slice(aufMeister ? 1 : 0), ...(neu[l.id] ? [neu[l.id]] : [])];
-  });
+  DE_RL.forEach((l) => { lists[l.id] = [...names(l.id).filter((n) => !weg.has(n)), ...(neu[l.id] || [])]; });
   return { promoted: hoch.map((c) => c.name), lists };
+}
+
+/** Standard-Aufsteiger: die vier punktbesten Regionalliga-Meister. */
+function deLowDefault(rows) {
+  const meister = DE_RL.map((l) => rows[l.id][0]);
+  return [...meister].sort((a, b) => b.pkt - a.pkt || b.diff - a.diff || b.gt - a.gt || a.name.localeCompare(b.name, "de")).slice(0, 4).map((r) => r.name);
 }
 
 /** Relegationsduelle für den automatischen Saisonwechsel. */
@@ -12412,10 +12416,13 @@ export default function Tabellenrechner() {
     return euroQualifiers(order, cupChampionName(data))[compId];
   };
 
-  const applyPromotion = (duelA, duelB) => {
+  const applyPromotion = (duelA, duelB, aufsteiger, played) => {
     setData((d0) => {
-      // Die Regionalligen laufen unsichtbar im Hintergrund: offene Spiele werden vor dem Saisonwechsel ausgewürfelt.
-      const d = playLeagues(d0, DE_RL.map((l) => l.id));
+      // Die Regionalligen laufen unsichtbar im Hintergrund: offene Spiele werden vor dem Saisonwechsel ausgewürfelt
+      // (der Dialog hat sie schon gespielt, damit die Auswahl der Aufsteiger zur Tabelle passt).
+      const d = played
+        ? { ...d0, active: { ...d0.active, ...Object.fromEntries(DE_RL.map((l) => [l.id, played.active[l.id]])) } }
+        : playLeagues(d0, DE_RL.map((l) => l.id));
       const archives = [...PRO_IDS].reverse().map((id) => archive(d, id));
       const t = {};
       const rows = {};
@@ -12445,7 +12452,7 @@ export default function Tabellenrechner() {
       const stay2 = duelB === "up" ? t.bl3[2] : t.bl2[15];
       const down2 = duelB === "up" ? t.bl2[15] : t.bl3[2];
 
-      const low = deLowMoves(rows, t.bl3.slice(16));
+      const low = deLowMoves(rows, t.bl3.slice(16), aufsteiger);
       const lists = {
         bl1: [...t.bl1.slice(0, 15), t.bl2[0], t.bl2[1], stay1],
         bl2: [...t.bl2.slice(3, 15), t.bl1[16], t.bl1[17], down1, t.bl3[0], t.bl3[1], stay2],
@@ -14840,6 +14847,18 @@ function CloseModal({ league, season, rows, playedGames, totalGames, onClose, on
 }
 
 function PromotionModal({ data, onClose, onConfirm }) {
+  // Die Regionalligen sind unsichtbar: für die Auswahl der Aufsteiger werden ihre offenen Spiele hier einmal ausgewürfelt.
+  const played = useMemo(() => playLeagues(data, DE_RL.map((l) => l.id)), [data]);
+  const rlRows = useMemo(() => {
+    const t = {};
+    DE_RL.forEach((l) => {
+      const s = played.active[l.id];
+      t[l.id] = computeTable(s.teams, makeFixtures(s.teams.length, s.seed), s.results);
+    });
+    return t;
+  }, [played]);
+  const [auf, setAuf] = useState(() => deLowDefault(rlRows));
+  const aufBad = new Set(auf).size !== 4;
   const tables = useMemo(() => {
     const t = {};
     LEAGUE_IDS.forEach((id) => {
@@ -14857,9 +14876,8 @@ function PromotionModal({ data, onClose, onConfirm }) {
       <h2>Alle Ligen abschließen</h2>
       <p>
         Die Abschlusstabellen von Bundesliga, 2. Bundesliga und 3. Liga wandern in die Historie, danach
-        werden die Ligen neu besetzt. Die fünf Regionalligen werden dabei unsichtbar im Hintergrund mitsimuliert. Stärkewerte nehmen die Mannschaften unverändert mit in ihre neue Liga (neue Stärken
-        per Knopf „Neue Stärken“). Aus der 3. Liga steigen die letzten vier ab, aus den Regionalligen die vier punktbesten
-        Meister auf; aus den Regionalligen steigt niemand ab.
+        werden die Ligen neu besetzt. Die fünf Regionalligen werden dabei unsichtbar im Hintergrund mitsimuliert; welche vier Klubs aufsteigen, bestimmst du unten. Stärkewerte nehmen die Mannschaften unverändert mit in ihre neue Liga (neue Stärken
+        per Knopf „Neue Stärken“). Aus der 3. Liga steigen die letzten vier ab; aus den Regionalligen steigen vier Klubs deiner Wahl auf.
       </p>
 
       {(() => {
@@ -14904,9 +14922,31 @@ function PromotionModal({ data, onClose, onConfirm }) {
         </div>
       </div>
 
+      <div className="lr-duel">
+        <div className="lr-duel-h">
+          Aufsteiger aus den Regionalligen — welche vier Klubs spielen nächste Saison in der 3. Liga?
+          <div style={{ fontWeight: 400, fontSize: 12, opacity: 0.75, marginTop: 2 }}>
+            Vorschlag: die vier punktbesten Meister. Für die Absteiger der 3. Liga rücken ihre Plätze nach.
+          </div>
+        </div>
+        {auf.map((n, i) => (
+          <div className="lr-team-row" key={i} style={{ gridTemplateColumns: "1fr" }}>
+            <select className="lr-team-in" value={n} aria-label={`Aufsteiger ${i + 1}`}
+              onChange={(e) => setAuf((c) => c.map((x, j) => (j === i ? e.target.value : x)))}>
+              {DE_RL.map((l) => (
+                <optgroup key={l.id} label={l.name}>
+                  {rlRows[l.id].map((r) => <option key={r.name} value={r.name}>{r.pos}. {r.name} ({r.pkt} Pkt.)</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        ))}
+        {aufBad && <p style={{ margin: "6px 0 0", fontSize: 12 }}>Bitte vier verschiedene Klubs wählen.</p>}
+      </div>
+
       <div className="lr-modal-foot">
         <button className="lr-btn" onClick={onClose}>Abbrechen</button>
-        <button className="lr-btn lr-btn-p" onClick={() => onConfirm(duelA, duelB)}>
+        <button className="lr-btn lr-btn-p" disabled={aufBad} onClick={() => onConfirm(duelA, duelB, auf, played)}>
           Abschließen und neu besetzen
         </button>
       </div>

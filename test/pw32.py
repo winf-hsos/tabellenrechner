@@ -62,4 +62,31 @@ with sync_playwright() as p:
     ok(m["active"]["bl1"]["teams"] == json.loads(old)["active"]["bl1"]["teams"], "alter Stand: Bundesliga unverändert")
     ok(not perr, f"alter Stand: keine JS-Fehler {perr[:2]}")
     b.close()
+    # Aufsteiger selbst wählen
+    b = p.chromium.launch(); pg = b.new_context(viewport={"width": 1300, "height": 900}).new_page(); perr = []
+    pg.on("pageerror", lambda e: perr.append(str(e)))
+    pg.goto(D + "index.html"); pg.wait_for_selector(".lr-tab")
+    pg.get_by_role("button", name="Spieltag simulieren").first.click(); pg.wait_for_timeout(700)
+    for t in ["Bundesliga", "2. Bundesliga", "3. Liga"]:
+        pg.locator(".lr-tabs .lr-tab", has_text=t).first.click(); pg.get_by_role("button", name="Rest der Saison").click(); pg.wait_for_timeout(200)
+    pg.locator(".lr-tabs .lr-tab", has_text="Historie").click()
+    pg.get_by_role("button", name="Alle Ligen abschließen").click(); pg.wait_for_selector("select[aria-label='Aufsteiger 1']")
+    ok(pg.locator("select[aria-label^='Aufsteiger']").count() == 4, "Dialog: vier Aufsteiger-Auswahlen")
+    opts = pg.locator("select[aria-label='Aufsteiger 1'] option").all_inner_texts()
+    ok(len(opts) == 90, f"alle 90 Regionalligisten wählbar ({len(opts)})")
+    vorher = pg.locator("select[aria-label='Aufsteiger 1']").input_value()
+    wahl = pg.locator("select[aria-label='Aufsteiger 1'] option").nth(1).get_attribute("value")  # Platz 2 der ersten Regionalliga
+    pg.select_option("select[aria-label='Aufsteiger 1']", wahl)
+    pg.select_option("select[aria-label='Aufsteiger 2']", wahl)
+    ok(pg.get_by_role("button", name="Abschließen und neu besetzen").is_disabled(), "doppelte Auswahl sperrt den Knopf")
+    pg.select_option("select[aria-label='Aufsteiger 2']", pg.locator("select[aria-label='Aufsteiger 2'] option").nth(19).get_attribute("value"))
+    gew = [pg.locator(f"select[aria-label='Aufsteiger {i}']").input_value() for i in (1, 2, 3, 4)]
+    pg.get_by_role("button", name="Abschließen und neu besetzen").click(); pg.wait_for_timeout(1200)
+    n = state(pg)
+    ok(all(t in n["active"]["bl3"]["teams"] for t in gew), f"gewählte Aufsteiger spielen in der 3. Liga: {gew}")
+    ok([len(n["active"][i]["teams"]) for i in ["bl3"] + RL] == [20, 18, 18, 18, 18, 18], "Ligagrößen bleiben gleich")
+    al = [t for i in ["bl1", "bl2", "bl3"] + RL for t in n["active"][i]["teams"]]
+    ok(len(al) == len(set(al)), "keine Doppelten")
+    ok(not perr, f"keine JS-Fehler {perr[:2]}")
+    b.close()
 print("Fehler:", errs)
