@@ -41,9 +41,9 @@ if (which === "old") {
 }
 
 console.log("Reiter:", tabs().join(" | ").slice(0, 160));
-const DE_ALL = ["bl1","bl2","bl3","rl_n","rl_no","rl_w","rl_sw","rl_by","ol_bw","ol_bn","ol_bs","ol_hb","ol_hh","ol_he","ol_mr","ol_nr","ol_ns","ol_non","ol_nos","ol_rps","ol_sh","ol_we"];
+const DE_ALL = ["bl1","bl2","bl3","rl_n","rl_no","rl_w","rl_sw","rl_by"];
 const RL = DE_ALL.slice(3, 8);
-ok(tabs().some((t) => t.startsWith("Regionalliga")) && tabs().some((t) => t.startsWith("Oberliga")), "Auswahl Regionalliga/Oberliga vorhanden");
+ok(tabs().some((t) => t.startsWith("Regionalliga")), "Auswahl Regionalliga vorhanden");
 ok(!tabs().includes("4. Liga") && !tabs().includes("5. Liga"), "keine 4./5. Liga mehr");
 await flush();
 const names = (d) => LEAGUES(d).flat();
@@ -54,21 +54,20 @@ await pick("tab-rl", "rl_w");
 ok(rows() === 18, `Regionalliga West: ${rows()} Zeilen`);
 const sel = document.querySelector("select[aria-label='Spieltag wählen']");
 ok(sel && sel.options.length === 34, `Spieltag-Auswahl hat ${sel && sel.options.length} Spieltage`);
-await pick("tab-ol", "ol_we");
-ok(rows() === 12, "Oberliga Westfalen: 12 Zeilen");
+ok(!document.querySelector("#tab-ol"), "keine Oberligen mehr");
 await click(btn("Spieltag simulieren")); await flush();
 let d = saved();
 const sizes = DE_ALL.map((id) => d.active[id].teams.length);
 console.log("Größen:", sizes.join(","));
-ok(sizes.slice(0, 8).join() === "18,18,20,18,18,18,18,18" && sizes.every((n) => n % 2 === 0), "Ligagrößen " + sizes.slice(0, 8));
+ok(sizes.join() === "18,18,20,18,18,18,18,18", "Ligagrößen " + sizes.slice(0, 8));
 const all = names(d);
 ok(new Set(all).size === all.length, `keine Doppelten über die Ligen (${all.length} Teams)`);
-ok(!all.some((n) => /\sII$/.test(n) && RL.concat(DE_ALL.slice(8)).some((id) => d.active[id].teams.includes(n))), "keine zweiten Mannschaften im Unterbau");
+ok(!all.some((n) => /\sII$/.test(n) && RL.some((id) => d.active[id].teams.includes(n))), "keine zweiten Mannschaften im Unterbau");
 ok(DE_ALL.every((id) => d.active[id].squads.every((q) => q && q.p.length >= 16)), "alle Kader vorhanden");
 
 // Alle Ligen komplett simulieren
 for (const t of ["Bundesliga","2. Bundesliga","3. Liga"]) { await click(btn(t)); await click(btn("Rest der Saison")); }
-for (const id of DE_ALL.slice(3)) { await pick(id.startsWith("rl") ? "tab-rl" : "tab-ol", id); await click(btn("Rest der Saison")); }
+for (const id of DE_ALL.slice(3)) { await pick("tab-rl", id); await click(btn("Rest der Saison")); }
 await flush();
 d = saved();
 const played = (id) => Object.keys(d.active[id].results).length;
@@ -95,7 +94,7 @@ ok(new Set(all2).size === all2.length && all2.length === all.length, "nach Aufst
 {
   const diffs = [];
   DE_ALL.forEach((id) => d2.active[id].teams.forEach((n, i) => { if (n in vorher) diffs.push(d2.active[id].strengths[i] - vorher[n]); }));
-  ok(diffs.length > 250 && diffs.every((x) => x === 0), `Stärken bleiben nach dem Saisonwechsel unverändert (${diffs.length} Teams)`);
+  ok(diffs.length > 100 && diffs.every((x) => x === 0), `Stärken bleiben nach dem Saisonwechsel unverändert (${diffs.length} Teams)`);
 }
 // Auf-/Abstieg prüfen anhand der alten Tabellen
 const order = (dd, id) => { const s = dd.active[id]; return s.teams; };
@@ -108,8 +107,6 @@ const inBl3 = lowChamps.filter((n) => d2.active.bl3.teams.includes(n));
 ok(inBl3.length === 4, "vier Regionalliga-Meister in der 3. Liga: " + inBl3);
 const bl3Down = d2.history.find((h) => h.leagueId === "bl3").table.slice(16).map((r) => r.name);
 ok(bl3Down.every((n) => RL.some((id) => d2.active[id].teams.includes(n))), "Letzte 4 der 3. Liga in einer Regionalliga: " + bl3Down);
-const olChamps = DE_ALL.slice(8).map(champ);
-ok(olChamps.every((n) => RL.some((id) => d2.active[id].teams.includes(n))), "alle 14 Oberliga-Meister in einer Regionalliga");
 ok(d2.active.rl_w.label === "2027/28", "neues Label " + d2.active.rl_w.label);
 ok(d2.legacyLower === null || d2.legacyLower === undefined, "kein Altbestand");
 

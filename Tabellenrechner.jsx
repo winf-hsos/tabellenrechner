@@ -6,8 +6,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback, useContext, c
 
 /**
  * Der deutsche Unterbau: die fünf Regionalligen (je 18 Klubs, ohne Reservemannschaften, aufgefüllt mit den besten
- * Oberligisten) und die Oberligen. Auf-/Abstieg: Regionalliga-Meister → 3. Liga (die vier besten Meister), je Oberliga
- * steigt der Meister in „seine“ Regionalliga auf (`feeds`), aus der Regionalliga steigt je gespeister Oberliga ein Klub ab.
+ * Oberligisten). Auf-/Abstieg: die vier punktbesten Meister steigen in die 3. Liga auf, aus den Regionalligen steigt niemand ab.
  */
 // <<DE_LOW>>
 const DE_LOW = [
@@ -20,12 +19,7 @@ const DE_LOW = [
    65,
    52
   ],
-  "feeds": [
-   "ol_ns",
-   "ol_hh",
-   "ol_hb",
-   "ol_sh"
-  ],
+  "feeds": [],
   "teams": [
    "SC Weiche Flensburg",
    "SV Drochtersen/Assel",
@@ -72,7 +66,7 @@ const DE_LOW = [
    "ecl": 0,
    "up": 1,
    "po": null,
-   "down": 4
+   "down": 0
   }
  },
  {
@@ -84,10 +78,7 @@ const DE_LOW = [
    65,
    52
   ],
-  "feeds": [
-   "ol_non",
-   "ol_nos"
-  ],
+  "feeds": [],
   "teams": [
    "FC Rot-Weiß Erfurt",
    "Chemnitzer FC",
@@ -134,7 +125,7 @@ const DE_LOW = [
    "ecl": 0,
    "up": 1,
    "po": null,
-   "down": 2
+   "down": 0
   }
  },
  {
@@ -146,11 +137,7 @@ const DE_LOW = [
    65,
    52
   ],
-  "feeds": [
-   "ol_we",
-   "ol_nr",
-   "ol_mr"
-  ],
+  "feeds": [],
   "teams": [
    "Rot-Weiß Oberhausen",
    "FC Gütersloh",
@@ -197,7 +184,7 @@ const DE_LOW = [
    "ecl": 0,
    "up": 1,
    "po": null,
-   "down": 3
+   "down": 0
   }
  },
  {
@@ -209,11 +196,7 @@ const DE_LOW = [
    65,
    52
   ],
-  "feeds": [
-   "ol_he",
-   "ol_rps",
-   "ol_bw"
-  ],
+  "feeds": [],
   "teams": [
    "SGV Heilbronn-Freiberg",
    "VfR Aalen",
@@ -260,7 +243,7 @@ const DE_LOW = [
    "ecl": 0,
    "up": 1,
    "po": null,
-   "down": 3
+   "down": 0
   }
  },
  {
@@ -272,10 +255,7 @@ const DE_LOW = [
    65,
    52
   ],
-  "feeds": [
-   "ol_bn",
-   "ol_bs"
-  ],
+  "feeds": [],
   "teams": [
    "FC Memmingen",
    "TSV Buchbach",
@@ -322,715 +302,14 @@ const DE_LOW = [
    "ecl": 0,
    "up": 1,
    "po": null,
-   "down": 2
-  }
- },
- {
-  "id": "ol_bw",
-  "name": "Oberliga Baden-Württemberg",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "TSG Backnang 1919",
-   "FC 08 Villingen",
-   "SSV Reutlingen 05",
-   "Bahlinger SC",
-   "Young Boys Reutlingen",
-   "FV Ravensburg",
-   "1. FC Mühlhausen",
-   "1. CfR Pforzheim",
-   "FC Holzhausen",
-   "TSV Essingen",
-   "Türkischer SV Singen",
-   "TSG Balingen",
-   "FC Nöttingen",
-   "FC Teningen",
-   "Türkspor Neckarsulm",
-   "1. FC Normannia Gmünd"
-  ],
-  "start": {
-   "TSG Backnang 1919": 60,
-   "FC 08 Villingen": 59,
-   "SSV Reutlingen 05": 58,
-   "Bahlinger SC": 57,
-   "Young Boys Reutlingen": 56,
-   "FV Ravensburg": 55,
-   "1. FC Mühlhausen": 54,
-   "1. CfR Pforzheim": 53,
-   "FC Holzhausen": 52,
-   "TSV Essingen": 51,
-   "Türkischer SV Singen": 50,
-   "TSG Balingen": 49,
-   "FC Nöttingen": 48,
-   "FC Teningen": 47,
-   "Türkspor Neckarsulm": 46,
-   "1. FC Normannia Gmünd": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_bn",
-  "name": "Oberliga Bayern Nord",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "SpVgg Bayern Hof",
-   "FC Eintracht Bamberg",
-   "TSV Kornburg",
-   "DJK Gebenbach",
-   "Viktoria Aschaffenburg",
-   "SV Fortuna Regensburg",
-   "FSV Stadeln",
-   "TSV Neudrossenfeld",
-   "TSV Großbardorf",
-   "SpVgg SV Weiden",
-   "DJK Ammerthal",
-   "DJK Don Bosco Bamberg",
-   "TSV 1861 Nördlingen",
-   "ASV Neumarkt"
-  ],
-  "start": {
-   "SpVgg Bayern Hof": 60,
-   "FC Eintracht Bamberg": 59,
-   "TSV Kornburg": 58,
-   "DJK Gebenbach": 57,
-   "Viktoria Aschaffenburg": 55,
-   "SV Fortuna Regensburg": 54,
-   "FSV Stadeln": 53,
-   "TSV Neudrossenfeld": 52,
-   "TSV Großbardorf": 51,
-   "SpVgg SV Weiden": 50,
-   "DJK Ammerthal": 48,
-   "DJK Don Bosco Bamberg": 47,
-   "TSV 1861 Nördlingen": 46,
-   "ASV Neumarkt": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_bs",
-  "name": "Oberliga Bayern Süd",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "SV Erlbach",
-   "TSV 1880 Wasserburg",
-   "FSV Pfaffenhofen",
-   "SpVgg Landshut",
-   "SpVgg Hankofen-Hailing",
-   "FC Sportfreunde Schwaig",
-   "FC Ismaning",
-   "TSV Schwabmünchen",
-   "SV Heimstetten",
-   "TSV Kottern",
-   "FC Gundelfingen",
-   "FC Deisenhofen",
-   "TSV 1860 Rosenheim",
-   "SV Kirchanschöring",
-   "TuS Geretsried",
-   "SV Schalding-Heining"
-  ],
-  "start": {
-   "SV Erlbach": 60,
-   "TSV 1880 Wasserburg": 59,
-   "FSV Pfaffenhofen": 58,
-   "SpVgg Landshut": 57,
-   "SpVgg Hankofen-Hailing": 56,
-   "FC Sportfreunde Schwaig": 55,
-   "FC Ismaning": 54,
-   "TSV Schwabmünchen": 53,
-   "SV Heimstetten": 52,
-   "TSV Kottern": 51,
-   "FC Gundelfingen": 50,
-   "FC Deisenhofen": 49,
-   "TSV 1860 Rosenheim": 48,
-   "SV Kirchanschöring": 47,
-   "TuS Geretsried": 46,
-   "SV Schalding-Heining": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_hb",
-  "name": "Oberliga Bremen",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "Brinkumer SV",
-   "Blumenthaler SV",
-   "OSC Bremerhaven",
-   "ESC Geestemünde",
-   "SG Aumund-Vegesack",
-   "TuS Schwachhausen",
-   "FC Union 60 Bremen",
-   "Vatan Sport Bremen",
-   "TV Eiche Horn",
-   "Bremer TS Neustadt",
-   "Leher Turnerschaft",
-   "SV Grohn",
-   "FC Oberneuland",
-   "TS Woltmershausen"
-  ],
-  "start": {
-   "Brinkumer SV": 60,
-   "Blumenthaler SV": 59,
-   "OSC Bremerhaven": 58,
-   "ESC Geestemünde": 57,
-   "SG Aumund-Vegesack": 55,
-   "TuS Schwachhausen": 54,
-   "FC Union 60 Bremen": 53,
-   "Vatan Sport Bremen": 52,
-   "TV Eiche Horn": 51,
-   "Bremer TS Neustadt": 50,
-   "Leher Turnerschaft": 48,
-   "SV Grohn": 47,
-   "FC Oberneuland": 46,
-   "TS Woltmershausen": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_hh",
-  "name": "Oberliga Hamburg",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "SC Victoria Hamburg",
-   "SC Vorwärts-Wacker 04",
-   "TuS Dassendorf",
-   "Niendorfer TSV",
-   "Altona 93",
-   "Hamburger Turnerschaft von 1816",
-   "TBS Pinneberg",
-   "FC Süderelbe",
-   "TSV Sasel",
-   "Hamburg-Eimsbütteler Ballspiel-Club",
-   "TSV Buchholz 08",
-   "ETSV Hamburg",
-   "FC Teutonia Ottensen",
-   "SSG Nikola Tesla Hamburg",
-   "Wandsbeker TSV Concordia",
-   "TuRa Harksheide"
-  ],
-  "start": {
-   "SC Victoria Hamburg": 60,
-   "SC Vorwärts-Wacker 04": 59,
-   "TuS Dassendorf": 58,
-   "Niendorfer TSV": 57,
-   "Altona 93": 56,
-   "Hamburger Turnerschaft von 1816": 55,
-   "TBS Pinneberg": 54,
-   "FC Süderelbe": 53,
-   "TSV Sasel": 52,
-   "Hamburg-Eimsbütteler Ballspiel-Club": 51,
-   "TSV Buchholz 08": 50,
-   "ETSV Hamburg": 49,
-   "FC Teutonia Ottensen": 48,
-   "SSG Nikola Tesla Hamburg": 47,
-   "Wandsbeker TSV Concordia": 46,
-   "TuRa Harksheide": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_he",
-  "name": "Hessenliga",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "Türk Gücü Friedberg",
-   "SV Rot-Weiß Hadamar",
-   "FC Eddersheim",
-   "FC TuBa Pohlheim",
-   "Hünfelder SV",
-   "FSV 1926 Fernwald",
-   "VfB Marburg",
-   "Rot-Weiß Walldorf",
-   "Bayern Alzenau",
-   "CSC 03 Kassel",
-   "KSV Baunatal",
-   "SV Hummetroth",
-   "SC 1960 Hanau",
-   "FC Gießen"
-  ],
-  "start": {
-   "Türk Gücü Friedberg": 60,
-   "SV Rot-Weiß Hadamar": 59,
-   "FC Eddersheim": 58,
-   "FC TuBa Pohlheim": 57,
-   "Hünfelder SV": 55,
-   "FSV 1926 Fernwald": 54,
-   "VfB Marburg": 53,
-   "Rot-Weiß Walldorf": 52,
-   "Bayern Alzenau": 51,
-   "CSC 03 Kassel": 50,
-   "KSV Baunatal": 48,
-   "SV Hummetroth": 47,
-   "SC 1960 Hanau": 46,
-   "FC Gießen": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_mr",
-  "name": "Mittelrheinliga",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "SV Eintracht Hohkeppel",
-   "SpVg Frechen",
-   "1. FC Düren",
-   "Borussia Lindenthal-Hohenlind",
-   "VfL 08 Vichttal",
-   "SSV Bornheim",
-   "Siegburger SV 04",
-   "FC Hürth",
-   "TuS Chlodwig Zülpich",
-   "FC Hennef 05",
-   "TuS Königsdorf",
-   "SpVg Porz 1919"
-  ],
-  "start": {
-   "SV Eintracht Hohkeppel": 60,
-   "SpVg Frechen": 59,
-   "1. FC Düren": 57,
-   "Borussia Lindenthal-Hohenlind": 56,
-   "VfL 08 Vichttal": 55,
-   "SSV Bornheim": 53,
-   "Siegburger SV 04": 52,
-   "FC Hürth": 50,
-   "TuS Chlodwig Zülpich": 49,
-   "FC Hennef 05": 48,
-   "TuS Königsdorf": 46,
-   "SpVg Porz 1919": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_nr",
-  "name": "Oberliga Niederrhein",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "Sportfreunde Baumberg",
-   "1. FC Monheim",
-   "SC St. Tönis",
-   "VfL Jüchen-Garzweiler",
-   "Wuppertaler SV",
-   "SV Sonsbeck",
-   "SV Blau-Weiß Dingden",
-   "Ratingen 04/19",
-   "Solingen 03",
-   "KFC Uerdingen 05",
-   "SV Scherpenberg",
-   "FC Büderich",
-   "Schwarz-Weiß Essen",
-   "TSV Meerbusch"
-  ],
-  "start": {
-   "Sportfreunde Baumberg": 60,
-   "1. FC Monheim": 59,
-   "SC St. Tönis": 58,
-   "VfL Jüchen-Garzweiler": 57,
-   "Wuppertaler SV": 55,
-   "SV Sonsbeck": 54,
-   "SV Blau-Weiß Dingden": 53,
-   "Ratingen 04/19": 52,
-   "Solingen 03": 51,
-   "KFC Uerdingen 05": 50,
-   "SV Scherpenberg": 48,
-   "FC Büderich": 47,
-   "Schwarz-Weiß Essen": 46,
-   "TSV Meerbusch": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_ns",
-  "name": "Oberliga Niedersachsen",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "Heeslinger SC",
-   "SC Spelle-Venhaus",
-   "BSV Schwarz-Weiß Rehden",
-   "VfV 06 Hildesheim",
-   "Blau-Weiß Lohne",
-   "TuS Bersenbrück",
-   "SV Vorwärts Nordhorn",
-   "FC Verden 04",
-   "1. FC Germania Egestorf/Langreder",
-   "Lüneburger SK Hansa",
-   "SC Hemmingen-Westerfeld",
-   "SSV Vorsfelde"
-  ],
-  "start": {
-   "Heeslinger SC": 60,
-   "SC Spelle-Venhaus": 59,
-   "BSV Schwarz-Weiß Rehden": 57,
-   "VfV 06 Hildesheim": 56,
-   "Blau-Weiß Lohne": 55,
-   "TuS Bersenbrück": 53,
-   "SV Vorwärts Nordhorn": 52,
-   "FC Verden 04": 50,
-   "1. FC Germania Egestorf/Langreder": 49,
-   "Lüneburger SK Hansa": 48,
-   "SC Hemmingen-Westerfeld": 46,
-   "SSV Vorsfelde": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_non",
-  "name": "Oberliga Nordost-Nord",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "Füchse Berlin Reinickendorf",
-   "Berliner AK 07",
-   "Hertha Zehlendorf",
-   "SV Siedenbollentin",
-   "SV Lichtenberg 47",
-   "FSV Optik Rathenow",
-   "FC Anker Wismar",
-   "Tennis Borussia Berlin",
-   "FC Mecklenburg Schwerin",
-   "1. FC Lok Stendal",
-   "SV Sparta Lichtenberg",
-   "SG Union Klosterfelde",
-   "TuS Makkabi Berlin",
-   "TSG Neustrelitz"
-  ],
-  "start": {
-   "Füchse Berlin Reinickendorf": 60,
-   "Berliner AK 07": 59,
-   "Hertha Zehlendorf": 58,
-   "SV Siedenbollentin": 57,
-   "SV Lichtenberg 47": 55,
-   "FSV Optik Rathenow": 54,
-   "FC Anker Wismar": 53,
-   "Tennis Borussia Berlin": 52,
-   "FC Mecklenburg Schwerin": 51,
-   "1. FC Lok Stendal": 50,
-   "SV Sparta Lichtenberg": 48,
-   "SG Union Klosterfelde": 47,
-   "TuS Makkabi Berlin": 46,
-   "TSG Neustrelitz": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_nos",
-  "name": "Oberliga Nordost-Süd",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "VfB Auerbach",
-   "VfB Germania Halberstadt",
-   "VfL Halle 1896",
-   "FC Eilenburg",
-   "VFC Plauen",
-   "SC Freital",
-   "SSC Weißenfels",
-   "SG Union Sandersdorf",
-   "VfB Empor Glauchau",
-   "FSV Budissa Bautzen",
-   "FC Einheit Wernigerode",
-   "VfB Krieschow",
-   "FC Einheit Rudolstadt",
-   "FSV Frankfurt 2"
-  ],
-  "start": {
-   "VfB Auerbach": 60,
-   "VfB Germania Halberstadt": 59,
-   "VfL Halle 1896": 58,
-   "FC Eilenburg": 57,
-   "VFC Plauen": 55,
-   "SC Freital": 54,
-   "SSC Weißenfels": 53,
-   "SG Union Sandersdorf": 52,
-   "VfB Empor Glauchau": 51,
-   "FSV Budissa Bautzen": 50,
-   "FC Einheit Wernigerode": 48,
-   "VfB Krieschow": 47,
-   "FC Einheit Rudolstadt": 46,
-   "FSV Frankfurt 2": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_rps",
-  "name": "Oberliga Rheinland-Pfalz/Saar",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "TSV Schott Mainz",
-   "FK Pirmasens",
-   "SV Gonsenheim",
-   "TSV Gau-Odernheim",
-   "FC Rot-Weiß Koblenz",
-   "FV Engers 07",
-   "FC Karbach",
-   "Wormatia Worms",
-   "SV Rot-Weiss Wittlich",
-   "TuS Koblenz",
-   "FC Hertha Wiesbach",
-   "SV Auersmacher",
-   "FC Cosmos Koblenz",
-   "FV 07 Diefflen",
-   "Ahrweiler BC",
-   "Eisbachtaler Sportfreunde"
-  ],
-  "start": {
-   "TSV Schott Mainz": 60,
-   "FK Pirmasens": 59,
-   "SV Gonsenheim": 58,
-   "TSV Gau-Odernheim": 57,
-   "FC Rot-Weiß Koblenz": 56,
-   "FV Engers 07": 55,
-   "FC Karbach": 54,
-   "Wormatia Worms": 53,
-   "SV Rot-Weiss Wittlich": 52,
-   "TuS Koblenz": 51,
-   "FC Hertha Wiesbach": 50,
-   "SV Auersmacher": 49,
-   "FC Cosmos Koblenz": 48,
-   "FV 07 Diefflen": 47,
-   "Ahrweiler BC": 46,
-   "Eisbachtaler Sportfreunde": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_sh",
-  "name": "Schleswig-Holstein-Liga",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "VfR Neumünster",
-   "TSB Flensburg",
-   "TuS Rotenhof",
-   "Heider SV",
-   "PSV Union Neumünster",
-   "SC Rapid Lübeck",
-   "Oldenburger SV",
-   "SV Eichede",
-   "MTSV Hohenwestedt",
-   "Kaltenkirchener TS",
-   "TSV Nordmark Satrup",
-   "Eckernförder SV"
-  ],
-  "start": {
-   "VfR Neumünster": 60,
-   "TSB Flensburg": 59,
-   "TuS Rotenhof": 57,
-   "Heider SV": 56,
-   "PSV Union Neumünster": 55,
-   "SC Rapid Lübeck": 53,
-   "Oldenburger SV": 52,
-   "SV Eichede": 50,
-   "MTSV Hohenwestedt": 49,
-   "Kaltenkirchener TS": 48,
-   "TSV Nordmark Satrup": 46,
-   "Eckernförder SV": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
-   "down": 0
-  }
- },
- {
-  "id": "ol_we",
-  "name": "Oberliga Westfalen",
-  "group": "ol",
-  "accent": "#4FC3D0",
-  "range": [
-   60,
-   45
-  ],
-  "teams": [
-   "Rot-Weiß Maaslingen",
-   "FC Eintracht Rheine",
-   "SV Lippstadt 08",
-   "ASC 09 Dortmund",
-   "SpVgg Erkenschwick",
-   "TSG Sprockhövel",
-   "SC Westfalia Kinderhaus",
-   "TuS Hiltrup",
-   "DJK TuS Hordel",
-   "SpVgg Horsthausen",
-   "TuS Ennepetal",
-   "TSV Victoria Clarholz"
-  ],
-  "start": {
-   "Rot-Weiß Maaslingen": 60,
-   "FC Eintracht Rheine": 59,
-   "SV Lippstadt 08": 57,
-   "ASC 09 Dortmund": 56,
-   "SpVgg Erkenschwick": 55,
-   "TSG Sprockhövel": 53,
-   "SC Westfalia Kinderhaus": 52,
-   "TuS Hiltrup": 50,
-   "DJK TuS Hordel": 49,
-   "SpVgg Horsthausen": 48,
-   "TuS Ennepetal": 46,
-   "TSV Victoria Clarholz": 45
-  },
-  "zones": {
-   "cl": 0,
-   "el": 0,
-   "ecl": 0,
-   "up": 1,
-   "po": null,
    "down": 0
   }
  }
 ];
 // <</DE_LOW>>
 const DE_RL = DE_LOW.filter((l) => l.group === "rl");
-const DE_OL = DE_LOW.filter((l) => l.group === "ol");
 const DE_LOW_BY_ID = Object.fromEntries(DE_LOW.map((l) => [l.id, l]));
-const DE_GROUPS = [{ key: "rl", label: "Regionalliga", ids: DE_RL.map((l) => l.id) }, { key: "ol", label: "Oberliga", ids: DE_OL.map((l) => l.id) }];
+const DE_GROUPS = [{ key: "rl", label: "Regionalliga", ids: DE_RL.map((l) => l.id) }];
 /** Frühere 4./5. Liga: nur noch für Historieneinträge alter Spielstände. */
 const LEGACY_LEAGUES = [{ id: "bl4", name: "4. Liga (bis 2026)", accent: "#9E7BE0", range: [65, 52], teams: [] }, { id: "bl5", name: "5. Liga (bis 2026)", accent: "#4FC3D0", range: [60, 45], teams: [] }];
 
@@ -12378,8 +11657,7 @@ const DE_REGION = (() => {
 /**
  * Auf- und Abstieg im Unterbau. `rows`: Endtabellen aller Ligen, `absteiger`: die vier Letzten der 3. Liga.
  * Die vier punktbesten Regionalliga-Meister steigen in die 3. Liga auf; jede Regionalliga mit Aufsteiger bekommt einen
- * Absteiger der 3. Liga (möglichst aus der Region), der Meister jeder Oberliga rückt in „seine“ Regionalliga auf, und aus
- * der Regionalliga steigt je gespeister Oberliga ein Klub ab. So bleibt jede Liga gleich groß.
+ * Absteiger der 3. Liga (möglichst aus der Region); aus den Regionalligen steigt niemand ab. So bleibt jede Liga gleich groß.
  */
 function deLowMoves(rows, absteiger) {
   const names = (id) => rows[id].map((r) => r.name);
@@ -12394,17 +11672,11 @@ function deLowMoves(rows, absteiger) {
   });
   hoch.forEach((c) => { if (!neu[c.gid]) neu[c.gid] = rest.shift(); });
   const lists = {};
-  const olIn = {};
   DE_RL.forEach((l) => {
     const t = names(l.id);
-    const k = l.feeds.length;
     const aufMeister = hoch.some((c) => c.gid === l.id);
-    const bleibt = t.slice(aufMeister ? 1 : 0, t.length - k);
-    const runter = t.slice(t.length - k);
-    l.feeds.forEach((f, i) => { olIn[f] = runter[i]; });
-    lists[l.id] = [...bleibt, ...(neu[l.id] ? [neu[l.id]] : []), ...l.feeds.map((f) => names(f)[0])];
+    lists[l.id] = [...t.slice(aufMeister ? 1 : 0), ...(neu[l.id] ? [neu[l.id]] : [])];
   });
-  DE_OL.forEach((l) => { lists[l.id] = [...names(l.id).slice(1), olIn[l.id]]; });
   return { promoted: hoch.map((c) => c.name), lists };
 }
 
@@ -13572,7 +12844,7 @@ export default function Tabellenrechner() {
                   ? "Ergebnisse eintragen oder nach Stärke simulieren. Die drei höchsten spanischen Ligen und die Copa del Rey mit echten Klubs und Spielern — mit eigener Historie, eigenem Kalender und eigenen Torjägern."
                   : section === "en"
                   ? "Ergebnisse eintragen oder nach Stärke simulieren. Premier League, Championship, League One, League Two und FA Cup mit echten Klubs und Spielern — mit eigener Historie, eigenem Kalender und eigenen Torjägern."
-                  : "Ergebnisse eintragen oder nach Stärke simulieren. Von der Bundesliga bis zu den Oberligen, DFB-Pokal, Saisonabschluss mit Auf- und Abstieg — und alles bleibt in der Historie."}
+                  : "Ergebnisse eintragen oder nach Stärke simulieren. Von der Bundesliga bis zu den Regionalligen, DFB-Pokal, Saisonabschluss mit Auf- und Abstieg — und alles bleibt in der Historie."}
               </p>
             </div>
             <div className="lr-top-r">
@@ -14267,7 +13539,7 @@ export default function Tabellenrechner() {
           <h2>Saison 2026/27 neu beginnen</h2>
           <p>
             Die Historie wird geleert, alle Ergebnisse gelöscht, ein laufender Pokal
-            verworfen, und alle deutschen Ligen (bis zu den Oberligen) stehen wieder am ersten Spieltag der Saison
+            verworfen, und alle deutschen Ligen (bis zu den Regionalligen) stehen wieder am ersten Spieltag der Saison
             2026/27. Der Spielplan wird dabei neu ausgelost.
           </p>
           <p style={{ marginBottom: 0 }}>
@@ -14327,7 +13599,7 @@ export default function Tabellenrechner() {
             </p>
           ) : (
             <p>
-              Alle noch offenen Spiele aller deutschen Ligen (bis zu den Oberligen), des DFB-Pokals und der drei Europapokale werden
+              Alle noch offenen Spiele aller deutschen Ligen (bis zu den Regionalligen), des DFB-Pokals und der drei Europapokale werden
               ausgewürfelt (bereits eingetragene Ergebnisse bleiben). Anschließend kommen alle Wettbewerbe
               in die Historie, die Relegationen werden per Hin- und Rückspiel entschieden, und die
               nächste Saison beginnt mit Auf- und Abstieg, die Stärken bleiben (neue per Knopf „Neue Stärken“). England, Spanien, Italien und Frankreich bleiben unberührt.
@@ -15591,10 +14863,10 @@ function PromotionModal({ data, onClose, onConfirm }) {
     <Modal onClose={onClose}>
       <h2>Alle Ligen abschließen</h2>
       <p>
-        Alle Abschlusstabellen (Bundesligen, 3. Liga, fünf Regionalligen und Oberligen) wandern in die Historie, danach
+        Alle Abschlusstabellen (Bundesligen, 3. Liga und fünf Regionalligen) wandern in die Historie, danach
         werden die Ligen neu besetzt. Stärkewerte nehmen die Mannschaften unverändert mit in ihre neue Liga (neue Stärken
         per Knopf „Neue Stärken“). Aus der 3. Liga steigen die letzten vier ab, aus den Regionalligen die vier punktbesten
-        Meister auf; jeder Oberliga-Meister rückt in „seine“ Regionalliga auf, dafür steigt je Oberliga ein Klub ab.
+        Meister auf; aus den Regionalligen steigt niemand ab.
       </p>
 
       {(() => {
