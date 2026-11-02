@@ -11412,11 +11412,44 @@ function ScoreBox({ value, onType, team }) {
  * Tabellenplatz und Stärke unter dem Mannschaftsnamen. In der Liga führt die
  * Stärke zum Kader, im Pokal ist sie ein direkt änderbarer Momentwert.
  */
-function TeamMeta({ rank, strength, onStrength, onOpen, onKader, name }) {
+/** Stärkefeld am Spieltag: Eingabe mit Enter/Tab übernehmen und zur nächsten Mannschaft springen (Shift+Enter zurück). */
+function StrengthSet({ value, onSet, name }) {
+  const [txt, setTxt] = useState(String(value));
+  useEffect(() => { setTxt(String(value)); }, [value]);
+  const commit = () => {
+    const z = parseInt(txt, 10);
+    if (!Number.isFinite(z)) { setTxt(String(value)); return; }
+    const ziel = Math.max(1, Math.min(100, z));
+    setTxt(String(ziel));
+    if (ziel !== value) onSet(ziel);
+  };
+  const key = (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    e.stopPropagation(); // sonst springt die allgemeine Enter-Weiterschaltung der Ergebnisfelder dazwischen
+    commit();
+    const alle = [...document.querySelectorAll("input.lr-str-set")];
+    const ziel = alle[alle.indexOf(e.currentTarget) + (e.shiftKey ? -1 : 1)];
+    if (ziel) ziel.focus(); else e.currentTarget.blur();
+  };
+  return (
+    <input className="lr-str-in lr-str-set" value={txt} inputMode="numeric" pattern="[0-9]*"
+      onFocus={(e) => e.target.select()} onChange={(e) => setTxt(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))}
+      onBlur={commit} onKeyDown={key} aria-label={`Stärke ${name}`} />
+  );
+}
+
+function TeamMeta({ rank, strength, onStrength, onOpen, onKader, onSet, name }) {
   return (
     <div className="lr-meta">
       {rank ? <span className="lr-rank" title="Tabellenplatz">{rank}.</span> : null}
-      {onOpen ? (
+      {onSet ? (
+        <span className="lr-str-wrap">
+          <span>Stärke</span>
+          <StrengthSet value={strength} onSet={onSet} name={name} />
+          {onOpen ? <button className="lr-str-btn" onClick={onOpen} title={`Kader von ${name}`}>Kader</button> : null}
+        </span>
+      ) : onOpen ? (
         <button className="lr-str-btn" onClick={onOpen} title={`Kader von ${name}`}>
           Stärke {strength}
         </button>
@@ -12189,6 +12222,15 @@ export default function Tabellenrechner() {
   }, []);
 
   /** Stärken aller Klubs, die in EA FC 27 stehen, auf die FIFA-Werte setzen. Gibt die Anzahl zurück. */
+  /** Stärke einer Mannschaft der gezeigten Liga direkt am Spieltag setzen (Kader wird entsprechend skaliert). */
+  const setLeagueStrength = (i, ziel) => updateSeason(league.id, (s) => {
+    const squads = [...s.squads];
+    const strengths = [...s.strengths];
+    squads[i] = scaleSquadTo(squads[i], ziel);
+    strengths[i] = squadStrength(squads[i]);
+    return { ...s, squads, strengths };
+  });
+
   const applyFifa = () => {
     let n = 0;
     LEAGUE_IDS.forEach((id) => {
@@ -13040,7 +13082,7 @@ export default function Tabellenrechner() {
                     <div className="lr-game-h">
                       <div className={`lr-name ${hw ? "lr-win" : aw ? "lr-lose" : ""}`}><Logo name={season.teams[h]} /><TeamLink name={season.teams[h]} /></div>
                       <TeamMeta rank={rankByIdx[h]} strength={season.strengths[h]}
-                        name={season.teams[h]} onOpen={() => setModal({ type: "squad", team: h })} />
+                        name={season.teams[h]} onSet={(z) => setLeagueStrength(h, z)} onOpen={() => setModal({ type: "squad", team: h })} />
                     </div>
                     <div className="lr-mid">
                       <div className="lr-score">
@@ -13067,7 +13109,7 @@ export default function Tabellenrechner() {
                     <div className="lr-game-a">
                       <div className={`lr-name ${aw ? "lr-win" : hw ? "lr-lose" : ""}`}><Logo name={season.teams[a]} /><TeamLink name={season.teams[a]} /></div>
                       <TeamMeta rank={rankByIdx[a]} strength={season.strengths[a]}
-                        name={season.teams[a]} onOpen={() => setModal({ type: "squad", team: a })} />
+                        name={season.teams[a]} onSet={(z) => setLeagueStrength(a, z)} onOpen={() => setModal({ type: "squad", team: a })} />
                     </div>
                   </div>
                   </React.Fragment>
