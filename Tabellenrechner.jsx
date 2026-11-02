@@ -2163,13 +2163,19 @@ function slotHeaders(baseDate, gameCount) {
 /**
  * Längste Serie ohne Niederlage je Mannschaft, nach Spieltagen. Ein noch offenes Spiel
  * beendet die Serie, damit nichts hochgerechnet wird. `laeuft`: die Serie hält bis zum
- * letzten gespielten Spieltag der Liga an.
+ * letzten gespielten Spieltag der Liga an. Serien können sich über mehrere Saisons (und Ligen) ziehen:
+ * `carry[name]` = {len, from, fromLabel, toMd, endLabel} ist die am Ende der Vorsaison noch laufende Serie
+ * (siehe `carryFor`); `fromLabel`/`toLabel` nennen die Saison, wenn Beginn bzw. Ende nicht in dieser Saison liegen.
  */
-function unbeatenRuns(teams, fixtures, results) {
+function unbeatenRuns(teams, fixtures, results, carry) {
   let lastMd = -1;
   fixtures.forEach((md, i) => md.forEach((_, gi) => { if (parsedResult(results, i, gi)) lastMd = i; }));
-  const cur = teams.map(() => ({ len: 0, from: 0 }));
-  const best = teams.map(() => ({ len: 0, from: 0, to: 0 }));
+  const leer = () => ({ len: 0, from: 0, fromLabel: null });
+  const cur = teams.map((n) => { const c = carry && carry[n]; return c ? { len: c.len, from: c.from, fromLabel: c.fromLabel } : leer(); });
+  const best = teams.map((n) => {
+    const c = carry && carry[n];
+    return c ? { len: c.len, from: c.from, fromLabel: c.fromLabel, to: c.toMd, toLabel: c.endLabel } : { len: 0, from: 0, to: 0, fromLabel: null, toLabel: null };
+  });
   for (let i = 0; i <= lastMd; i++) {
     const ok = new Array(teams.length).fill(null);
     fixtures[i].forEach(([h, a], gi) => {
@@ -2179,16 +2185,33 @@ function unbeatenRuns(teams, fixtures, results) {
       ok[a] = r[1] >= r[0];
     });
     ok.forEach((unbesiegt, t) => {
-      if (unbesiegt !== true) { cur[t] = { len: 0, from: 0 }; return; }
-      if (!cur[t].len) cur[t].from = i + 1;
+      if (unbesiegt !== true) { cur[t] = leer(); return; }
+      if (!cur[t].len) { cur[t].from = i + 1; cur[t].fromLabel = null; }
       cur[t].len++;
-      if (cur[t].len > best[t].len) best[t] = { len: cur[t].len, from: cur[t].from, to: i + 1 };
+      if (cur[t].len > best[t].len) best[t] = { len: cur[t].len, from: cur[t].from, fromLabel: cur[t].fromLabel, to: i + 1, toLabel: null };
     });
   }
   return best
-    .map((b, t) => ({ name: teams[t], ...b, laeuft: b.len > 0 && cur[t].len === b.len && b.to === lastMd + 1 }))
+    .map((b, t) => ({ name: teams[t], ...b, laeuft: b.len > 0 && cur[t].len === b.len && (b.toLabel ? true : b.to === lastMd + 1) }))
     .filter((b) => b.len > 0)
-    .sort((x, y) => y.len - x.len || x.from - y.from || x.name.localeCompare(y.name, "de"));
+    .sort((x, y) => y.len - x.len || (x.fromLabel ? 0 : 1) - (y.fromLabel ? 0 : 1) || x.from - y.from || x.name.localeCompare(y.name, "de"));
+}
+
+/** Am Ende der Vorsaison noch laufende Serien (aus den Historieneinträgen `unbeatenEnd`), je Mannschaft. */
+function carryFor(history, label) {
+  const m = {};
+  (history || []).forEach((h) => {
+    if (h.type !== "league" || !h.unbeatenEnd || nextLabel(h.label) !== label) return;
+    h.unbeatenEnd.forEach((e) => { if (!m[e.name]) m[e.name] = e; });
+  });
+  return m;
+}
+
+/** Text zu einer Serie, z. B. „3.–7. Spieltag“ oder „2026/27, 30. Spieltag – 2027/28, 5. Spieltag“. */
+function serieText(r) {
+  if (!r.fromLabel && !r.toLabel) return r.from === r.to ? `${r.from}. Spieltag` : `${r.from}.–${r.to}. Spieltag`;
+  if (r.laeuft && r.toLabel) return `seit ${r.fromLabel ? `${r.fromLabel}, ` : ""}${r.from}. Spieltag`;
+  return `${r.fromLabel ? `${r.fromLabel}, ` : ""}${r.from}. Spieltag – ${r.toLabel ? `${r.toLabel}, ` : ""}${r.to}. Spieltag`;
 }
 
 function parsedResult(results, mdIdx, gameIdx) {
@@ -11747,7 +11770,15 @@ function archiveSeason(d, leagueId) {
     id: `${leagueId}-${s.label}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     type: "league", leagueId, leagueName: LEAGUE_BY_ID[leagueId].name,
     label: s.label, closedAt: new Date().toISOString(), table,
-    unbeaten: unbeatenRuns(s.teams, f, s.results).slice(0, 3),
+    ...(() => {
+      const runs = unbeatenRuns(s.teams, f, s.results, carryFor(d.history, s.label));
+      return {
+        unbeaten: runs.slice(0, 3),
+        // Serien, die bis zum letzten Spieltag der Saison halten, laufen in der nächsten Saison weiter.
+        unbeatenEnd: runs.filter((r) => r.laeuft && !r.toLabel && r.to === f.length)
+          .map((r) => ({ name: r.name, len: r.len, from: r.from, fromLabel: r.fromLabel || s.label, toMd: f.length, endLabel: s.label })),
+      };
+    })(),
     scorers: scorerList(seasonGames(s, f), squadIndex([s])).slice(0, 10),
   };
 }
@@ -12094,7 +12125,7 @@ function UnbeatenBox({ runs }) {
           <span className="lr-unb-n">{i + 1}.</span>
           <span className="lr-unb-t"><Logo name={r.name} />{r.name}</span>
           <b>{r.len} Spiele</b>
-          <small>{r.from === r.to ? `${r.from}. Spieltag` : `${r.from}.–${r.to}. Spieltag`}{r.laeuft ? " · läuft noch" : ""}</small>
+          <small>{serieText(r)}{r.laeuft ? " · läuft noch" : ""}</small>
         </div>
       ))}
     </div>
@@ -13127,7 +13158,7 @@ export default function Tabellenrechner() {
               {tblMode === "all"
                 ? <Table rows={rows} leagueId={league.id} strengths={season.strengths} />
                 : <Table rows={partialTable(season.teams, fixtures, season.results, tblMode)} leagueId="partial" strengths={season.strengths} />}
-              <UnbeatenBox runs={unbeatenRuns(season.teams, fixtures, season.results)} />
+              <UnbeatenBox runs={unbeatenRuns(season.teams, fixtures, season.results, carryFor(data.history, season.label))} />
             </section>
           </div>
         </div>
@@ -17802,7 +17833,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
                 {h.type === "league" && h.unbeaten && h.unbeaten.length ? (
                   <div className="lr-duel-h" style={{ marginTop: 12 }}>
                     Längste Serie ohne Niederlage: {h.unbeaten[0].name}, {h.unbeaten[0].len} Spiele
-                    ({h.unbeaten[0].from === h.unbeaten[0].to ? `${h.unbeaten[0].from}. Spieltag` : `${h.unbeaten[0].from}.–${h.unbeaten[0].to}. Spieltag`})
+                    ({serieText(h.unbeaten[0])})
                   </div>
                 ) : null}
                 {h.scorers && h.scorers.length ? (
