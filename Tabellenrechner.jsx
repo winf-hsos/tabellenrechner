@@ -12449,10 +12449,12 @@ export default function Tabellenrechner() {
   const simulateMatchday = (which) => {
     updateSeason(league.id, (s) => {
       const r = { ...s.results };
-      const list = which === "all" ? fixtures.map((_, i) => i) : [mdIdx];
+      // „fünf“: die nächsten fünf Spieltage ab dem gezeigten, nur offene Spiele (eingetragene Ergebnisse bleiben)
+      const list = which === "all" ? fixtures.map((_, i) => i)
+        : which === "five" ? fixtures.map((_, i) => i).slice(mdIdx, mdIdx + 5) : [mdIdx];
       list.forEach((i) => {
         fixtures[i].forEach(([h, a], gi) => {
-          if (which === "all" && parsedResult(s.results, i, gi)) return;
+          if (which !== "one" && parsedResult(s.results, i, gi)) return;
           const [hg, ag] = simulateMatch(s.strengths[h], s.strengths[a], false, drawShare, surprise,
             formationTilt(s.squads[h].f), formationTilt(s.squads[a].f));
           r[`${i}:${gi}`] = { h: String(hg), a: String(ag), sc: makeGoals(s.squads[h], s.squads[a], hg, ag) };
@@ -12460,6 +12462,7 @@ export default function Tabellenrechner() {
       });
       return { ...s, results: r };
     });
+    if (which === "five") setMd((m) => ({ ...m, [league.id]: Math.min(mdIdx + 5, fixtures.length - 1) }));
   };
 
   const totalGames = fixtures.reduce((a, r) => a + r.length, 0);
@@ -13075,6 +13078,8 @@ export default function Tabellenrechner() {
               </select>
             </label>
             <button className="lr-btn lr-btn-sm" onClick={() => simulateMatchday("one")}>Spieltag simulieren</button>
+            <button className="lr-btn lr-btn-sm" id="sim-five" onClick={() => simulateMatchday("five")}
+              title="Die nächsten fünf Spieltage auf einmal simulieren (eingetragene Ergebnisse bleiben)">5 Spieltage</button>
             <button className="lr-btn lr-btn-sm" id="live-open" onClick={startLive}
               disabled={!currentMd.some((_, gi) => !parsedResult(season.results, mdIdx, gi))}
               title="Den Spieltag als Liveticker verfolgen (zwei Minuten pro Spiel)">Liveticker</button>
