@@ -8876,7 +8876,33 @@ const LogoCtx = createContext(NO_LOGOS);
 function Logo({ name }) {
   const logos = useContext(LogoCtx);
   const src = logos[name];
-  return src ? <img className="lr-logo" src={src} alt="" /> : null;
+  // Antippen zeigt das Logo groß (Overlay `LogoZoom` in der Hauptkomponente, Ereignis statt Kontext).
+  const zoom = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent("lr-logo-zoom", { detail: { name, src } }));
+  };
+  return src ? <img className="lr-logo lr-logo-z" src={src} alt="" title={`${name} – groß anzeigen`} onClick={zoom} /> : null;
+}
+
+/** Großansicht eines Vereinslogos: Antippen, Escape oder „Schließen“ beendet sie. */
+function LogoZoom() {
+  const [z, setZ] = useState(null);
+  useEffect(() => {
+    const on = (e) => setZ(e.detail);
+    const esc = (e) => { if (e.key === "Escape") setZ((cur) => { if (cur) e.stopPropagation(); return null; }); };
+    window.addEventListener("lr-logo-zoom", on);
+    window.addEventListener("keydown", esc, true);
+    return () => { window.removeEventListener("lr-logo-zoom", on); window.removeEventListener("keydown", esc, true); };
+  }, []);
+  if (!z) return null;
+  return (
+    <div className="lr-logo-big" id="logo-big" role="dialog" aria-label={`Logo ${z.name}`} onClick={() => setZ(null)}>
+      <img src={z.src} alt={z.name} />
+      <div className="lr-logo-big-n">{z.name}</div>
+      <button type="button" className="lr-btn lr-btn-sm" onClick={() => setZ(null)}>Schließen</button>
+    </div>
+  );
 }
 
 const LOGO_STOP = new Set(["fc", "sv", "vfl", "vfb", "tsv", "sc", "ssv", "tsg", "fsv", "sg", "ksv", "bsg", "spvgg",
@@ -11324,6 +11350,10 @@ const CSS = `
 .lr-team-head span:last-child { text-align: center; }
 .lr-team-row.kader, .lr-team-head.kader { grid-template-columns: 1fr 58px 56px 78px; }
 .lr-team-head.kader span:nth-child(2) { text-align: center; }
+.lr-logo-z { cursor: zoom-in; }
+.lr-logo-big { position: fixed; inset: 0; z-index: 90; background: rgba(6,11,8,0.88); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; cursor: zoom-out; }
+.lr-logo-big img { width: min(70vw, 340px); height: min(70vw, 340px); object-fit: contain; filter: drop-shadow(0 6px 24px rgba(0,0,0,0.5)); }
+.lr-logo-big-n { font-family: 'Oswald', sans-serif; font-size: 22px; color: var(--chalk); text-align: center; }
 .lr-logo { width: 20px; height: 20px; object-fit: contain; vertical-align: middle; margin-right: 8px; flex: none; }
 div.lr-name { display: flex; align-items: center; }
 .lr-tbl .lr-logo { width: 23px; height: 23px; margin: -6px 8px -6px 0; }
@@ -12910,6 +12940,7 @@ export default function Tabellenrechner() {
     <ClubCtx.Provider value={clubCtx}>
     <div className="lr" style={rootAccent}>
       <style>{CSS}</style>
+      <LogoZoom />
 
       <div className="lr-top">
         <div className="lr-wrap">
