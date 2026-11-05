@@ -34,8 +34,12 @@ with sync_playwright() as p:
     # Liga anlegen
     pg.fill("#cu-new-name", "Familienliga"); pg.locator("#cu-new-go").click(); pg.wait_for_timeout(300)
     ok(pg.locator(".lr-cu-card").count() == 1 and "Noch nicht spielbar" in pg.locator(".lr-cu-card").inner_text(), "Liga angelegt, noch leer = nicht spielbar")
+    ok(pg.locator(".lr-tabs .lr-tab", has_text="Familienliga (Entwurf)").count() == 1, "leere Liga erscheint oben als „(Entwurf)“")
     pick(pg, "Familienliga", ["FC Bayern München", "Borussia Dortmund", "Real Madrid", "FC Testhausen", "SV Beispiel"])
     ok("Noch nicht spielbar" in pg.locator(".lr-cu-card").inner_text() and len(state(pg)["custom"]["leagues"][0]["teams"]) == 5, "5 Mannschaften (ungerade) -> noch nicht spielbar")
+    ok(pg.locator(".lr-tabs .lr-tab", has_text="Familienliga (Entwurf)").count() == 1 and "Eine Mannschaft mehr oder weniger" in pg.locator(".lr-cu-card").inner_text(), "Entwurfs-Reiter und Hinweis bei ungerader Anzahl")
+    pg.locator(".lr-tab-draft").click(); pg.wait_for_timeout(200)
+    ok(pg.locator("#tab-cu-manage").get_attribute("data-on") == "1", "Klick auf den Entwurfs-Reiter führt zur Verwaltung")
     pick(pg, "Familienliga", ["Manchester City"])
     d = state(pg); lid = d["custom"]["leagues"][0]["id"]
     ok(len(d["custom"]["leagues"][0]["teams"]) == 6 and lid in d["active"], "6 Mannschaften -> Liga hat eine Saison")
@@ -80,7 +84,7 @@ with sync_playwright() as p:
     pg.locator("#tab-cu-manage").click(); pg.wait_for_timeout(200)
     card = pg.locator(".lr-cu-card:has(input[value='Pokalrunde'])")
     card.locator("button[aria-label='FC Arsenal aus der Liga entfernen']").click(); pg.wait_for_timeout(300)
-    ok(pg.locator(".lr-tabs .lr-tab", has_text="Pokalrunde").count() == 0, "ungerade Zahl -> Reiter verschwindet (Entwurf)")
+    ok(pg.locator(".lr-tabs .lr-tab:not(.lr-tab-draft)", has_text="Pokalrunde").count() == 0 and pg.locator(".lr-tab-draft", has_text="Pokalrunde (Entwurf)").count() == 1, "ungerade Zahl -> Liga wird zum Entwurfs-Reiter")
     card.locator("[data-act='del']").click(); card.locator("[data-act='del-ok']").click(); pg.wait_for_timeout(300)
     ok(pg.locator(".lr-cu-card").count() == 1, "Liga gelöscht")
     own = pg.locator(".lr-cu-own[data-club='FC Testhausen'] button").last
