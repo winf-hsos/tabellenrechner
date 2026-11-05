@@ -11225,6 +11225,7 @@ const CSS = `
   border-radius: 3px 3px 0 0; margin-bottom: -1px;
 }
 .lr-tab:hover { color: var(--chalk); }
+.lr-tab-draft { opacity: 0.65; font-style: italic; }
 .lr-tab-sel { appearance: auto; max-width: 200px; cursor: pointer; }
 .lr-tab-sel option { color: #000; }
 .lr-tab[data-on="1"] {
@@ -13137,6 +13138,10 @@ export default function Tabellenrechner() {
                 {COUNTRY.cu.leagues.map((l) => (
                   <button key={l.id} className="lr-tab" data-on={tab === l.id ? "1" : "0"}
                     style={tab === l.id ? accentVars(l.accent) : undefined} onClick={() => setTab(l.id)}>{l.name}</button>
+                ))}
+                {data.custom.leagues.filter((l) => !l.gone && COUNTRY.cu.ids.indexOf(l.id) < 0).map((l) => (
+                  <button key={l.id} className="lr-tab lr-tab-draft" data-draft="1" title="Noch nicht spielbar: gerade Anzahl von mindestens zwei Mannschaften nötig"
+                    onClick={() => setTab("cu-manage")}>{l.name} (Entwurf)</button>
                 ))}
                 <button className="lr-tab" data-on={tab === "cu-manage" ? "1" : "0"} id="tab-cu-manage"
                   style={tab === "cu-manage" ? accentVars("#E8A33D") : undefined} onClick={() => setTab("cu-manage")}>Ligen &amp; Vereine</button>
@@ -15490,8 +15495,9 @@ function CustomTab({ data, setData, logos, setLogo }) {
                   </>
                 ) : <button className="lr-btn lr-btn-sm" data-act="del" onClick={() => setAskDel(l.id)}>Liga löschen</button>}
               </div>
-              <p className="lr-hint" style={{ margin: "4px 0 8px" }}>
-                {ok ? `${l.teams.length} Mannschaften — die Liga ist oben als Reiter spielbar.` : `Noch nicht spielbar: gerade Anzahl ab 2 nötig (jetzt ${l.teams.length}).`}
+              <p className="lr-hint" style={ok ? { margin: "4px 0 8px" } : { margin: "4px 0 8px", color: "#E8A33D", fontWeight: 600 }} data-state={ok ? "ok" : "draft"}>
+                {ok ? `${l.teams.length} Mannschaften — die Liga ist oben als Reiter spielbar.`
+                  : `Noch nicht spielbar: Es braucht eine gerade Anzahl von mindestens 2 Mannschaften (jetzt ${l.teams.length}). ${l.teams.length % 2 ? "Eine Mannschaft mehr oder weniger, dann erscheint die Liga oben als Reiter." : "Füge mindestens 2 Mannschaften hinzu."}`}
               </p>
               <div className="lr-cu-teams">
                 {l.teams.map((n) => (
