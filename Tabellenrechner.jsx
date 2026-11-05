@@ -1715,7 +1715,7 @@ const TEAM_START = { ...DE_LOW_START, ...ENG_START, ...ES_START, ...IT_START, ..
 const START_IDS = [...ENG_IDS, ...ES_IDS, ...IT_IDS, ...FR_IDS, ...WORLD_IDS];
 
 /** Gehört ein Historieneintrag zum englischen Abschnitt? */
-const sectionOfHist = (h) => (ENG_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "facup" ? "en" : ES_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "copa" ? "es" : IT_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "coppa" ? "it" : FR_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "coupe" ? "fr" : h.leagueId === "tournko" ? "nt" : WORLD_SEC[h.leagueId] || "de");
+const sectionOfHist = (h) => (ENG_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "facup" ? "en" : ES_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "copa" ? "es" : IT_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "coppa" ? "it" : FR_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "coupe" ? "fr" : h.leagueId === "tournko" ? "nt" : String(h.leagueId).indexOf("cu_") === 0 ? "cu" : WORLD_SEC[h.leagueId] || "de");
 const sectionHistory = (history, section) => (history || []).filter((h) => sectionOfHist(h) === section);
 
 /** Die drei Profiligen: nur sie stellen die 56 gesetzten Klubs im DFB-Pokal. */
@@ -1798,6 +1798,7 @@ function worldZone(z, pos, n) {
 }
 
 function zoneFor(leagueId, pos, n) {
+  if (LEAGUE_BY_ID[leagueId] && LEAGUE_BY_ID[leagueId].custom) return null;
   if (DE_LOW_BY_ID[leagueId]) return worldZone(DE_LOW_BY_ID[leagueId].zones, pos, n);
   if (WORLD_LEAGUE_BY_ID[leagueId]) return worldZone(WORLD_LEAGUE_BY_ID[leagueId].zones, pos, n);
   if (leagueId === "eu") return pos <= 8 ? "ach" : pos <= 24 ? "po" : "aus";
@@ -1869,6 +1870,7 @@ function zoneFor(leagueId, pos, n) {
 }
 
 function zonesUsed(leagueId) {
+  if (LEAGUE_BY_ID[leagueId] && LEAGUE_BY_ID[leagueId].custom) return [];
   if (DE_LOW_BY_ID[leagueId]) return DE_LOW_BY_ID[leagueId].zones.down ? ["auf", "ab"] : ["auf"];
   if (WORLD_LEAGUE_BY_ID[leagueId]) {
     const z = WORLD_LEAGUE_BY_ID[leagueId].zones;
@@ -9949,7 +9951,7 @@ function freshData() {
   [...ENGLAND, ...SPAIN, ...ITALY, ...FRANCE, ...WORLD_LEAGUES].forEach((l) => {
     active[l.id] = newSeason(l.teams, l.teams.map((n) => TEAM_START[n]), "2026/27", defaultStart(l.id, "2026/27"));
   });
-  return { active, cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
+  return { active, custom: { leagues: [], clubs: [] }, cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
     regional: [] };
 }
 
@@ -10006,6 +10008,15 @@ function normalize(d0) {
       ? s.strengths.map((v) => Number(v) || 1) : s.teams.map((n) => TEAM_START[n] || 60);
     const squads = Array.isArray(s.squads) && s.squads.length === s.teams.length
       ? s.squads.map((q, i) => fixSquad(q, s.teams[i], strengths[i])) : makeSquads(s.teams, strengths);
+    out.active[l.id] = { ...s, squads, strengths: squads.map(squadStrength), start: s.start || defaultStart(l.id, s.label) };
+  });
+  // Eigene Ligen: Planung und Saisons übernehmen
+  out.custom = normCustom(d.custom);
+  out.custom.leagues.forEach((l) => {
+    const s = d.active[l.id];
+    if (!s || !Array.isArray(s.teams)) return;
+    const strengths = Array.isArray(s.strengths) && s.strengths.length === s.teams.length ? s.strengths.map((v) => Number(v) || 1) : s.teams.map(() => 50);
+    const squads = Array.isArray(s.squads) && s.squads.length === s.teams.length ? s.squads.map((q, i) => fixSquad(q, s.teams[i], strengths[i])) : makeSquads(s.teams, strengths);
     out.active[l.id] = { ...s, squads, strengths: squads.map(squadStrength), start: s.start || defaultStart(l.id, s.label) };
   });
   // Alte Spielstände: der neue Unterbau ist frisch angelegt; wer schon in einer höheren Liga spielt, wird ersetzt.
@@ -10439,6 +10450,82 @@ WORLD.forEach((c) => {
     euroTab: `${c.key}euro`, flag: c.key, top: c.leagues[0].id, topName: c.leagues[0].name, places: c.places, adj: c.adj, world: c,
   };
 });
+
+/* ---------------- Eigene Ligen ---------------- */
+
+// Abschnitt „Eigene Ligen“: frei benannte Ligen aus beliebigen Mannschaften (auch selbst angelegten Vereinen).
+// `data.custom = { leagues: [{id, name, accent, teams, gone}], clubs: [{name, strength}] }`; die laufende Saison jeder
+// Liga steht wie bei allen anderen in `data.active[id]`. Die Ligen werden zur Laufzeit in die Verzeichnisse eingetragen.
+COUNTRY.cu = { name: "Eigene Ligen", ids: [], leagues: [], first: "cu-manage", cupKey: "cucup", cupName: "Pokal", cupAccent: "#E8A33D", euroTab: null, flag: "cu", top: null, topName: "", places: { cl: 0, el: 0, ecl: 0 }, adj: "eigenen", extraTabs: ["cu-manage"] };
+const CUSTOM_ACCENTS = ["#E8A33D", "#5FBFA8", "#C97BE0", "#6FA8F0", "#E07A5F", "#8FCB5A", "#E0C23C", "#4FC3D0"];
+const CUSTOM_BASE_N = ALL_LEAGUE_IDS.length;
+let CUSTOM_REG = [];
+const customValid = (teams) => teams.length >= 2 && teams.length % 2 === 0;
+
+/** Trägt die eigenen Ligen in `LEAGUE_BY_ID`, `ALL_LEAGUE_IDS` und `COUNTRY.cu` ein (idempotent, bei jedem Rendern). */
+function registerCustom(custom, active) {
+  CUSTOM_REG.forEach((id) => { delete LEAGUE_BY_ID[id]; });
+  ALL_LEAGUE_IDS.length = CUSTOM_BASE_N;
+  COUNTRY.cu.ids.length = 0;
+  COUNTRY.cu.leagues.length = 0;
+  const ls = (custom && custom.leagues) || [];
+  CUSTOM_REG = ls.map((l) => l.id);
+  ls.forEach((l) => {
+    const def = { id: l.id, name: l.name, accent: l.accent, range: [70, 40], teams: l.teams, custom: true, zones: { cl: 0, el: 0, ecl: 0, up: 0, po: null, down: 0 } };
+    LEAGUE_BY_ID[l.id] = def; // auch „gelöschte“ Ligen bleiben für alte Historieneinträge auffindbar
+    const s = active && active[l.id];
+    if (l.gone || !customValid(l.teams) || !s || s.teams.length !== l.teams.length) return;
+    ALL_LEAGUE_IDS.push(l.id);
+    COUNTRY.cu.ids.push(l.id);
+    COUNTRY.cu.leagues.push(def);
+  });
+  COUNTRY.cu.first = COUNTRY.cu.ids[0] || "cu-manage";
+}
+
+function normCustom(c) {
+  const ls = c && Array.isArray(c.leagues) ? c.leagues.filter((l) => l && typeof l.id === "string").map((l, i) => ({
+    id: l.id, name: String(l.name || "Liga"), accent: l.accent || CUSTOM_ACCENTS[i % CUSTOM_ACCENTS.length],
+    teams: Array.isArray(l.teams) ? l.teams.map(String) : [], gone: !!l.gone })) : [];
+  const cl = c && Array.isArray(c.clubs) ? c.clubs.filter((x) => x && x.name).map((x) => ({ name: String(x.name), strength: Math.max(1, Math.min(100, Number(x.strength) || 50)) })) : [];
+  return { leagues: ls, clubs: cl };
+}
+
+/** Passt `data.active` an die Ligenplanung an: gültige Ligen bekommen (neu) eine Saison, wenn sich ihr Teilnehmerfeld ändert. */
+function applyCustom(d) {
+  const active = { ...d.active };
+  const label = (d.active.bl1 && d.active.bl1.label) || "2026/27";
+  d.custom.leagues.forEach((l) => {
+    if (l.gone || !customValid(l.teams)) return;
+    const alt = d.active[l.id];
+    if (alt && alt.teams.length === l.teams.length && [...alt.teams].sort().join("|") === [...l.teams].sort().join("|")) return;
+    const squads = l.teams.map((n) => {
+      const i = alt ? alt.teams.indexOf(n) : -1;
+      if (i >= 0) return alt.squads[i];
+      const own = d.custom.clubs.find((c) => c.name === n);
+      return own ? makeSquad(n, own.strength) : squadOfClub(d, n);
+    });
+    active[l.id] = newSeason(l.teams, squads.map(squadStrength), alt ? alt.label : label, alt ? alt.start : defaultStart(l.id, label), squads);
+  });
+  return { ...d, active };
+}
+
+/** Alle Mannschaften, die man in eine eigene Liga stecken kann (Ligen aller Abschnitte, Europapokal-Teilnehmer, eigene Vereine). */
+function allClubs(data) {
+  const out = [];
+  const seen = new Set();
+  SECTION_KEYS.filter((k) => k !== "cu" && k !== "nt").forEach((sec) => {
+    (sec === "de" ? LEAGUE_IDS : COUNTRY[sec].ids).forEach((id) => {
+      const s = data.active[id];
+      if (!s) return;
+      s.teams.forEach((n, i) => { if (!seen.has(n)) { seen.add(n); out.push({ name: n, sec, league: LEAGUE_BY_ID[id].name, strength: s.strengths[i] }); } });
+    });
+  });
+  EURO_COMPS.forEach((c) => ((data.euro && data.euro.teams && data.euro.teams[c.id]) || []).forEach((t) => {
+    if (!seen.has(t.name)) { seen.add(t.name); out.push({ name: t.name, sec: "eu", league: `${c.name}-Teilnehmer`, strength: t.strength }); }
+  }));
+  data.custom.clubs.forEach((c) => { if (!seen.has(c.name)) { seen.add(c.name); out.push({ name: c.name, sec: "own", league: "Eigener Verein", strength: c.strength }); } });
+  return out;
+}
 
 /** Einen Pokal (DFB, FA Cup oder Copa del Rey) von der aktuellen Runde an zu Ende spielen. */
 function playCupToEnd(cup, sim) {
@@ -11350,6 +11437,24 @@ const CSS = `
 .lr-team-head span:last-child { text-align: center; }
 .lr-team-row.kader, .lr-team-head.kader { grid-template-columns: 1fr 58px 56px 78px; }
 .lr-team-head.kader span:nth-child(2) { text-align: center; }
+.lr-cu-new { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+.lr-cu-new .lr-team-in { flex: 1; min-width: 160px; }
+.lr-cu-new .lr-team-in.num { flex: none; width: 64px; min-width: 0; }
+.lr-cu-card { border: 1px solid var(--line-2); border-left: 4px solid var(--accent); border-radius: 4px; padding: 12px 14px; margin: 12px 0; background: var(--board-2); }
+.lr-cu-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.lr-cu-name { flex: 1; min-width: 160px; font-family: 'Oswald', sans-serif; font-size: 17px; }
+.lr-cu-teams { display: flex; flex-wrap: wrap; gap: 6px; }
+.lr-cu-chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line-2); border-radius: 999px; padding: 3px 4px 3px 8px; font-size: 13px; }
+.lr-cu-chip .lr-logo { width: 18px; height: 18px; margin: 0 4px 0 0; }
+.lr-cu-own { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.lr-cu-filter { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+.lr-cu-filter .lr-team-in { flex: 1; min-width: 140px; }
+.lr-cu-list { max-height: 52vh; overflow-y: auto; border: 1px solid var(--line); border-radius: 4px; }
+.lr-cu-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.lr-cu-row[data-dis="1"] { opacity: 0.5; cursor: default; }
+.lr-cu-row .lr-logo { margin: 0; width: 22px; height: 22px; }
+.lr-cu-n { flex: 1; }
+.lr-cu-row small { color: var(--chalk-dim); }
 .lr-logo-z { cursor: zoom-in; }
 .lr-logo-big { position: fixed; inset: 0; z-index: 90; background: rgba(6,11,8,0.88); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; cursor: zoom-out; }
 .lr-logo-big img { width: min(70vw, 340px); height: min(70vw, 340px); object-fit: contain; filter: drop-shadow(0 6px 24px rgba(0,0,0,0.5)); }
@@ -12240,6 +12345,11 @@ export default function Tabellenrechner() {
   const drawShare = DRAW_SHARE[drawBias] != null ? DRAW_SHARE[drawBias] : 0;
   const surprise = data && data.surpriseBias != null ? data.surpriseBias : 1;
 
+  if (data) registerCustom(data.custom, data.active);
+  useEffect(() => {
+    // Ist der gezeigte Reiter eine inzwischen gelöschte/ungültige eigene Liga, zurück zur Verwaltung.
+    if (section === "cu" && data && tab.indexOf("cu_") === 0 && COUNTRY.cu.ids.indexOf(tab) < 0) setTab("cu-manage");
+  }, [section, tab, data]);
   const isLeagueTab = ALL_LEAGUE_IDS.includes(tab);
   const league = isLeagueTab ? LEAGUE_BY_ID[tab] : LEAGUES[0];
   const season = data && data.active ? data.active[league.id] : null;
@@ -12789,6 +12899,33 @@ export default function Tabellenrechner() {
     setTab("hist");
   };
 
+  /** Eigene Ligen: Saison aller (oder der genannten) Ligen abschließen und die nächste beginnen. */
+  const closeAllCustom = (ids) => {
+    setData((d) => {
+      const archives = [...ids].reverse().map((id) => archiveSeason(d, id));
+      const active = { ...d.active };
+      ids.forEach((id) => { const s = d.active[id]; active[id] = newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads); });
+      return { ...d, history: [...archives, ...d.history], active };
+    });
+    setMd((m) => ({ ...m, ...Object.fromEntries(ids.map((id) => [id, 0])) }));
+    setOpenHist(null);
+    setModal(null);
+  };
+  const playAllCu = () => {
+    const ids = [...COUNTRY.cu.ids];
+    setData((d) => {
+      const p = playLeagues(d, ids);
+      const archives = [...ids].reverse().map((id) => archiveSeason(p, id));
+      const active = { ...p.active };
+      ids.forEach((id) => { const s = p.active[id]; active[id] = newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads); });
+      return { ...p, history: [...archives, ...p.history], active };
+    });
+    setMd((m) => ({ ...m, ...Object.fromEntries(ids.map((id) => [id, 0])) }));
+    setOpenHist(null);
+    setModal(null);
+    setTab("hist");
+  };
+
   /** Weitere Länder: alle Ligen und den Pokal zu Ende spielen, ins Archiv legen und die nächste Saison beginnen. */
   const playAllWorld = (c) => {
     setData((d) => worldSeasonEnd(playWorldCup(playLeagues(d, c.leagues.map((l) => l.id)), c), c));
@@ -12948,7 +13085,9 @@ export default function Tabellenrechner() {
             <div>
               <h1 className="lr-title">Tabellenrechner</h1>
               <p className="lr-sub">
-                {section === "nt"
+                {section === "cu"
+                  ? "Eigene Ligen: beliebige Mannschaften (auch selbst erstellte Vereine mit Logo) in frei benannte Ligen packen, Ergebnisse eintragen oder simulieren — mit eigener Historie."
+                  : section === "nt"
                   ? "Ergebnisse eintragen oder nach Stärke simulieren. Nationalmannschaften und Turniere (EM, WM und mehr) mit Gruppenphase und K.-o.-Runde — mit eigener Historie."
                   : COUNTRY[section].world
                   ? `Ergebnisse eintragen oder nach Stärke simulieren. ${COUNTRY[section].leagues.map((l) => l.name).join(" und ")} sowie ${COUNTRY[section].cupName} (${COUNTRY[section].name}) mit echten Klubs und Spielern — mit eigener Historie, eigenem Kalender und eigenen Torjägern.`
@@ -12987,12 +13126,34 @@ export default function Tabellenrechner() {
                 {WORLD.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}
               </select>
             )}
+            <button className="lr-sec-btn" id="sec-cu" data-on={section === "cu" ? "1" : "0"} onClick={() => switchSection("cu")}>Eigene Ligen</button>
             <button className="lr-sec-btn" id="sec-nt" data-on={section === "nt" ? "1" : "0"} onClick={() => switchSection("nt")}>Länderspiele</button>
             <SearchBox data={data} />
           </div>
 
           <nav className="lr-tabs">
-            {section === "nt" ? (
+            {section === "cu" ? (
+              <>
+                {COUNTRY.cu.leagues.map((l) => (
+                  <button key={l.id} className="lr-tab" data-on={tab === l.id ? "1" : "0"}
+                    style={tab === l.id ? accentVars(l.accent) : undefined} onClick={() => setTab(l.id)}>{l.name}</button>
+                ))}
+                <button className="lr-tab" data-on={tab === "cu-manage" ? "1" : "0"} id="tab-cu-manage"
+                  style={tab === "cu-manage" ? accentVars("#E8A33D") : undefined} onClick={() => setTab("cu-manage")}>Ligen &amp; Vereine</button>
+                <button className="lr-tab" data-on={tab === "top" ? "1" : "0"}
+                  style={tab === "top" ? accentVars("#D98C5F") : undefined} onClick={() => setTab("top")}>Torjäger</button>
+                <button className="lr-tab" data-on={tab === "cal" ? "1" : "0"}
+                  style={tab === "cal" ? accentVars("#7FB5A0") : undefined} onClick={() => setTab("cal")}>Kalender</button>
+                <button className="lr-tab" data-on={tab === "news" ? "1" : "0"} id="tab-news"
+                  style={tab === "news" ? accentVars("#E0B13F") : undefined} onClick={() => setTab("news")}>Nachrichten</button>
+                <button className="lr-tab" data-on={tab === "clubs" ? "1" : "0"} id="tab-clubs"
+                  style={tab === "clubs" ? accentVars("#5AA9E6") : undefined} onClick={() => setTab("clubs")}>Vereine</button>
+                <button className="lr-tab" data-on={tab === "hist" ? "1" : "0"}
+                  style={tab === "hist" ? accentVars("#C9C3B0") : undefined} onClick={() => setTab("hist")}>
+                  Historie{sectionHistory(data.history, section).length ? ` (${sectionHistory(data.history, section).length})` : ""}
+                </button>
+              </>
+            ) : section === "nt" ? (
               <>
                 <button className="lr-tab" data-on={tab === "tourn" ? "1" : "0"} id="tab-tourn"
                   style={tab === "tourn" ? accentVars("#E8B84A") : undefined} onClick={() => setTab("tourn")}>Turnier</button>
@@ -13200,6 +13361,7 @@ export default function Tabellenrechner() {
         </div>
       )}
 
+      {tab === "cu-manage" && section === "cu" && <CustomTab data={data} setData={setData} logos={allLogos} setLogo={setLogo} />}
       {tab === "tourn" && section === "nt" && <TournamentTab data={data} setData={setData} />}
       {tab === "nations" && section === "nt" && <NationsTab data={data} setData={setData} />}
       {tab === "news" && <NewsTab data={data} section={section} onNew={(d) => setEditor(d)} />}
@@ -13397,7 +13559,7 @@ export default function Tabellenrechner() {
               liste: scorerList(
                 seasonGames(data.active[l.id], makeFixtures(data.active[l.id].teams.length, data.active[l.id].seed)),
                 squadIndex(COUNTRY[section].ids.map((x) => data.active[x]))),
-            })).concat([{ key: cupKey, name: cupName, accent: cupAccent,
+            })).concat(section === "cu" ? [] : [{ key: cupKey, name: cupName, accent: cupAccent,
               liste: scorerList(cupGames(data[cupKey]), squadIndex(COUNTRY[section].ids.map((x) => data.active[x]))) }])
             : [...LEAGUES.filter((l) => !l.group).map((l) => ({
               key: l.id, name: l.name, accent: l.accent,
@@ -13554,7 +13716,7 @@ export default function Tabellenrechner() {
         <CloseModal league={league} season={season} rows={rows}
           playedGames={playedGames} totalGames={totalGames}
           onClose={() => setModal(null)} onConfirm={closeOne}
-          onPromotion={() => (ENG_IDS.indexOf(league.id) >= 0 ? closeAllEn() : ES_IDS.indexOf(league.id) >= 0 ? closeAllEs() : IT_IDS.indexOf(league.id) >= 0 ? closeAllIt() : FR_IDS.indexOf(league.id) >= 0 ? closeAllFr() : WORLD_SEC[league.id] ? closeAllWorld(WORLD.find((c) => c.key === WORLD_SEC[league.id])) : setModal({ type: "promotion" }))} />
+          onPromotion={() => (league.custom ? closeAllCustom([...COUNTRY.cu.ids]) : ENG_IDS.indexOf(league.id) >= 0 ? closeAllEn() : ES_IDS.indexOf(league.id) >= 0 ? closeAllEs() : IT_IDS.indexOf(league.id) >= 0 ? closeAllIt() : FR_IDS.indexOf(league.id) >= 0 ? closeAllFr() : WORLD_SEC[league.id] ? closeAllWorld(WORLD.find((c) => c.key === WORLD_SEC[league.id])) : setModal({ type: "promotion" }))} />
       )}
 
       {modal && modal.type === "promotion" && (
@@ -13666,7 +13828,13 @@ export default function Tabellenrechner() {
       {modal && modal.type === "playall" && (
         <Modal onClose={() => setModal(null)}>
           <h2>{section === "de" ? "Saison durchspielen" : `Saison durchspielen — ${COUNTRY[section].name}`}</h2>
-          {COUNTRY[section].world ? (
+          {section === "cu" ? (
+            <p>
+              Alle noch offenen Spiele aller eigenen Ligen werden ausgewürfelt (bereits eingetragene Ergebnisse bleiben). Anschließend
+              kommen alle Tabellen in die Historie, und die nächste Saison beginnt mit unveränderten Stärken (neue per Knopf „Neue Stärken“).
+              Alle anderen Abschnitte bleiben unberührt.
+            </p>
+          ) : COUNTRY[section].world ? (
             <p>
               Alle noch offenen Spiele von {COUNTRY[section].leagues.map((l) => l.name).join(" und ")} werden ausgewürfelt
               (bereits eingetragene Ergebnisse bleiben), dazu der {COUNTRY[section].cupName}. Anschließend kommen alle Wettbewerbe in die
@@ -13717,7 +13885,7 @@ export default function Tabellenrechner() {
           <p>Das lässt sich nicht rückgängig machen. Vorher unter Historie „Sichern“ eine Kopie anlegen.</p>
           <div className="lr-modal-foot">
             <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
-            <button className="lr-btn lr-btn-p" id="playall-go" onClick={section === "en" ? playAllEn : section === "es" ? playAllEs : section === "it" ? playAllIt : section === "fr" ? playAllFr : COUNTRY[section].world ? () => playAllWorld(COUNTRY[section].world) : playAll}>Alles durchspielen</button>
+            <button className="lr-btn lr-btn-p" id="playall-go" onClick={section === "cu" ? playAllCu : section === "en" ? playAllEn : section === "es" ? playAllEs : section === "it" ? playAllIt : section === "fr" ? playAllFr : COUNTRY[section].world ? () => playAllWorld(COUNTRY[section].world) : playAll}>Alles durchspielen</button>
           </div>
         </Modal>
       )}
@@ -14910,6 +15078,8 @@ function CloseModal({ league, season, rows, playedGames, totalGames, onClose, on
   } else if (league.id === "bl1") {
     upDown.push(["Relegation", [rows[n - 3]]]);
     upDown.push(["Absteiger", [rows[n - 2], rows[n - 1]]]);
+  } else if (league.custom) {
+    upDown.push(["Meister", rows.slice(0, 1)]);
   } else if (DE_LOW_BY_ID[league.id]) {
     upDown.push(["Meister", rows.slice(0, 1)]);
     if (DE_LOW_BY_ID[league.id].zones.down) upDown.push(["Absteiger", rows.slice(n - DE_LOW_BY_ID[league.id].zones.down)]);
@@ -14948,7 +15118,7 @@ function CloseModal({ league, season, rows, playedGames, totalGames, onClose, on
       </p>
       <div className="lr-modal-foot">
         <button className="lr-btn" onClick={onClose}>Abbrechen</button>
-        <button className="lr-btn" onClick={onPromotion}>{ENG_IDS.indexOf(league.id) >= 0 ? "Alle englischen Ligen mit Auf- und Abstieg" : ES_IDS.indexOf(league.id) >= 0 ? "Alle spanischen Ligen mit Auf- und Abstieg" : IT_IDS.indexOf(league.id) >= 0 ? "Alle italienischen Ligen mit Auf- und Abstieg" : FR_IDS.indexOf(league.id) >= 0 ? "Alle französischen Ligen mit Auf- und Abstieg" : WORLD_SEC[league.id] ? "Alle Ligen des Landes mit Auf- und Abstieg" : "Alle Ligen mit Auf- und Abstieg"}</button>
+        <button className="lr-btn" onClick={onPromotion}>{league.custom ? "Alle eigenen Ligen abschließen" : ENG_IDS.indexOf(league.id) >= 0 ? "Alle englischen Ligen mit Auf- und Abstieg" : ES_IDS.indexOf(league.id) >= 0 ? "Alle spanischen Ligen mit Auf- und Abstieg" : IT_IDS.indexOf(league.id) >= 0 ? "Alle italienischen Ligen mit Auf- und Abstieg" : FR_IDS.indexOf(league.id) >= 0 ? "Alle französischen Ligen mit Auf- und Abstieg" : WORLD_SEC[league.id] ? "Alle Ligen des Landes mit Auf- und Abstieg" : "Alle Ligen mit Auf- und Abstieg"}</button>
         <button className="lr-btn lr-btn-p" onClick={onConfirm}>Nur diese Liga abschließen</button>
       </div>
     </Modal>
@@ -15161,6 +15331,221 @@ function CupStartModal({ onClose, onStart, amateure }) {
         </button>
       </div>
     </Modal>
+  );
+}
+
+/* ---------------- Eigene Ligen: Verwaltung ---------------- */
+
+/** Auswahl von Mannschaften aus allen Ligen der App (und eigenen Vereinen) für eine eigene Liga. */
+function ClubPicker({ data, logos, leagueId, onAdd, onClose }) {
+  const [q, setQ] = useState("");
+  const [sec, setSec] = useState("");
+  const [sel, setSel] = useState([]);
+  const clubs = useMemo(() => allClubs(data), [data]);
+  const where = useMemo(() => {
+    const m = {};
+    data.custom.leagues.forEach((l) => { if (!l.gone) l.teams.forEach((n) => { m[n] = l.id; }); });
+    return m;
+  }, [data]);
+  const secName = (k) => (k === "eu" ? "Europapokal-Teilnehmer" : k === "own" ? "Eigene Vereine" : COUNTRY[k].name);
+  const secs = [...new Set(clubs.map((c) => c.sec))];
+  const needle = q.trim().toLowerCase();
+  const list = clubs.filter((c) => (!sec || c.sec === sec) && (!needle || c.name.toLowerCase().indexOf(needle) >= 0 || c.league.toLowerCase().indexOf(needle) >= 0));
+  const shown = list.slice(0, 200);
+  const toggle = (n) => setSel((c) => (c.indexOf(n) >= 0 ? c.filter((x) => x !== n) : [...c, n]));
+  return (
+    <Modal onClose={onClose}>
+      <h2>Mannschaften auswählen</h2>
+      <p>Alle Klubs aller Ligen der App, die Europapokal-Teilnehmer und deine eigenen Vereine. Kader und Stärke werden als Kopie übernommen.</p>
+      <div className="lr-cu-filter">
+        <input className="lr-team-in" id="picker-q" value={q} placeholder="Suchen (Verein oder Liga)" aria-label="Mannschaft suchen"
+          onChange={(e) => setQ(e.target.value)} />
+        <select className="lr-team-in" id="picker-sec" value={sec} aria-label="Abschnitt" onChange={(e) => setSec(e.target.value)}>
+          <option value="">alle Abschnitte</option>
+          {secs.map((k) => <option key={k} value={k}>{secName(k)}</option>)}
+        </select>
+      </div>
+      <div className="lr-cu-list" id="picker-list">
+        {shown.map((c) => {
+          const dis = !!where[c.name];
+          return (
+            <label key={c.name} className="lr-cu-row" data-dis={dis ? "1" : "0"}>
+              <input type="checkbox" disabled={dis} checked={sel.indexOf(c.name) >= 0 || (dis && where[c.name] === leagueId)}
+                onChange={() => toggle(c.name)} aria-label={c.name} />
+              {logos[c.name] ? <img className="lr-logo" src={logos[c.name]} alt="" /> : <span className="lr-logo" />}
+              <span className="lr-cu-n">{c.name}</span>
+              <small>{dis ? (where[c.name] === leagueId ? "bereits in dieser Liga" : `in „${LEAGUE_BY_ID[where[c.name]] ? LEAGUE_BY_ID[where[c.name]].name : "anderer Liga"}“`) : `${c.league} · Stärke ${c.strength}`}</small>
+            </label>
+          );
+        })}
+        {list.length > shown.length && <p className="lr-hint">{list.length - shown.length} weitere — Suche eingrenzen.</p>}
+        {list.length === 0 && <p className="lr-hint">Nichts gefunden.</p>}
+      </div>
+      <div className="lr-modal-foot">
+        <span className="lr-hint" style={{ margin: 0 }}>{sel.length} ausgewählt</span>
+        <div className="lr-spacer" />
+        <button className="lr-btn" onClick={onClose}>Abbrechen</button>
+        <button className="lr-btn lr-btn-p" id="picker-add" disabled={!sel.length} onClick={() => onAdd(sel)}>Hinzufügen</button>
+      </div>
+    </Modal>
+  );
+}
+
+/** Reiter „Ligen & Vereine“ im Abschnitt „Eigene Ligen“: Ligen anlegen/benennen, Mannschaften zuordnen, eigene Vereine erstellen. */
+function CustomTab({ data, setData, logos, setLogo }) {
+  const custom = data.custom;
+  const [newName, setNewName] = useState("");
+  const [picker, setPicker] = useState(null);
+  const [cName, setCName] = useState("");
+  const [cStr, setCStr] = useState("50");
+  const [cLogo, setCLogo] = useState("");
+  const [msg, setMsg] = useState("");
+  const [askDel, setAskDel] = useState(null);
+  const update = (fn) => setData((d) => applyCustom({ ...d, custom: fn(d.custom) }));
+  const strengthOf = (n) => {
+    for (const id of CUSTOM_REG) {
+      const s = data.active[id];
+      const i = s ? s.teams.indexOf(n) : -1;
+      if (i >= 0) return s.strengths[i];
+    }
+    const own = custom.clubs.find((c) => c.name === n);
+    return own ? own.strength : null;
+  };
+
+  const addLeague = () => {
+    const name = newName.trim();
+    if (!name) return;
+    update((c) => ({ ...c, leagues: [...c.leagues, {
+      id: `cu_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, name,
+      accent: CUSTOM_ACCENTS[c.leagues.filter((l) => !l.gone).length % CUSTOM_ACCENTS.length], teams: [], gone: false }] }));
+    setNewName("");
+  };
+  const mapLeague = (id, fn) => update((c) => ({ ...c, leagues: c.leagues.map((l) => (l.id === id ? fn(l) : l)) }));
+  const deleteLeague = (id) => {
+    setData((d) => {
+      const active = { ...d.active };
+      delete active[id];
+      return applyCustom({ ...d, active, custom: { ...d.custom, leagues: d.custom.leagues.map((l) => (l.id === id ? { ...l, gone: true } : l)) } });
+    });
+    setAskDel(null);
+  };
+
+  const pickLogo = async (file, cb) => {
+    if (!file) return;
+    try { cb(await logoFromFile(file)); setMsg(""); } catch (e) { setMsg("Das Bild konnte nicht gelesen werden."); }
+  };
+  const taken = new Set(allClubs(data).map((c) => c.name.toLowerCase()));
+  const createClub = () => {
+    const name = cName.trim();
+    const st = Math.max(1, Math.min(100, parseInt(cStr, 10) || 50));
+    if (!name) { setMsg("Bitte einen Namen eingeben."); return; }
+    if (taken.has(name.toLowerCase())) { setMsg(`„${name}“ gibt es schon — bitte einen anderen Namen wählen.`); return; }
+    setData((d) => ({ ...d, custom: { ...d.custom, clubs: [...d.custom.clubs, { name, strength: st }] },
+      logos: cLogo ? { ...(d.logos || {}), [name]: cLogo } : d.logos }));
+    setCName(""); setCStr("50"); setCLogo(""); setMsg(`„${name}“ erstellt — jetzt in einer Liga über „Mannschaften hinzufügen“ auswählen.`);
+  };
+  const setOwnStrength = (name, z) => setData((d) => {
+    const active = { ...d.active };
+    d.custom.leagues.forEach((l) => {
+      const s = d.active[l.id];
+      const i = s ? s.teams.indexOf(name) : -1;
+      if (i < 0) return;
+      const squads = [...s.squads];
+      squads[i] = scaleSquadTo(squads[i], z);
+      active[l.id] = { ...s, squads, strengths: squads.map(squadStrength) };
+    });
+    return { ...d, active, custom: { ...d.custom, clubs: d.custom.clubs.map((c) => (c.name === name ? { ...c, strength: z } : c)) } };
+  });
+  const deleteClub = (name) => setData((d) => ({ ...d, custom: { ...d.custom, clubs: d.custom.clubs.filter((c) => c.name !== name) } }));
+  const inLeague = (n) => custom.leagues.some((l) => !l.gone && l.teams.indexOf(n) >= 0);
+  const leagues = custom.leagues.filter((l) => !l.gone);
+
+  return (
+    <div className="lr-wrap">
+      <section style={accentVars("#E8A33D")}>
+        <h2>Eigene Ligen</h2>
+        <p className="lr-hint">
+          Lege beliebig viele Ligen mit eigenem Namen an und packe beliebige Mannschaften hinein — aus allen Ligen der App oder selbst erstellte Vereine
+          mit Logo. Eine Liga braucht eine gerade Anzahl von mindestens zwei Mannschaften, dann erscheint sie oben als eigener Reiter. Ändert sich das
+          Teilnehmerfeld einer Liga, beginnt ihre Saison neu.
+        </p>
+        <div className="lr-cu-new">
+          <input className="lr-team-in" id="cu-new-name" value={newName} placeholder="Name der neuen Liga" aria-label="Name der neuen Liga"
+            onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addLeague(); }} />
+          <button className="lr-btn lr-btn-p" id="cu-new-go" disabled={!newName.trim()} onClick={addLeague}>Liga anlegen</button>
+        </div>
+        {leagues.length === 0 && <p className="lr-hint">Noch keine eigene Liga.</p>}
+        {leagues.map((l, k) => {
+          const ok = customValid(l.teams);
+          return (
+            <div className="lr-cu-card" key={l.id} data-league={l.id} style={accentVars(l.accent)}>
+              <div className="lr-cu-head">
+                <input className="lr-team-in lr-cu-name" value={l.name} aria-label={`Name der Liga ${k + 1}`}
+                  onChange={(e) => mapLeague(l.id, (x) => ({ ...x, name: e.target.value }))} />
+                <button className="lr-btn lr-btn-sm" data-act="add" onClick={() => setPicker(l.id)}>Mannschaften hinzufügen</button>
+                {askDel === l.id ? (
+                  <>
+                    <button className="lr-btn lr-btn-sm lr-btn-p" data-act="del-ok" onClick={() => deleteLeague(l.id)}>Wirklich löschen</button>
+                    <button className="lr-btn lr-btn-sm" onClick={() => setAskDel(null)}>Nein</button>
+                  </>
+                ) : <button className="lr-btn lr-btn-sm" data-act="del" onClick={() => setAskDel(l.id)}>Liga löschen</button>}
+              </div>
+              <p className="lr-hint" style={{ margin: "4px 0 8px" }}>
+                {ok ? `${l.teams.length} Mannschaften — die Liga ist oben als Reiter spielbar.` : `Noch nicht spielbar: gerade Anzahl ab 2 nötig (jetzt ${l.teams.length}).`}
+              </p>
+              <div className="lr-cu-teams">
+                {l.teams.map((n) => (
+                  <span className="lr-cu-chip" key={n}>
+                    {logos[n] ? <img className="lr-logo" src={logos[n]} alt="" /> : null}
+                    {n}{strengthOf(n) != null ? <small> {strengthOf(n)}</small> : null}
+                    <button type="button" className="lr-logo-del" aria-label={`${n} aus der Liga entfernen`}
+                      onClick={() => mapLeague(l.id, (x) => ({ ...x, teams: x.teams.filter((t) => t !== n) }))}>×</button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </section>
+
+      <section style={{ ...accentVars("#5AA9E6"), marginTop: 22 }}>
+        <h2>Eigene Vereine</h2>
+        <p className="lr-hint">Erstelle Vereine mit Name, Stärke und Logo und wähle sie dann wie alle anderen Mannschaften für eine Liga aus.</p>
+        <div className="lr-cu-new">
+          <label className="lr-logo-pick" title="Logo wählen">
+            {cLogo ? <img src={cLogo} alt="" /> : "＋"}
+            <input id="cu-club-logo" type="file" accept="image/*" aria-label="Logo des neuen Vereins"
+              onChange={(e) => { pickLogo(e.target.files && e.target.files[0], setCLogo); e.target.value = ""; }} />
+          </label>
+          <input className="lr-team-in" id="cu-club-name" value={cName} placeholder="Name des Vereins" aria-label="Name des Vereins"
+            onChange={(e) => setCName(e.target.value)} />
+          <input className="lr-team-in num" id="cu-club-str" value={cStr} inputMode="numeric" aria-label="Stärke des Vereins" style={{ width: 64 }}
+            onFocus={(e) => e.target.select()} onChange={(e) => setCStr(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))} />
+          <button className="lr-btn lr-btn-p" id="cu-club-go" onClick={createClub}>Verein erstellen</button>
+        </div>
+        {msg && <p className="lr-hint" id="cu-msg">{msg}</p>}
+        {custom.clubs.map((c) => (
+          <div className="lr-cu-own" key={c.name} data-club={c.name}>
+            <label className="lr-logo-pick" title="Logo ändern">
+              {logos[c.name] ? <img src={logos[c.name]} alt="" /> : "＋"}
+              <input type="file" accept="image/*" aria-label={`Logo von ${c.name}`}
+                onChange={(e) => { pickLogo(e.target.files && e.target.files[0], (u) => setLogo(c.name, u)); e.target.value = ""; }} />
+            </label>
+            <b>{c.name}</b>
+            <span className="lr-hint" style={{ margin: 0 }}>Stärke</span>
+            <StrengthSet value={strengthOf(c.name) != null ? strengthOf(c.name) : c.strength} name={c.name} onSet={(z) => setOwnStrength(c.name, z)} />
+            <span className="lr-spacer" />
+            <button className="lr-btn lr-btn-sm" disabled={inLeague(c.name)} title={inLeague(c.name) ? "Erst aus der Liga entfernen" : ""}
+              aria-label={`${c.name} löschen`} onClick={() => deleteClub(c.name)}>Löschen</button>
+          </div>
+        ))}
+      </section>
+
+      {picker && (
+        <ClubPicker data={data} logos={logos} leagueId={picker} onClose={() => setPicker(null)}
+          onAdd={(names) => { mapLeague(picker, (x) => ({ ...x, teams: [...x.teams, ...names.filter((n) => x.teams.indexOf(n) < 0)] })); setPicker(null); }} />
+      )}
+    </div>
   );
 }
 
@@ -15605,7 +15990,7 @@ function NationModal({ name, data, onClose }) {
 
 const NEWS_CATS = ["Liga", "Verein", "Transfer", "Spielbericht", "Pokal & Europa", "Sonstiges"];
 const LEAGUE_ALL_IDS = ALL_LEAGUE_IDS;
-const SECTION_KEYS = ["de", "en", "es", "it", "fr", ...WORLD_KEYS, "nt"];
+const SECTION_KEYS = ["de", "en", "es", "it", "fr", ...WORLD_KEYS, "cu", "nt"];
 
 const todayISO = () => {
   const t = new Date();
@@ -17674,7 +18059,7 @@ function Kalender({ data, onJump, section }) {
             aria-label="Wettbewerb filtern">
             <option value="alle">alle</option>
             {COUNTRY[section].leagues.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-            <option value={COUNTRY[section].cupKey}>{COUNTRY[section].cupName}</option>
+            {section !== "cu" && <option value={COUNTRY[section].cupKey}>{COUNTRY[section].cupName}</option>}
             {section === "de" && EURO_COMPS.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
@@ -17719,6 +18104,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
     const out = { cup: {}, facup: {}, copa: {}, coppa: {}, coupe: {}, tournko: {}, cl: {}, el: {}, ecl: {} };
     [...LEGACY_LEAGUES, ...LEAGUES, ...ENGLAND, ...SPAIN, ...ITALY, ...FRANCE, ...WORLD_LEAGUES].forEach((l) => { out[l.id] = {}; });
     WORLD.forEach((c) => { out[c.cup.key] = {}; });
+    CUSTOM_REG.forEach((id) => { out[id] = {}; });
     history.forEach((h) => {
       if (h.type === "euro") {
         if (h.winner && h.winner !== "—" && out[h.leagueId]) out[h.leagueId][h.winner] = (out[h.leagueId][h.winner] || 0) + 1;
@@ -17735,9 +18121,10 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
     return out;
   }, [history]);
 
+  const secLeagues = section === "cu" ? CUSTOM_REG.map((id) => LEAGUE_BY_ID[id]).filter(Boolean) : section !== "de" ? COUNTRY[section].leagues : [];
   const boards = (section !== "de"
-    ? [...COUNTRY[section].leagues.map((l) => ({ key: l.id, accent: l.accent, head: `Meisterschaften — ${l.name}` })),
-      { key: COUNTRY[section].cupKey, accent: COUNTRY[section].cupAccent, head: `Pokalsiege — ${COUNTRY[section].cupName}` }]
+    ? [...secLeagues.map((l) => ({ key: l.id, accent: l.accent, head: `Meisterschaften — ${l.name}` })),
+      ...(section === "cu" ? [] : [{ key: COUNTRY[section].cupKey, accent: COUNTRY[section].cupAccent, head: `Pokalsiege — ${COUNTRY[section].cupName}` }])]
     : [
       ...[...LEAGUES.filter((l) => !l.group), ...LEGACY_LEAGUES].map((l) => ({
         key: l.id, accent: l.accent,
@@ -17750,7 +18137,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
   /** Einträge nach Wettbewerb ordnen, jeweils die neueste Saison zuerst. */
   const groups = useMemo(() => {
     const defs = section !== "de"
-      ? [...COUNTRY[section].leagues.map((l) => ({ key: l.id, name: l.name, accent: l.accent })), { key: COUNTRY[section].cupKey, name: COUNTRY[section].cupName, accent: COUNTRY[section].cupAccent }]
+      ? [...secLeagues.map((l) => ({ key: l.id, name: l.name, accent: l.accent })), ...(section === "cu" ? [] : [{ key: COUNTRY[section].cupKey, name: COUNTRY[section].cupName, accent: COUNTRY[section].cupAccent }])]
       : [
         ...[...LEAGUES.filter((l) => !l.group), ...LEGACY_LEAGUES].map((l) => ({ key: l.id, name: l.name, accent: l.accent })),
         { key: "cup", name: "DFB-Pokal", accent: CUP_ACCENT },
