@@ -1715,7 +1715,7 @@ const TEAM_START = { ...DE_LOW_START, ...ENG_START, ...ES_START, ...IT_START, ..
 const START_IDS = [...ENG_IDS, ...ES_IDS, ...IT_IDS, ...FR_IDS, ...WORLD_IDS];
 
 /** Gehört ein Historieneintrag zum englischen Abschnitt? */
-const sectionOfHist = (h) => (ENG_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "facup" ? "en" : ES_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "copa" ? "es" : IT_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "coppa" ? "it" : FR_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "coupe" ? "fr" : h.leagueId === "tournko" ? "nt" : String(h.leagueId).indexOf("cu_") === 0 ? "cu" : WORLD_SEC[h.leagueId] || "de");
+const sectionOfHist = (h) => (ENG_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "facup" ? "en" : ES_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "copa" ? "es" : IT_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "coppa" ? "it" : FR_IDS.indexOf(h.leagueId) >= 0 || h.leagueId === "coupe" ? "fr" : h.leagueId === "tournko" ? "nt" : String(h.leagueId).indexOf("cu_") === 0 || String(h.leagueId).indexOf("cp_") === 0 ? "cu" : WORLD_SEC[h.leagueId] || "de");
 const sectionHistory = (history, section) => (history || []).filter((h) => sectionOfHist(h) === section);
 
 /** Die drei Profiligen: nur sie stellen die 56 gesetzten Klubs im DFB-Pokal. */
@@ -9951,7 +9951,7 @@ function freshData() {
   [...ENGLAND, ...SPAIN, ...ITALY, ...FRANCE, ...WORLD_LEAGUES].forEach((l) => {
     active[l.id] = newSeason(l.teams, l.teams.map((n) => TEAM_START[n]), "2026/27", defaultStart(l.id, "2026/27"));
   });
-  return { active, custom: { leagues: [], clubs: [] }, cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
+  return { active, custom: { leagues: [], clubs: [] }, cups: [], cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
     regional: [] };
 }
 
@@ -10012,6 +10012,7 @@ function normalize(d0) {
   });
   // Eigene Ligen: Planung und Saisons übernehmen
   out.custom = normCustom(d.custom);
+  out.cups = normCups(d.cups);
   out.custom.leagues.forEach((l) => {
     const s = d.active[l.id];
     if (!s || !Array.isArray(s.teams)) return;
@@ -10456,7 +10457,7 @@ WORLD.forEach((c) => {
 // Abschnitt „Eigene Ligen“: frei benannte Ligen aus beliebigen Mannschaften (auch selbst angelegten Vereinen).
 // `data.custom = { leagues: [{id, name, accent, teams, gone}], clubs: [{name, strength}] }`; die laufende Saison jeder
 // Liga steht wie bei allen anderen in `data.active[id]`. Die Ligen werden zur Laufzeit in die Verzeichnisse eingetragen.
-COUNTRY.cu = { name: "Eigene Ligen", ids: [], leagues: [], first: "cu-manage", cupKey: "cucup", cupName: "Pokal", cupAccent: "#E8A33D", euroTab: null, flag: "cu", top: null, topName: "", places: { cl: 0, el: 0, ecl: 0 }, adj: "eigenen", extraTabs: ["cu-manage"] };
+COUNTRY.cu = { name: "Eigene Ligen", ids: [], leagues: [], first: "cu-manage", cupKey: "cucup", cupName: "Pokal", cupAccent: "#E8A33D", euroTab: null, flag: "cu", top: null, topName: "", places: { cl: 0, el: 0, ecl: 0 }, adj: "eigenen", extraTabs: ["cu-manage", "cu-cups"] };
 const CUSTOM_ACCENTS = ["#E8A33D", "#5FBFA8", "#C97BE0", "#6FA8F0", "#E07A5F", "#8FCB5A", "#E0C23C", "#4FC3D0"];
 const CUSTOM_BASE_N = ALL_LEAGUE_IDS.length;
 let CUSTOM_REG = [];
@@ -11438,6 +11439,23 @@ const CSS = `
 .lr-team-head span:last-child { text-align: center; }
 .lr-team-row.kader, .lr-team-head.kader { grid-template-columns: 1fr 58px 56px 78px; }
 .lr-team-head.kader span:nth-child(2) { text-align: center; }
+.lr-cu-assign { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 16px; max-height: 46vh; overflow-y: auto; margin-bottom: 8px; }
+.lr-cu-ar { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid var(--line); }
+.lr-cu-ar .lr-logo { margin: 0; width: 20px; height: 20px; }
+.lr-cu-ar .lr-cu-n { flex: 1; min-width: 0; }
+.lr-cu-opts { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 8px 0; }
+.lr-cu-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; font-size: 12px; }
+.lr-cu-h { font-family: 'Oswald', sans-serif; font-size: 18px; margin: 16px 0 8px; }
+.lr-cu-h4 { font-family: 'Oswald', sans-serif; font-size: 15px; margin: 14px 0 6px; color: var(--chalk-dim); }
+.lr-cu-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 18px; margin-top: 10px; }
+.lr-cu-match { display: grid; grid-template-columns: 1fr auto 1fr auto; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+.lr-cu-ml { grid-column: 1 / -1; color: var(--chalk-dim); }
+.lr-cu-t { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.lr-cu-th { justify-content: flex-end; text-align: right; }
+.lr-cu-t .lr-logo { margin: 0; width: 22px; height: 22px; }
+.lr-cu-tie { border: 1px solid var(--line-2); border-radius: 4px; padding: 6px 10px; margin: 8px 0; background: var(--board-2); }
+.lr-cu-res { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 4px 0; }
+.lr-cu-w { color: var(--accent); }
 .lr-cu-new { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
 .lr-cu-new .lr-team-in { flex: 1; min-width: 160px; }
 .lr-cu-new .lr-team-in.num { flex: none; width: 64px; min-width: 0; }
@@ -13013,7 +13031,7 @@ export default function Tabellenrechner() {
           results: {},
         };
       });
-      return { ...d, active, cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, history: [], euro: { ...d.euro, runs: { cl: null, el: null, ecl: null } } };
+      return { ...d, active, cups: (d.cups || []).map((c) => ({ ...c, run: null, edition: 1 })), cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, history: [], euro: { ...d.euro, runs: { cl: null, el: null, ecl: null } } };
     });
     setMd(ZERO_MD);
     setCupRound(0);
@@ -13145,6 +13163,8 @@ export default function Tabellenrechner() {
                 ))}
                 <button className="lr-tab" data-on={tab === "cu-manage" ? "1" : "0"} id="tab-cu-manage"
                   style={tab === "cu-manage" ? accentVars("#E8A33D") : undefined} onClick={() => setTab("cu-manage")}>Ligen &amp; Vereine</button>
+                <button className="lr-tab" data-on={tab === "cu-cups" ? "1" : "0"} id="tab-cu-cups"
+                  style={tab === "cu-cups" ? accentVars("#E0C23C") : undefined} onClick={() => setTab("cu-cups")}>Pokale</button>
                 <button className="lr-tab" data-on={tab === "top" ? "1" : "0"}
                   style={tab === "top" ? accentVars("#D98C5F") : undefined} onClick={() => setTab("top")}>Torjäger</button>
                 <button className="lr-tab" data-on={tab === "cal" ? "1" : "0"}
@@ -13366,6 +13386,7 @@ export default function Tabellenrechner() {
         </div>
       )}
 
+      {tab === "cu-cups" && section === "cu" && <CupsTab data={data} setData={setData} logos={allLogos} />}
       {tab === "cu-manage" && section === "cu" && <CustomTab data={data} setData={setData} logos={allLogos} setLogo={setLogo} />}
       {tab === "tourn" && section === "nt" && <TournamentTab data={data} setData={setData} />}
       {tab === "nations" && section === "nt" && <NationsTab data={data} setData={setData} />}
@@ -13564,7 +13585,7 @@ export default function Tabellenrechner() {
               liste: scorerList(
                 seasonGames(data.active[l.id], makeFixtures(data.active[l.id].teams.length, data.active[l.id].seed)),
                 squadIndex(COUNTRY[section].ids.map((x) => data.active[x]))),
-            })).concat(section === "cu" ? [] : [{ key: cupKey, name: cupName, accent: cupAccent,
+            })).concat(section === "cu" ? data.cups.filter((c) => !c.gone && c.run).map((c) => ({ key: c.id, name: c.name, accent: c.accent, liste: cupScorers(data, c) })) : [{ key: cupKey, name: cupName, accent: cupAccent,
               liste: scorerList(cupGames(data[cupKey]), squadIndex(COUNTRY[section].ids.map((x) => data.active[x]))) }])
             : [...LEAGUES.filter((l) => !l.group).map((l) => ({
               key: l.id, name: l.name, accent: l.accent,
@@ -15339,25 +15360,719 @@ function CupStartModal({ onClose, onStart, amateure }) {
   );
 }
 
+/* ---------------- Eigene Pokale: Turniere mit optionaler Gruppenphase ---------------- */
+
+// `data.cups = [{id "cp_…", name, accent, teams, format, edition, run, gone}]`. `run` ist das laufende Turnier:
+// {edition, label, seed, phase: "groups"|"ko"|"done", groups: [{name, teams, fixtures, results}], ko: {rounds: [{name, ties}], third}, champion}.
+// Ein Ko-Spiel (`tie`): {a, b, legs: 1|2, l1, l2, pen}; bei zwei Spielen hat a Heimrecht im Hinspiel (l1), b im Rückspiel (l2).
+const CUP_FORMAT_DEFAULT = {
+  groups: true, groupCount: 4, groupMode: "draw", groupDouble: false, advance: 2, thirds: 0,
+  legs: 1, finalLegs: 1, thirdPlace: false, seeding: "strength", awayGoals: false, redraw: false,
+};
+/** Fertige Vorlagen in der Art bekannter Wettbewerbe. */
+const CUP_PRESETS = [
+  { key: "wm", name: "Weltmeisterschaft (Gruppen, dann K.o.)", n: 32, f: { groups: true, groupCount: 8, groupDouble: false, advance: 2, thirds: 0, legs: 1, finalLegs: 1, thirdPlace: true, seeding: "strength", awayGoals: false, redraw: false } },
+  { key: "cl", name: "Champions-League-Stil (Gruppen, K.o. mit Hin- und Rückspiel)", n: 32, f: { groups: true, groupCount: 8, groupDouble: true, advance: 2, thirds: 0, legs: 2, finalLegs: 1, thirdPlace: false, seeding: "strength", awayGoals: false, redraw: true } },
+  { key: "dfb", name: "Pokal (reines K.o., Einzelspiele)", n: 16, f: { groups: false, groupCount: 4, groupDouble: false, advance: 2, thirds: 0, legs: 1, finalLegs: 1, thirdPlace: false, seeding: "random", awayGoals: false, redraw: false } },
+  { key: "ko2", name: "K.o. mit Hin- und Rückspiel", n: 16, f: { groups: false, groupCount: 4, groupDouble: false, advance: 2, thirds: 0, legs: 2, finalLegs: 2, thirdPlace: false, seeding: "strength", awayGoals: false, redraw: false } },
+  { key: "em", name: "Europameisterschaft (6 Gruppen, beste Dritte)", n: 24, f: { groups: true, groupCount: 6, groupDouble: false, advance: 2, thirds: 4, legs: 1, finalLegs: 1, thirdPlace: false, seeding: "strength", awayGoals: false, redraw: false } },
+];
+
+function normCups(list) {
+  return (Array.isArray(list) ? list : []).filter((c) => c && typeof c.id === "string").map((c, i) => ({
+    id: c.id, name: String(c.name || "Pokal"), accent: c.accent || CUSTOM_ACCENTS[i % CUSTOM_ACCENTS.length],
+    teams: Array.isArray(c.teams) ? c.teams.map(String) : [],
+    format: { ...CUP_FORMAT_DEFAULT, ...(c.format || {}) },
+    groupAssign: c.groupAssign && typeof c.groupAssign === "object" ? c.groupAssign : {},
+    edition: Number(c.edition) || 1, run: c.run && typeof c.run === "object" ? c.run : null, gone: !!c.gone,
+  }));
+}
+
+/** Spielplan jeder gegen jeden (Kreismethode, auch bei ungerader Zahl mit spielfreiem Team); `dbl` hängt die Rückspiele an. */
+function roundRobinRounds(n, dbl) {
+  const m = n % 2 ? n + 1 : n;
+  let arr = Array.from({ length: m }, (_, i) => i);
+  const rounds = [];
+  for (let r = 0; r < m - 1; r++) {
+    const rd = [];
+    for (let i = 0; i < m / 2; i++) {
+      let a = arr[i];
+      let b = arr[m - 1 - i];
+      if (a >= n || b >= n) continue;
+      if ((r + i) % 2 === 1) [a, b] = [b, a];
+      rd.push([a, b]);
+    }
+    rounds.push(rd);
+    arr = [arr[0], arr[m - 1], ...arr.slice(1, m - 1)];
+  }
+  return dbl ? [...rounds, ...rounds.map((rd) => rd.map(([a, b]) => [b, a]))] : rounds;
+}
+
+/** Setzliste einer K.o.-Runde: Platz in der Reihenfolge des Turnierbaums (1 gegen letzter, 2 gegen vorletzter, …). */
+function bracketOrder(size) {
+  let o = [1, 2];
+  while (o.length < size) { const n = o.length * 2; o = o.flatMap((s) => [s, n + 1 - s]); }
+  return o;
+}
+const cupPow2 = (n) => { let s = 2; while (s < n) s *= 2; return s; };
+const cupRoundName = (teamsInRound) => (teamsInRound === 2 ? "Finale" : teamsInRound === 4 ? "Halbfinale" : teamsInRound === 8 ? "Viertelfinale" : teamsInRound === 16 ? "Achtelfinale" : `Runde der ${teamsInRound}`);
+const cupShuffle = (arr, rnd) => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const cupFilled = (l) => !!l && l.h !== "" && l.a !== "" && l.h != null && l.a != null && Number.isFinite(Number(l.h)) && Number.isFinite(Number(l.a));
+const cupNewLeg = () => ({ h: "", a: "", sc: [] });
+const cupNewTie = (a, b, legs) => ({ a, b, legs, l1: cupNewLeg(), l2: cupNewLeg(), pen: null });
+
+/** Sieger eines K.o.-Spiels: "a", "b" oder null, solange offen. */
+function cupTieWinner(tie, away) {
+  if (!tie.b) return tie.a ? "a" : null;
+  if (!tie.a) return "b";
+  if (tie.legs === 2) {
+    if (!cupFilled(tie.l1) || !cupFilled(tie.l2)) return null;
+    const ga = Number(tie.l1.h) + Number(tie.l2.a);
+    const gb = Number(tie.l1.a) + Number(tie.l2.h);
+    if (ga !== gb) return ga > gb ? "a" : "b";
+    if (away) { const wa = Number(tie.l2.a); const wb = Number(tie.l1.a); if (wa !== wb) return wa > wb ? "a" : "b"; }
+    return tie.pen || null;
+  }
+  if (!cupFilled(tie.l1)) return null;
+  if (Number(tie.l1.h) !== Number(tie.l1.a)) return Number(tie.l1.h) > Number(tie.l1.a) ? "a" : "b";
+  return tie.pen || null;
+}
+/** Braucht das Spiel ein Elfmeterschießen (nach den Toren unentschieden)? */
+function cupNeedsPen(tie, away) {
+  if (!tie.a || !tie.b || tie.pen) return false;
+  const copy = { ...tie, pen: "x" };
+  return cupTieWinner(copy, away) === "x";
+}
+const cupTieLoser = (tie, w) => (w === "a" ? tie.b : tie.a);
+
+/** Stärke und Kader einer Mannschaft für das Turnier (Ligen, Europapokal, eigene Vereine). */
+function cupCtx(data) {
+  const memo = new Map();
+  const sq = (name) => {
+    if (!memo.has(name)) {
+      const own = data.custom && data.custom.clubs.find((c) => c.name === name);
+      memo.set(name, own ? makeSquad(name, own.strength) : squadOfClub(data, name));
+    }
+    return memo.get(name);
+  };
+  return { sq, str: (name) => squadStrength(sq(name)) };
+}
+
+/** Gruppen nach Stärke in Töpfen auslosen (je ein Team pro Topf und Gruppe). */
+function cupDrawGroups(names, ctx, cfg, rnd) {
+  const g = Math.max(1, Math.min(cfg.groupCount, Math.floor(names.length / 2)));
+  const sorted = [...names].sort((x, y) => ctx.str(y) - ctx.str(x));
+  const groups = Array.from({ length: g }, () => []);
+  for (let k = 0; k * g < sorted.length; k++) {
+    const pot = cupShuffle(sorted.slice(k * g, (k + 1) * g), rnd);
+    const slots = pot.length === g ? groups.map((_, i) => i) : cupShuffle(groups.map((_, i) => i), rnd).slice(0, pot.length);
+    pot.forEach((n, i) => groups[slots[i]].push(n));
+  }
+  return groups.map((teams, i) => ({
+    name: `Gruppe ${String.fromCharCode(65 + i)}`, teams,
+    fixtures: roundRobinRounds(teams.length, cfg.groupDouble), results: {},
+  }));
+}
+
+/** Gruppen aus der Zuordnung, die man selbst eingetragen hat (`assign[name]` = Gruppennummer ab 0). */
+function cupManualGroups(names, assign, cfg) {
+  const g = Math.max(1, Math.min(cfg.groupCount, Math.floor(names.length / 2)));
+  const groups = Array.from({ length: g }, () => []);
+  names.forEach((n) => { const k = Number(assign[n]); if (Number.isInteger(k) && k >= 0 && k < g) groups[k].push(n); });
+  return groups.map((teams, i) => ({
+    name: `Gruppe ${String.fromCharCode(65 + i)}`, teams,
+    fixtures: roundRobinRounds(teams.length, cfg.groupDouble), results: {},
+  }));
+}
+
+const cupGroupTable = (g) => computeTable(g.teams, g.fixtures, g.results);
+const cupGroupGames = (g) => g.fixtures.reduce((s, r) => s + r.length, 0);
+const cupGroupDone = (g) => g.fixtures.every((r, i) => r.every((_, gi) => cupFilled(g.results[`${i}:${gi}`])));
+const cupGroupsDone = (run) => run.groups.length > 0 && run.groups.every(cupGroupDone);
+
+/** Qualifizierte Mannschaften in Setzreihenfolge: Gruppensieger, Zweite, … (je Platz nach Punkten, Tordifferenz, Toren), dann beste Dritte. */
+function cupQualifiers(run, cfg) {
+  const byPos = [];
+  run.groups.forEach((g) => {
+    cupGroupTable(g).forEach((r, i) => { (byPos[i] = byPos[i] || []).push({ name: r.name, group: g.name, pos: i + 1, pkt: r.pkt, diff: r.diff, gt: r.gt }); });
+  });
+  const rank = (list) => [...list].sort((a, b) => b.pkt - a.pkt || b.diff - a.diff || b.gt - a.gt || a.name.localeCompare(b.name, "de"));
+  const out = [];
+  const adv = Math.max(1, cfg.advance);
+  for (let p = 0; p < adv; p++) if (byPos[p]) out.push(...rank(byPos[p]));
+  if (cfg.thirds > 0 && byPos[adv]) out.push(...rank(byPos[adv]).slice(0, cfg.thirds));
+  return out;
+}
+
+/** Erste K.o.-Runde aus den Teilnehmern (in Setzreihenfolge); Freilose gehen an die besten Gesetzten. */
+function cupBuildKo(entrants, cfg, rnd) {
+  const size = cupPow2(entrants.length);
+  const nulls = size - entrants.length;
+  const clash = (slots) => slots.some((x, i) => i % 2 === 0 && x && slots[i + 1] && x.group && x.group === slots[i + 1].group);
+  let slots;
+  if (cfg.seeding === "random") {
+    for (let t = 0; t < 200; t++) {
+      slots = cupShuffle([...entrants, ...Array(nulls).fill(null)], rnd);
+      if (!clash(slots)) break;
+    }
+  } else {
+    slots = bracketOrder(size).map((s) => entrants[s - 1] || null);
+    // Gruppengegner in der ersten Runde möglichst vermeiden: Gegner paarweise tauschen
+    for (let i = 0; i < slots.length; i += 2) {
+      const x = slots[i];
+      const y = slots[i + 1];
+      if (x && y && x.group && x.group === y.group) {
+        for (let j = 0; j < slots.length; j += 2) {
+          const z = slots[j + 1];
+          if (j === i || !z) continue;
+          const ok1 = !(x.group && z.group === x.group) && !(slots[j] && slots[j].group === y.group);
+          if (ok1) { slots[i + 1] = z; slots[j + 1] = y; break; }
+        }
+      }
+    }
+  }
+  const ties = [];
+  for (let i = 0; i < size; i += 2) {
+    let a = slots[i];
+    let b = slots[i + 1];
+    if (!a && b) { a = b; b = null; }
+    ties.push(cupNewTie(a ? a.name : null, b ? b.name : null, size === 2 ? cfg.finalLegs : cfg.legs));
+  }
+  return { name: cupRoundName(size), ties };
+}
+
+/** Auslosung eines Turniers: Gruppen (oder direkt K.o.) mit zufälliger Auslosung. */
+function cupStart(data, cup) {
+  const cfg = cup.format;
+  const ctx = cupCtx(data);
+  const seed = Math.floor(Math.random() * 1e9);
+  const rnd = mulberry32(seed);
+  const label = `Ausgabe ${cup.edition}`;
+  if (cfg.groups) {
+    const groups = cfg.groupMode === "manual" ? cupManualGroups(cup.teams, cup.groupAssign || {}, cfg) : cupDrawGroups(cup.teams, ctx, cfg, rnd);
+    return { edition: cup.edition, label, seed, phase: "groups", groups, ko: { rounds: [], third: null }, champion: null };
+  }
+  const sorted = [...cup.teams].sort((x, y) => ctx.str(y) - ctx.str(x)).map((name) => ({ name, group: null }));
+  return { edition: cup.edition, label, seed, phase: "ko", groups: [], ko: { rounds: [cupBuildKo(sorted, cfg, rnd)], third: null }, champion: null };
+}
+
+/** Nach der Gruppenphase die erste K.o.-Runde aus den Qualifizierten auslosen. */
+function cupGroupsToKo(run, cfg) {
+  const rnd = mulberry32(run.seed + 7);
+  return { ...run, phase: "ko", ko: { rounds: [cupBuildKo(cupQualifiers(run, cfg), cfg, rnd)], third: null } };
+}
+
+const cupLastRound = (run) => run.ko.rounds[run.ko.rounds.length - 1];
+const cupRoundDone = (round, cfg) => round.ties.every((t) => cupTieWinner(t, cfg.awayGoals));
+
+/** Nächste K.o.-Runde aus den Siegern (im Turnierbaum fest oder neu ausgelost); nach dem Finale steht der Sieger fest. */
+function cupNextRound(run, cfg) {
+  const last = cupLastRound(run);
+  const winners = last.ties.map((t) => (cupTieWinner(t, cfg.awayGoals) === "a" ? t.a : t.b));
+  if (last.ties.length === 1) {
+    const third = run.ko.third;
+    const thirdDone = !third || cupTieWinner(third, cfg.awayGoals);
+    return thirdDone ? { ...run, phase: "done", champion: winners[0] } : run;
+  }
+  let order = winners;
+  if (cfg.redraw) order = cupShuffle(winners, mulberry32(run.seed + run.ko.rounds.length * 31));
+  const size = order.length;
+  const ties = [];
+  for (let i = 0; i < size; i += 2) ties.push(cupNewTie(order[i], order[i + 1], size === 2 ? cfg.finalLegs : cfg.legs));
+  let third = run.ko.third;
+  if (size === 2 && cfg.thirdPlace) {
+    const losers = last.ties.map((t) => cupTieLoser(t, cupTieWinner(t, cfg.awayGoals)));
+    third = cupNewTie(losers[0], losers[1], 1);
+  }
+  return { ...run, ko: { rounds: [...run.ko.rounds, { name: cupRoundName(size), ties }], third } };
+}
+
+/** Würfelt ein Spiel (Tore und Torschützen) für `home` gegen `away`. */
+function cupSimLeg(ctx, home, away, neutral, d) {
+  const drawShare = DRAW_SHARE[d.drawBias || 0] != null ? DRAW_SHARE[d.drawBias || 0] : 0;
+  const surprise = d.surpriseBias == null ? 1 : Number(d.surpriseBias);
+  const sqH = ctx.sq(home);
+  const sqA = ctx.sq(away);
+  const [hg, ag] = simulateMatch(ctx.str(home), ctx.str(away), neutral, drawShare, surprise, formationTilt(sqH.f), formationTilt(sqA.f));
+  return { h: String(hg), a: String(ag), sc: makeGoals(sqH, sqA, hg, ag) };
+}
+
+/** Füllt alle offenen Spiele eines K.o.-Spiels (und ein nötiges Elfmeterschießen). */
+function cupSimTie(ctx, tie, cfg, d, neutral, onlyOpen = true) {
+  if (!tie.a || !tie.b) return tie;
+  const t = { ...tie };
+  if (!onlyOpen || !cupFilled(t.l1)) t.l1 = cupSimLeg(ctx, t.a, t.b, neutral && t.legs === 1, d);
+  if (t.legs === 2 && (!onlyOpen || !cupFilled(t.l2))) t.l2 = cupSimLeg(ctx, t.b, t.a, false, d);
+  if (!onlyOpen) t.pen = null;
+  if (cupNeedsPen(t, cfg.awayGoals)) t.pen = shootout(ctx.str(t.a), ctx.str(t.b)) === "h" ? "a" : "b";
+  return t;
+}
+
+/** Alle offenen Gruppenspiele würfeln (alle Gruppen, optional nur ein Spieltag `md`). */
+function cupSimGroups(ctx, run, d, md) {
+  const groups = run.groups.map((g) => {
+    const results = { ...g.results };
+    g.fixtures.forEach((rd, i) => {
+      if (md != null && md !== i) return;
+      rd.forEach(([h, a], gi) => { if (!cupFilled(results[`${i}:${gi}`])) results[`${i}:${gi}`] = cupSimLeg(ctx, g.teams[h], g.teams[a], false, d); });
+    });
+    return { ...g, results };
+  });
+  return { ...run, groups };
+}
+
+/** Spielt eine ganze Runde (K.o.) und, wenn nötig, das Spiel um Platz 3. */
+function cupSimRound(ctx, run, cfg, d) {
+  const last = cupLastRound(run);
+  const isFinal = last.ties.length === 1;
+  const ties = last.ties.map((t) => cupSimTie(ctx, t, cfg, d, isFinal));
+  const rounds = [...run.ko.rounds.slice(0, -1), { ...last, ties }];
+  const third = run.ko.third && isFinal ? cupSimTie(ctx, run.ko.third, cfg, d, true) : run.ko.third;
+  return { ...run, ko: { rounds, third } };
+}
+
+/** Das Turnier im Ganzen zu Ende spielen. */
+function cupSimAll(ctx, run, cfg, d) {
+  let r = run;
+  if (r.phase === "groups") { r = cupSimGroups(ctx, r, d, null); r = cupGroupsToKo(r, cfg); }
+  for (let guard = 0; guard < 12 && r.phase === "ko"; guard++) {
+    r = cupSimRound(ctx, r, cfg, d);
+    r = cupNextRound(r, cfg);
+  }
+  return r;
+}
+
+/** Alle Partien mit Torschützen (für die Torjägerliste). */
+function cupAllGames(run) {
+  const out = [];
+  if (!run) return out;
+  run.groups.forEach((g) => Object.keys(g.results).forEach((k) => {
+    const [i, gi] = k.split(":").map(Number);
+    const p = g.fixtures[i] && g.fixtures[i][gi];
+    if (p) out.push({ sc: g.results[k].sc, heim: g.teams[p[0]], gast: g.teams[p[1]] });
+  }));
+  const ties = [...run.ko.rounds.flatMap((r) => r.ties), ...(run.ko.third ? [run.ko.third] : [])];
+  ties.forEach((t) => {
+    if (!t.a || !t.b) return;
+    out.push({ sc: t.l1.sc, heim: t.a, gast: t.b });
+    if (t.legs === 2) out.push({ sc: t.l2.sc, heim: t.b, gast: t.a });
+  });
+  return out;
+}
+const cupScorers = (data, cup) => {
+  if (!cup.run) return [];
+  const ctx = cupCtx(data);
+  return scorerList(cupAllGames(cup.run), squadIndex([{ teams: cup.teams, squads: cup.teams.map((n) => ctx.sq(n)) }]));
+};
+
+/** Historieneintrag (Typ „cup“) eines beendeten Turniers. */
+function cupArchive(data, cup) {
+  const run = cup.run;
+  const cfg = cup.format;
+  const tieGame = (t) => {
+    const w = cupTieWinner(t, cfg.awayGoals);
+    if (!t.b) return { h: t.a, a: "—", hg: "", ag: "", note: "Freilos" };
+    const hg = t.legs === 2 ? Number(t.l1.h) + Number(t.l2.a) : Number(t.l1.h);
+    const ag = t.legs === 2 ? Number(t.l1.a) + Number(t.l2.h) : Number(t.l1.a);
+    return { h: t.a, a: t.b, hg, ag, pen: hg === ag && w ? w : null, note: t.legs === 2 ? `(${t.l1.h}:${t.l1.a}, ${t.l2.a}:${t.l2.h})` : "" };
+  };
+  const rounds = run.ko.rounds.map((r) => ({ name: r.name, games: r.ties.map(tieGame) }));
+  if (run.ko.third) rounds.push({ name: "Spiel um Platz 3", games: [tieGame(run.ko.third)] });
+  return {
+    id: `${cup.id}-${run.label}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    type: "cup", leagueId: cup.id, leagueName: cup.name, accent: cup.accent, label: run.label,
+    closedAt: new Date().toISOString(), winner: run.champion || "—", rounds,
+    groups: run.groups.map((g) => ({ name: g.name, table: cupGroupTable(g).map((r) => ({ pos: r.pos, name: r.name, sp: r.sp, s: r.s, u: r.u, n: r.n, t: r.t, gt: r.gt, diff: r.diff, pkt: r.pkt })) })),
+    scorers: cupScorers(data, cup).slice(0, 10),
+  };
+}
+
+/** Kurzbeschreibung des Formats mit Rechenprobe (zeigt auch, was nicht geht). */
+function cupSummary(teams, f, assign) {
+  const n = teams.length;
+  if (n < 2) return { text: "Mindestens 2 Mannschaften nötig.", ok: false };
+  let q = n;
+  const parts = [];
+  if (f.groups) {
+    const g = Math.floor(n / 2);
+    if (g < 1) return { text: "Zu wenige Mannschaften für Gruppen.", ok: false };
+    const gc = Math.min(f.groupCount, g);
+    let minSize = Math.floor(n / gc);
+    if (f.groupMode === "manual") {
+      const cnt = Array(gc).fill(0);
+      let open = 0;
+      teams.forEach((t) => { const k = Number((assign || {})[t]); if (Number.isInteger(k) && k >= 0 && k < gc) cnt[k]++; else open++; });
+      if (open) return { text: `Noch ${open} Mannschaft${open > 1 ? "en" : ""} ohne Gruppe — bitte jedem Team eine Gruppe zuweisen.`, ok: false };
+      minSize = Math.min(...cnt);
+      if (minSize < 2) return { text: "Jede Gruppe braucht mindestens 2 Mannschaften.", ok: false };
+    }
+    if (f.advance > minSize) return { text: `Aus Gruppen mit ${minSize} Mannschaften können nicht ${f.advance} weiterkommen.`, ok: false };
+    const thirdsPool = gc;
+    const th = f.thirds > 0 ? Math.min(f.thirds, thirdsPool) : 0;
+    q = gc * f.advance + th;
+    if (q < 2) return { text: "Es kommen weniger als 2 Mannschaften weiter.", ok: false };
+    const sizes = f.groupMode === "manual" ? `${gc} Gruppen (selbst eingeteilt, mind. ${minSize} Teams)` : n % gc === 0 ? `${gc} Gruppen à ${n / gc}` : `${gc} Gruppen (${minSize}–${minSize + 1} Teams)`;
+    parts.push(`${sizes}${f.groupDouble ? ", Hin- und Rückspiele" : ""}`, `${q} kommen weiter (${f.advance} je Gruppe${th ? ` + ${th} beste Dritte` : ""})`);
+  }
+  const size = cupPow2(q);
+  const rounds = [];
+  for (let s = size; s >= 2; s /= 2) rounds.push(cupRoundName(s));
+  const byes = size - q;
+  parts.push(`K.o.: ${rounds.join(" → ")}${byes ? ` (${byes} Freilos${byes > 1 ? "e" : ""} in der ersten Runde)` : ""}`, `${f.legs === 2 ? "Hin- und Rückspiel" : "Einzelspiel"}, Finale ${f.finalLegs === 2 ? "mit Hin- und Rückspiel" : "als Einzelspiel"}${f.thirdPlace ? ", Spiel um Platz 3" : ""}`);
+  return { text: parts.join(" · "), ok: true };
+}
+
+/* ---------------- Eigene Pokale: Oberfläche ---------------- */
+
+function CupSel({ label, value, onChange, options, id, disabled }) {
+  return (
+    <label className="lr-prog lr-cu-opt">
+      {label}
+      <select className="lr-jump" id={id} value={String(value)} disabled={disabled} aria-label={label} onChange={(e) => onChange(e.target.value)}>
+        {options.map(([v, t]) => <option key={String(v)} value={String(v)}>{t}</option>)}
+      </select>
+    </label>
+  );
+}
+const cupDigits = (v) => String(v).replace(/[^0-9]/g, "").slice(0, 2);
+
+/** Eine Partie mit Ergebnisfeldern; `res` = {h, a} aus Sicht von Heim/Gast dieser Partie. */
+function CupMatch({ home, away, res, onSet, onSim, logos, label }) {
+  const r = res || { h: "", a: "" };
+  const logo = (n) => (logos[n] ? <img className="lr-logo" src={logos[n]} alt="" /> : null);
+  return (
+    <div className="lr-cu-match">
+      {label ? <small className="lr-cu-ml">{label}</small> : null}
+      <span className="lr-cu-t lr-cu-th"><TeamLink name={home} />{logo(home)}</span>
+      <div className="lr-score">
+        <ScoreBox value={r.h} team={home} onType={(v) => onSet("h", cupDigits(v))} />
+        <span className="lr-colon">:</span>
+        <ScoreBox value={r.a} team={away} onType={(v) => onSet("a", cupDigits(v))} />
+      </div>
+      <span className="lr-cu-t lr-cu-ta">{logo(away)}<TeamLink name={away} /></span>
+      <button className="lr-sim" type="button" onClick={onSim}>simulieren</button>
+    </div>
+  );
+}
+
+function CupRun({ data, cup, update, logos }) {
+  const run = cup.run;
+  const cfg = cup.format;
+  const [md, setMd] = useState(0);
+  const [rSel, setRSel] = useState(null);
+  const setRun = (fn) => update(cup.id, (c, d) => ({ ...c, run: fn(c.run, d, c.format) }));
+  const nGroupMd = run.groups.reduce((m, g) => Math.max(m, g.fixtures.length), 0);
+  const mdIdx = Math.min(md, Math.max(0, nGroupMd - 1));
+  const rounds = run.ko.rounds;
+  const rIdx = rSel == null ? rounds.length - 1 : Math.min(rSel, rounds.length - 1);
+
+  const setGroupScore = (gi, key, side, v) => setRun((r) => ({ ...r, groups: r.groups.map((g, k) => {
+    if (k !== gi) return g;
+    const old = g.results[key] || { h: "", a: "", sc: [] };
+    const nw = { ...old, [side]: v };
+    if (cupFilled(nw)) nw.sc = trimGoals(old.sc, Number(nw.h), Number(nw.a)); else nw.sc = [];
+    return { ...g, results: { ...g.results, [key]: nw } };
+  }) }));
+  const simGroupGame = (gi, i, g2) => setRun((r, d) => {
+    const ctx = cupCtx(d);
+    return { ...r, groups: r.groups.map((g, k) => (k !== gi ? g : { ...g, results: { ...g.results, [`${i}:${g2}`]: cupSimLeg(ctx, g.teams[g.fixtures[i][g2][0]], g.teams[g.fixtures[i][g2][1]], false, d) } })) };
+  });
+  const mapTie = (which, ri, ti, fn) => setRun((r, d) => {
+    if (which === "third") return { ...r, ko: { ...r.ko, third: fn(r.ko.third, d, true) } };
+    return { ...r, ko: { ...r.ko, rounds: r.ko.rounds.map((rd, a) => (a !== ri ? rd : { ...rd, ties: rd.ties.map((t, b) => (b !== ti ? t : fn(t, d, rd.ties.length === 1))) })) } };
+  });
+  const setLeg = (which, ri, ti, leg, side, v) => mapTie(which, ri, ti, (t) => {
+    const old = t[leg];
+    const nw = { ...old, [side]: v };
+    if (cupFilled(nw)) nw.sc = trimGoals(old.sc, Number(nw.h), Number(nw.a)); else nw.sc = [];
+    return { ...t, [leg]: nw, pen: null };
+  });
+
+  const lastDone = rounds.length && cupRoundDone(cupLastRound(run), cfg);
+  const thirdOpen = run.ko.third && cupLastRound(run).ties.length === 1 && !cupTieWinner(run.ko.third, cfg.awayGoals);
+  const canNext = run.phase === "ko" && lastDone && !thirdOpen;
+  const tieView = (t, which, ri, ti) => {
+    const w = cupTieWinner(t, cfg.awayGoals);
+    const needPen = cupNeedsPen(t, cfg.awayGoals) || (t.pen && t.a && t.b);
+    if (!t.b) return (
+      <div className="lr-cu-tie" key={`${which}${ri}${ti}`} data-bye="1"><b>{t.a}</b> <small>— Freilos, zieht in die nächste Runde ein</small></div>
+    );
+    const agg = t.legs === 2 && cupFilled(t.l1) && cupFilled(t.l2)
+      ? `Gesamt ${Number(t.l1.h) + Number(t.l2.a)}:${Number(t.l1.a) + Number(t.l2.h)}` : "";
+    return (
+      <div className="lr-cu-tie" key={`${which}${ri}${ti}`} data-tie={ti}>
+        <CupMatch home={t.a} away={t.b} res={t.l1} logos={logos} label={t.legs === 2 ? "Hinspiel" : ""}
+          onSet={(side, v) => setLeg(which, ri, ti, "l1", side, v)}
+          onSim={() => mapTie(which, ri, ti, (x, d, fin) => cupSimTie(cupCtx(d), { ...x, l1: cupNewLeg(), pen: null }, cfg, d, fin, true))} />
+        {t.legs === 2 && (
+          <CupMatch home={t.b} away={t.a} res={t.l2} logos={logos} label="Rückspiel"
+            onSet={(side, v) => setLeg(which, ri, ti, "l2", side, v)}
+            onSim={() => mapTie(which, ri, ti, (x, d) => cupSimTie(cupCtx(d), { ...x, l2: cupNewLeg(), pen: null }, cfg, d, false, true))} />
+        )}
+        <div className="lr-cu-res">
+          {agg && <span className="lr-tag">{agg}</span>}
+          {needPen && (
+            <span className="lr-pen" data-pen="1">
+              <span className="lr-tag" style={{ alignSelf: "center" }}>Sieger n. E.:</span>
+              <button data-on={t.pen === "a" ? "1" : "0"} onClick={() => mapTie(which, ri, ti, (x) => ({ ...x, pen: "a" }))}>{t.a}</button>
+              <button data-on={t.pen === "b" ? "1" : "0"} onClick={() => mapTie(which, ri, ti, (x) => ({ ...x, pen: "b" }))}>{t.b}</button>
+            </span>
+          )}
+          {w && <b className="lr-cu-w">→ {w === "a" ? t.a : t.b}</b>}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="lr-cu-run" id="cup-run">
+      <div className="lr-bar" style={{ borderBottom: "none", paddingBottom: 6 }}>
+        <span className="lr-tag">{run.label} · {run.phase === "groups" ? "Gruppenphase" : run.phase === "ko" ? "K.o.-Runde" : "beendet"}</span>
+        <div className="lr-spacer" />
+        {run.phase === "groups" && <>
+          <button className="lr-btn lr-btn-sm" id="cup-sim-md" onClick={() => setRun((r, d) => cupSimGroups(cupCtx(d), r, d, mdIdx))}>Spieltag simulieren</button>
+          <button className="lr-btn lr-btn-sm" id="cup-sim-groups" onClick={() => setRun((r, d) => cupSimGroups(cupCtx(d), r, d, null))}>Gruppenphase simulieren</button>
+          <button className="lr-btn lr-btn-sm lr-btn-p" id="cup-to-ko" disabled={!cupGroupsDone(run)} onClick={() => { setRun((r) => cupGroupsToKo(r, cfg)); setRSel(null); }}>K.o.-Runde auslosen</button>
+        </>}
+        {run.phase === "ko" && <>
+          <button className="lr-btn lr-btn-sm" id="cup-sim-round" onClick={() => setRun((r, d) => cupSimRound(cupCtx(d), r, cfg, d))}>Runde simulieren</button>
+          <button className="lr-btn lr-btn-sm lr-btn-p" id="cup-next" disabled={!canNext} onClick={() => { setRun((r) => cupNextRound(r, cfg)); setRSel(null); }}>{cupLastRound(run).ties.length === 1 ? "Turnier beenden (Sieger)" : "Nächste Runde auslosen"}</button>
+        </>}
+        {run.phase !== "done" && <button className="lr-btn lr-btn-sm" id="cup-sim-all" onClick={() => { setRun((r, d) => cupSimAll(cupCtx(d), r, cfg, d)); setRSel(null); }}>Alles simulieren</button>}
+      </div>
+
+      {run.phase === "done" && (
+        <div className="lr-champ-box"><div className="lr-tag">Sieger {cup.name} · {run.label}</div><div className="disp">{run.champion}</div></div>
+      )}
+
+      {run.groups.length > 0 && (run.phase === "groups" || run.phase === "ko" || run.phase === "done") && (
+        <section style={accentVars(cup.accent)}>
+          <h3 className="lr-cu-h">Gruppenphase</h3>
+          <div className="lr-rounds">
+            {Array.from({ length: nGroupMd }, (_, i) => (
+              <button key={i} className="lr-round-btn" data-on={i === mdIdx ? "1" : "0"} onClick={() => setMd(i)}>{i + 1}. Spieltag</button>
+            ))}
+          </div>
+          <div className="lr-cu-groups">
+            {run.groups.map((g, gi) => (
+              <div className="lr-cu-group" key={g.name} data-group={g.name}>
+                <div className="lr-top-h" style={{ "--accent": cup.accent }}><b>{g.name}</b><span>{cupGroupDone(g) ? "beendet" : `${Object.keys(g.results).filter((k) => cupFilled(g.results[k])).length}/${cupGroupGames(g)} Spiele`}</span></div>
+                <Table rows={cupGroupTable(g)} leagueId="partial" compact />
+                {(g.fixtures[mdIdx] || []).map(([h, a], k) => (
+                  <CupMatch key={k} home={g.teams[h]} away={g.teams[a]} res={g.results[`${mdIdx}:${k}`]} logos={logos}
+                    onSet={(side, v) => setGroupScore(gi, `${mdIdx}:${k}`, side, v)} onSim={() => simGroupGame(gi, mdIdx, k)} />
+                ))}
+                {(g.fixtures[mdIdx] || []).length === 0 && <p className="lr-hint">An diesem Spieltag ist die Gruppe spielfrei.</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {rounds.length > 0 && (
+        <section style={accentVars(cup.accent)}>
+          <h3 className="lr-cu-h">K.o.-Runde</h3>
+          <div className="lr-rounds">
+            {rounds.map((r, i) => (
+              <button key={r.name} className="lr-round-btn" data-on={i === rIdx ? "1" : "0"} data-done={cupRoundDone(r, cfg) ? "1" : "0"} onClick={() => setRSel(i)}>{r.name}</button>
+            ))}
+          </div>
+          <div className="lr-cu-ties" id="cup-ties">
+            {rounds[rIdx].ties.map((t, ti) => tieView(t, "r", rIdx, ti))}
+            {run.ko.third && rIdx === rounds.length - 1 && rounds[rIdx].ties.length === 1 && (
+              <div><h4 className="lr-cu-h4">Spiel um Platz 3</h4>{tieView(run.ko.third, "third", 0, 0)}</div>
+            )}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function CupDetail({ data, cup, setData, update, logos }) {
+  const f = cup.format;
+  const [picker, setPicker] = useState(false);
+  const [ask, setAsk] = useState(false);
+  const sum = cupSummary(cup.teams, f, cup.groupAssign);
+  const locked = !!cup.run;
+  const set = (k, v) => update(cup.id, (c) => ({ ...c, format: { ...c.format, [k]: v } }));
+  const num = (k) => (v) => set(k, Number(v));
+  const bool = (k) => (v) => set(k, v === "1");
+  const maxGroups = Math.max(1, Math.floor(cup.teams.length / 2));
+  const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => [a + i, String(a + i)]);
+  const finish = () => setData((d) => {
+    const c = d.cups.find((x) => x.id === cup.id);
+    const entry = cupArchive(d, c);
+    return { ...d, history: [entry, ...d.history], cups: d.cups.map((x) => (x.id === c.id ? { ...x, run: null, edition: x.edition + 1 } : x)) };
+  });
+  return (
+    <div className="lr-cu-card" data-cup={cup.id} style={accentVars(cup.accent)}>
+      <div className="lr-cu-head">
+        <input className="lr-team-in lr-cu-name" value={cup.name} aria-label="Name des Pokals" onChange={(e) => update(cup.id, (c) => ({ ...c, name: e.target.value }))} />
+        <CupSel label="Vorlage" id="cup-preset" value="" disabled={locked} onChange={(k) => { const p = CUP_PRESETS.find((x) => x.key === k); if (p) update(cup.id, (c) => ({ ...c, format: { ...c.format, ...p.f } })); }}
+          options={[["", "wählen …"], ...CUP_PRESETS.map((p) => [p.key, p.name])]} />
+      </div>
+
+      <h4 className="lr-cu-h4">Teilnehmer ({cup.teams.length})</h4>
+      <div className="lr-cu-teams">
+        {cup.teams.map((n) => (
+          <span className="lr-cu-chip" key={n}>
+            {logos[n] ? <img className="lr-logo" src={logos[n]} alt="" /> : null}{n}
+            {!locked && <button type="button" className="lr-logo-del" aria-label={`${n} entfernen`} onClick={() => update(cup.id, (c) => ({ ...c, teams: c.teams.filter((t) => t !== n) }))}>×</button>}
+          </span>
+        ))}
+      </div>
+      {!locked && (
+        <div className="lr-cu-new">
+          <button className="lr-btn lr-btn-sm" id="cup-add" onClick={() => setPicker(true)}>Mannschaften hinzufügen</button>
+          {cup.teams.length > 0 && <button className="lr-btn lr-btn-sm" onClick={() => update(cup.id, (c) => ({ ...c, teams: [] }))}>Alle entfernen</button>}
+        </div>
+      )}
+
+      <h4 className="lr-cu-h4">Format</h4>
+      <div className="lr-cu-opts">
+        <CupSel label="Gruppenphase" id="cup-groups" value={f.groups ? "1" : "0"} disabled={locked} onChange={bool("groups")} options={[["1", "ja"], ["0", "nein (gleich K.o.)"]]} />
+        {f.groups && <>
+          <CupSel label="Einteilung" id="cup-gmode" value={f.groupMode} disabled={locked} onChange={(v) => set("groupMode", v)} options={[["draw", "auslosen (nach Stärke)"], ["manual", "selbst einteilen"]]} />
+          <CupSel label="Gruppen" id="cup-gcount" value={Math.min(f.groupCount, maxGroups)} disabled={locked} onChange={num("groupCount")} options={range(1, Math.min(16, maxGroups))} />
+          <CupSel label="Spiele in der Gruppe" id="cup-gdouble" value={f.groupDouble ? "1" : "0"} disabled={locked} onChange={bool("groupDouble")} options={[["0", "einfach"], ["1", "Hin- und Rückspiel"]]} />
+          <CupSel label="Weiter je Gruppe" id="cup-adv" value={f.advance} disabled={locked} onChange={num("advance")} options={range(1, 8)} />
+          <CupSel label="Beste Dritte" id="cup-thirds" value={f.thirds} disabled={locked} onChange={num("thirds")} options={range(0, 16)} />
+        </>}
+        <CupSel label="K.o.-Spiele" id="cup-legs" value={f.legs} disabled={locked} onChange={num("legs")} options={[[1, "Einzelspiel"], [2, "Hin- und Rückspiel"]]} />
+        <CupSel label="Finale" id="cup-final" value={f.finalLegs} disabled={locked} onChange={num("finalLegs")} options={[[1, "Einzelspiel"], [2, "Hin- und Rückspiel"]]} />
+        <CupSel label="Spiel um Platz 3" id="cup-third" value={f.thirdPlace ? "1" : "0"} disabled={locked} onChange={bool("thirdPlace")} options={[["0", "nein"], ["1", "ja"]]} />
+        <CupSel label="Setzen" id="cup-seed" value={f.seeding} disabled={locked} onChange={(v) => set("seeding", v)} options={[["strength", "nach Stärke"], ["random", "zufällig"]]} />
+        <CupSel label="Auswärtstorregel" id="cup-away" value={f.awayGoals ? "1" : "0"} disabled={locked} onChange={bool("awayGoals")} options={[["0", "aus"], ["1", "an"]]} />
+        <CupSel label="Runden neu auslosen" id="cup-redraw" value={f.redraw ? "1" : "0"} disabled={locked} onChange={bool("redraw")} options={[["0", "nein (fester Baum)"], ["1", "ja"]]} />
+      </div>
+      {f.groups && f.groupMode === "manual" && !locked && cup.teams.length > 0 && (
+        <div id="cup-assign">
+          <h4 className="lr-cu-h4">Teams in die Gruppen eintragen</h4>
+          <div className="lr-cu-new" style={{ margin: "0 0 6px" }}>
+            <button className="lr-btn lr-btn-sm" id="cup-assign-draw" onClick={() => update(cup.id, (c, d) => {
+              const gs = cupDrawGroups(c.teams, cupCtx(d), { ...c.format, groupCount: Math.min(c.format.groupCount, Math.floor(c.teams.length / 2)) }, Math.random);
+              const a = {};
+              gs.forEach((g, i) => g.teams.forEach((n) => { a[n] = i; }));
+              return { ...c, groupAssign: a };
+            })}>Vorschlag per Auslosung übernehmen</button>
+            <button className="lr-btn lr-btn-sm" onClick={() => update(cup.id, (c) => ({ ...c, groupAssign: {} }))}>Zuordnung leeren</button>
+          </div>
+          <div className="lr-cu-assign">
+            {cup.teams.map((n) => (
+              <label className="lr-cu-ar" key={n}>
+                {logos[n] ? <img className="lr-logo" src={logos[n]} alt="" /> : <span className="lr-logo" />}
+                <span className="lr-cu-n">{n}</span>
+                <select className="lr-jump" value={cup.groupAssign && cup.groupAssign[n] != null && cup.groupAssign[n] < Math.min(f.groupCount, Math.floor(cup.teams.length / 2)) ? String(cup.groupAssign[n]) : ""}
+                  aria-label={`Gruppe für ${n}`} onChange={(e) => update(cup.id, (c) => ({ ...c, groupAssign: { ...(c.groupAssign || {}), [n]: e.target.value === "" ? undefined : Number(e.target.value) } }))}>
+                  <option value="">— Gruppe —</option>
+                  {Array.from({ length: Math.min(f.groupCount, Math.floor(cup.teams.length / 2)) }, (_, i) => <option key={i} value={i}>Gruppe {String.fromCharCode(65 + i)}</option>)}
+                </select>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+      <p className="lr-hint" id="cup-summary" data-ok={sum.ok ? "1" : "0"} style={sum.ok ? undefined : { color: "#E8A33D", fontWeight: 600 }}>{cup.teams.length} Mannschaften · {sum.text}</p>
+
+      <div className="lr-cu-new">
+        {!locked ? (
+          <button className="lr-btn lr-btn-p" id="cup-start" disabled={!sum.ok} onClick={() => update(cup.id, (c, d) => ({ ...c, run: cupStart(d, c) }))}>Turnier auslosen und starten</button>
+        ) : ask ? (
+          <>
+            <button className="lr-btn lr-btn-p" id="cup-reset-ok" onClick={() => { update(cup.id, (c) => ({ ...c, run: null })); setAsk(false); }}>Turnier wirklich verwerfen</button>
+            <button className="lr-btn" onClick={() => setAsk(false)}>Nein</button>
+          </>
+        ) : (
+          <>
+            <button className="lr-btn" id="cup-reset" onClick={() => setAsk(true)}>Neu auslosen (Turnier verwerfen)</button>
+            {cup.run.phase === "done" && <button className="lr-btn lr-btn-p" id="cup-finish" onClick={finish}>In die Historie legen</button>}
+          </>
+        )}
+      </div>
+
+      {cup.run && <CupRun data={data} cup={cup} update={update} logos={logos} />}
+      {picker && <ClubPicker data={data} logos={logos} leagueId="" free onClose={() => setPicker(false)}
+        onAdd={(names) => { update(cup.id, (c) => ({ ...c, teams: [...c.teams, ...names.filter((n) => c.teams.indexOf(n) < 0)] })); setPicker(false); }} />}
+    </div>
+  );
+}
+
+/** Reiter „Pokale“ im Abschnitt „Eigene Ligen“: Turniere mit Gruppenphase, Hin- und Rückspielen und K.o.-Runden selbst zusammenstellen. */
+function CupsTab({ data, setData, logos }) {
+  const cups = data.cups.filter((c) => !c.gone);
+  const [name, setName] = useState("");
+  const [sel, setSel] = useState(null);
+  const cur = cups.find((c) => c.id === sel) || cups[0];
+  const update = (id, fn) => setData((d) => ({ ...d, cups: d.cups.map((c) => (c.id === id ? fn(c, d) : c)) }));
+  const add = () => {
+    const nm = name.trim();
+    if (!nm) return;
+    const id = `cp_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+    setData((d) => ({ ...d, cups: [...d.cups, { id, name: nm, accent: CUSTOM_ACCENTS[(d.cups.filter((c) => !c.gone).length + 3) % CUSTOM_ACCENTS.length], teams: [], groupAssign: {}, format: { ...CUP_FORMAT_DEFAULT }, edition: 1, run: null, gone: false }] }));
+    setSel(id);
+    setName("");
+  };
+  const [askDel, setAskDel] = useState(false);
+  return (
+    <div className="lr-wrap">
+      <section style={accentVars("#E8A33D")}>
+        <h2>Eigene Pokale</h2>
+        <p className="lr-hint">
+          Stelle Turniere zusammen: beliebige Mannschaften, optional mit Gruppenphase, K.o.-Runden mit Einzelspiel oder Hin- und Rückspiel, Finale, Spiel um Platz 3,
+          Auslosung nach Stärke oder zufällig, beste Dritte, Auswärtstorregel und Elfmeterschießen — wie bei WM, EM oder Champions League. Eine Vorlage füllt die Einstellungen aus.
+        </p>
+        <div className="lr-cu-new">
+          <input className="lr-team-in" id="cup-new-name" value={name} placeholder="Name des neuen Pokals" aria-label="Name des neuen Pokals"
+            onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") add(); }} />
+          <button className="lr-btn lr-btn-p" id="cup-new-go" disabled={!name.trim()} onClick={add}>Pokal anlegen</button>
+        </div>
+        {cups.length === 0 && <p className="lr-hint">Noch kein eigener Pokal.</p>}
+        {cups.length > 0 && (
+          <div className="lr-rounds" id="cup-list">
+            {cups.map((c) => (
+              <button key={c.id} className="lr-round-btn" data-on={cur && c.id === cur.id ? "1" : "0"} style={cur && c.id === cur.id ? accentVars(c.accent) : undefined}
+                onClick={() => { setSel(c.id); setAskDel(false); }}>{c.name}{c.run ? " ●" : ""}</button>
+            ))}
+          </div>
+        )}
+        {cur && <CupDetail key={cur.id} data={data} cup={cur} setData={setData} update={update} logos={logos} />}
+        {cur && (
+          <div className="lr-cu-new">
+            {askDel ? (
+              <>
+                <button className="lr-btn lr-btn-sm lr-btn-p" id="cup-del-ok" onClick={() => { update(cur.id, (c) => ({ ...c, gone: true, run: null })); setAskDel(false); setSel(null); }}>Pokal wirklich löschen</button>
+                <button className="lr-btn lr-btn-sm" onClick={() => setAskDel(false)}>Nein</button>
+              </>
+            ) : <button className="lr-btn lr-btn-sm" id="cup-del" onClick={() => setAskDel(true)}>Pokal löschen</button>}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
 /* ---------------- Eigene Ligen: Verwaltung ---------------- */
 
 /** Auswahl von Mannschaften aus allen Ligen der App (und eigenen Vereinen) für eine eigene Liga. */
-function ClubPicker({ data, logos, leagueId, onAdd, onClose }) {
+function ClubPicker({ data, logos, leagueId, onAdd, onClose, free }) {
   const [q, setQ] = useState("");
   const [sec, setSec] = useState("");
   const [sel, setSel] = useState([]);
   const clubs = useMemo(() => allClubs(data), [data]);
   const where = useMemo(() => {
     const m = {};
-    data.custom.leagues.forEach((l) => { if (!l.gone) l.teams.forEach((n) => { m[n] = l.id; }); });
+    if (!free) data.custom.leagues.forEach((l) => { if (!l.gone) l.teams.forEach((n) => { m[n] = l.id; }); });
     return m;
-  }, [data]);
+  }, [data, free]);
   const secName = (k) => (k === "eu" ? "Europapokal-Teilnehmer" : k === "own" ? "Eigene Vereine" : COUNTRY[k].name);
   const secs = [...new Set(clubs.map((c) => c.sec))];
   const needle = q.trim().toLowerCase();
   const list = clubs.filter((c) => (!sec || c.sec === sec) && (!needle || c.name.toLowerCase().indexOf(needle) >= 0 || c.league.toLowerCase().indexOf(needle) >= 0));
   const shown = list.slice(0, 200);
   const toggle = (n) => setSel((c) => (c.indexOf(n) >= 0 ? c.filter((x) => x !== n) : [...c, n]));
+  const selectable = list.filter((c) => !where[c.name]).map((c) => c.name);
+  const allSel = selectable.length > 0 && selectable.every((n) => sel.indexOf(n) >= 0);
   return (
     <Modal onClose={onClose}>
       <h2>Mannschaften auswählen</h2>
@@ -15369,6 +16084,11 @@ function ClubPicker({ data, logos, leagueId, onAdd, onClose }) {
           <option value="">alle Abschnitte</option>
           {secs.map((k) => <option key={k} value={k}>{secName(k)}</option>)}
         </select>
+      </div>
+      <div className="lr-cu-new" style={{ margin: "0 0 6px" }}>
+        <button className="lr-btn lr-btn-sm" id="picker-all" onClick={() => setSel((c) => (allSel ? c.filter((n) => selectable.indexOf(n) < 0) : [...new Set([...c, ...selectable])]))}>
+          {allSel ? "Alle angezeigten abwählen" : `Alle angezeigten auswählen (${selectable.length})`}
+        </button>
       </div>
       <div className="lr-cu-list" id="picker-list">
         {shown.map((c) => {
@@ -18111,6 +18831,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
     [...LEGACY_LEAGUES, ...LEAGUES, ...ENGLAND, ...SPAIN, ...ITALY, ...FRANCE, ...WORLD_LEAGUES].forEach((l) => { out[l.id] = {}; });
     WORLD.forEach((c) => { out[c.cup.key] = {}; });
     CUSTOM_REG.forEach((id) => { out[id] = {}; });
+    history.forEach((h) => { if (String(h.leagueId).indexOf("cp_") === 0) out[h.leagueId] = out[h.leagueId] || {}; });
     history.forEach((h) => {
       if (h.type === "euro") {
         if (h.winner && h.winner !== "—" && out[h.leagueId]) out[h.leagueId][h.winner] = (out[h.leagueId][h.winner] || 0) + 1;
@@ -18127,7 +18848,10 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
     return out;
   }, [history]);
 
-  const secLeagues = section === "cu" ? CUSTOM_REG.map((id) => LEAGUE_BY_ID[id]).filter(Boolean) : section !== "de" ? COUNTRY[section].leagues : [];
+  const secLeagues = section === "cu"
+    ? [...CUSTOM_REG.map((id) => LEAGUE_BY_ID[id]).filter(Boolean),
+      ...[...new Map(history.filter((h) => String(h.leagueId).indexOf("cp_") === 0).map((h) => [h.leagueId, { id: h.leagueId, name: h.leagueName, accent: h.accent || CUP_ACCENT }])).values()]]
+    : section !== "de" ? COUNTRY[section].leagues : [];
   const boards = (section !== "de"
     ? [...secLeagues.map((l) => ({ key: l.id, accent: l.accent, head: `Meisterschaften — ${l.name}` })),
       ...(section === "cu" ? [] : [{ key: COUNTRY[section].cupKey, accent: COUNTRY[section].cupAccent, head: `Pokalsiege — ${COUNTRY[section].cupName}` }])]
@@ -18217,7 +18941,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
         const isEuro = h.type === "euro";
         const isCup = h.type === "cup" || isEuro;
         const l = LEAGUE_BY_ID[h.leagueId];
-        const accent = isEuro && EURO_BY_ID[h.leagueId] ? EURO_BY_ID[h.leagueId].accent : isCup ? CUP_ACCENT : l ? l.accent : "#C9C3B0";
+        const accent = isEuro && EURO_BY_ID[h.leagueId] ? EURO_BY_ID[h.leagueId].accent : isCup ? (h.accent || CUP_ACCENT) : l ? l.accent : "#C9C3B0";
         const isOpen = open === h.id;
         const champ = isCup ? h.winner : h.table && h.table[0] ? h.table[0].name : "—";
         return (
@@ -18241,6 +18965,16 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
                     <Table rows={h.table} leagueId="eu" compact />
                   </div>
                 ) : null}
+                {isCup && h.groups && h.groups.length ? (
+                  <div style={{ marginBottom: 14 }}>
+                    <div className="lr-duel-h">Gruppenphase</div>
+                    <div className="lr-cu-groups">
+                      {h.groups.map((g) => (
+                        <div key={g.name}><div className="lr-top-h" style={{ "--accent": accent }}><b>{g.name}</b></div><Table rows={g.table} leagueId="partial" compact /></div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 {isCup ? (
                   <div className="lr-bracket">
                     {h.rounds.map((r) => (
@@ -18249,8 +18983,8 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
                         {r.games.map((g, i) => (
                           <div className="g" key={i}>
                             <span>{g.h}</span>
-                            <b>{g.hg}:{g.ag}{g.pen ? " n.E." : ""}</b>
-                            <span>{g.a}</span>
+                            <b>{g.note === "Freilos" ? "Freilos" : `${g.hg}:${g.ag}`}{g.pen ? " n.E." : ""}</b>
+                            <span>{g.a}{g.note && g.note !== "Freilos" ? ` ${g.note}` : ""}</span>
                           </div>
                         ))}
                       </div>
