@@ -13133,20 +13133,20 @@ export default function Tabellenrechner() {
           </div>
 
           <div className="lr-sections" role="group" aria-label="Abschnitt">
-            <button className="lr-sec-btn" id="sec-de" data-on={section === "de" ? "1" : "0"} onClick={() => switchSection("de")}>Deutschland</button>
-            <button className="lr-sec-btn" id="sec-en" data-on={section === "en" ? "1" : "0"} onClick={() => switchSection("en")}>England</button>
-            <button className="lr-sec-btn" id="sec-es" data-on={section === "es" ? "1" : "0"} onClick={() => switchSection("es")}>Spanien</button>
-            <button className="lr-sec-btn" id="sec-it" data-on={section === "it" ? "1" : "0"} onClick={() => switchSection("it")}>Italien</button>
-            <button className="lr-sec-btn" id="sec-fr" data-on={section === "fr" ? "1" : "0"} onClick={() => switchSection("fr")}>Frankreich</button>
+            <button className="lr-sec-btn" id="sec-de" data-on={section === "de" ? "1" : "0"} onClick={() => switchSection("de")}><Flag cc={SECTION_CC.de} />Deutschland</button>
+            <button className="lr-sec-btn" id="sec-en" data-on={section === "en" ? "1" : "0"} onClick={() => switchSection("en")}><Flag cc={SECTION_CC.en} />England</button>
+            <button className="lr-sec-btn" id="sec-es" data-on={section === "es" ? "1" : "0"} onClick={() => switchSection("es")}><Flag cc={SECTION_CC.es} />Spanien</button>
+            <button className="lr-sec-btn" id="sec-it" data-on={section === "it" ? "1" : "0"} onClick={() => switchSection("it")}><Flag cc={SECTION_CC.it} />Italien</button>
+            <button className="lr-sec-btn" id="sec-fr" data-on={section === "fr" ? "1" : "0"} onClick={() => switchSection("fr")}><Flag cc={SECTION_CC.fr} />Frankreich</button>
             {WORLD.length > 0 && (
               <select className="lr-sec-btn lr-sec-more" id="sec-more" data-on={WORLD_KEYS.indexOf(section) >= 0 ? "1" : "0"} aria-label="Weitere Länder"
                 value={WORLD_KEYS.indexOf(section) >= 0 ? section : ""} onChange={(e) => { if (e.target.value) switchSection(e.target.value); }}>
-                <option value="">Weitere Länder …</option>
-                {WORLD.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}
+                <option value="">🌍 Weitere Länder …</option>
+                {WORLD.map((c) => <option key={c.key} value={c.key}>{secLabel(c.key)}</option>)}
               </select>
             )}
             <button className="lr-sec-btn" id="sec-cu" data-on={section === "cu" ? "1" : "0"} onClick={() => switchSection("cu")}>Eigene Ligen</button>
-            <button className="lr-sec-btn" id="sec-nt" data-on={section === "nt" ? "1" : "0"} onClick={() => switchSection("nt")}>Länderspiele</button>
+            <button className="lr-sec-btn" id="sec-nt" data-on={section === "nt" ? "1" : "0"} onClick={() => switchSection("nt")}><Flag cc="UN" />Länderspiele</button>
             <SearchBox data={data} />
           </div>
 
@@ -16065,7 +16065,7 @@ function ClubPicker({ data, logos, leagueId, onAdd, onClose, free }) {
     if (!free) data.custom.leagues.forEach((l) => { if (!l.gone) l.teams.forEach((n) => { m[n] = l.id; }); });
     return m;
   }, [data, free]);
-  const secName = (k) => (k === "eu" ? "Europapokal-Teilnehmer" : k === "own" ? "Eigene Vereine" : COUNTRY[k].name);
+  const secName = (k) => (k === "eu" ? "Europapokal-Teilnehmer" : k === "own" ? "Eigene Vereine" : secLabel(k));
   const secs = [...new Set(clubs.map((c) => c.sec))];
   const needle = q.trim().toLowerCase();
   const list = clubs.filter((c) => (!sec || c.sec === sec) && (!needle || c.name.toLowerCase().indexOf(needle) >= 0 || c.league.toLowerCase().indexOf(needle) >= 0));
@@ -16293,6 +16293,13 @@ function flagEmoji(cc) {
 function Flag({ cc }) {
   return <span className="lr-flag" aria-hidden="true">{cc ? flagEmoji(cc) : ""}</span>;
 }
+
+/** Länderkennzeichen der Abschnitte (für die Flaggen neben den Ländernamen). */
+const SECTION_CC = { de: "DE", en: "GB-ENG", es: "ES", it: "IT", fr: "FR", nl: "NL", pt: "PT", tr: "TR", be: "BE", at: "AT", ch: "CH", sc: "GB-SCT", dk: "DK" };
+/** Flagge eines Abschnitts als Text (leer für Abschnitte ohne Land, z. B. „Eigene Ligen“). */
+const secFlag = (k) => (SECTION_CC[k] ? flagEmoji(SECTION_CC[k]) : "");
+/** Name eines Abschnitts mit Flagge davor. */
+const secLabel = (k) => (SECTION_CC[k] ? `${secFlag(k)} ${COUNTRY[k].name}` : COUNTRY[k].name);
 
 const TOURN_PRESETS = {
   em: { name: "Europameisterschaft", n: 24, groups: 6, thirds: 4, ko: ["Achtelfinale", "Viertelfinale", "Halbfinale", "Finale"] },
@@ -17020,7 +17027,7 @@ function ClubModal({ data, setData, name, onClose }) {
           <div className="lr-k-title">
             <h2>{name}</h2>
             <span className="lr-k-sub">
-              {club ? `${club.lg.name} · ${COUNTRY[club.sec].name}${view && view.row ? ` · Platz ${view.row.pos}` : ""}` : "Europapokal-Teilnehmer"}
+              {club ? `${club.lg.name} · ${secLabel(club.sec)}${view && view.row ? ` · Platz ${view.row.pos}` : ""}` : "Europapokal-Teilnehmer"}
               {" · Stärke "}{club ? club.s.strengths[club.i] : squadStrength(squad)}
             </span>
           </div>
@@ -17455,7 +17462,7 @@ function ArticleModal({ data, setData, id, onClose, onEdit }) {
   return (
     <Modal onClose={onClose}>
       <div className="lr-k lr-k-article" id="article-modal">
-        <small className="lr-k-tag">{a.cat}{a.section ? ` · ${COUNTRY[a.section].name}` : ""}</small>
+        <small className="lr-k-tag">{a.cat}{a.section ? ` · ${secLabel(a.section)}` : ""}</small>
         <h2>{a.title}</h2>
         {a.teaser && <p className="lr-k-teaser">{a.teaser}</p>}
         {a.img && <img className="lr-k-img" src={a.img} alt="" />}
@@ -17508,7 +17515,7 @@ function ArticleEditor({ data, draft, onSave, onClose }) {
           </label>
           <label className="lr-k-field"><span>Abschnitt</span>
             <select className="lr-team-in" id="ae-section" value={a.section} onChange={(e) => setA({ ...a, section: e.target.value })}>
-              <option value="">alle</option>{SECTION_KEYS.map((k) => <option key={k} value={k}>{COUNTRY[k].name}</option>)}
+              <option value="">alle</option>{SECTION_KEYS.map((k) => <option key={k} value={k}>{secLabel(k)}</option>)}
             </select>
           </label>
           <label className="lr-k-field"><span>Verein</span>
@@ -17580,7 +17587,7 @@ function NewsTab({ data, section, onNew }) {
               onKeyDown={(e) => { if (e.key === "Enter") openArticle(a.id); }}>
               {a.img ? <img src={a.img} alt="" /> : <div className="lr-k-noimg">{a.team ? <Logo name={a.team} /> : null}</div>}
               <div>
-                <small className="lr-k-tag">{a.pinned ? "📌 " : ""}{a.cat}{a.section ? ` · ${COUNTRY[a.section].name}` : ""}</small>
+                <small className="lr-k-tag">{a.pinned ? "📌 " : ""}{a.cat}{a.section ? ` · ${secLabel(a.section)}` : ""}</small>
                 <h3>{a.title}</h3>
                 {a.teaser && <p>{a.teaser}</p>}
                 <small>{a.date}{a.team ? ` · ${a.team}` : ""}</small>
