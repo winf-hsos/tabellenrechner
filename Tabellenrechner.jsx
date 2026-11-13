@@ -10004,7 +10004,7 @@ function freshData() {
   [...ENGLAND, ...SPAIN, ...ITALY, ...FRANCE, ...WORLD_LEAGUES].forEach((l) => {
     active[l.id] = newSeason(l.teams, l.teams.map((n) => TEAM_START[n]), "2026/27", defaultStart(l.id, "2026/27"));
   });
-  return { active, custom: { leagues: [], clubs: [] }, cups: [], cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
+  return { active, custom: { leagues: [], clubs: [] }, cups: [], conquest: null, cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
     regional: [] };
 }
 
@@ -10071,6 +10071,7 @@ function normalize(d0) {
   // Eigene Ligen: Planung und Saisons übernehmen
   out.custom = normCustom(d.custom);
   out.cups = normCups(d.cups);
+  out.conquest = d.conquest && Array.isArray(d.conquest.clubs) && Array.isArray(d.conquest.owner) && d.conquest.clubs.every((n) => CLUB_GEO[n]) ? d.conquest : null;
   out.custom.leagues.forEach((l) => {
     const s = d.active[l.id];
     if (!s || !Array.isArray(s.teams)) return;
@@ -10515,7 +10516,7 @@ WORLD.forEach((c) => {
 // Abschnitt „Eigene Ligen“: frei benannte Ligen aus beliebigen Mannschaften (auch selbst angelegten Vereinen).
 // `data.custom = { leagues: [{id, name, accent, teams, gone}], clubs: [{name, strength}] }`; die laufende Saison jeder
 // Liga steht wie bei allen anderen in `data.active[id]`. Die Ligen werden zur Laufzeit in die Verzeichnisse eingetragen.
-COUNTRY.cu = { name: "Eigene Ligen", ids: [], leagues: [], first: "cu-manage", cupKey: "cucup", cupName: "Pokal", cupAccent: "#E8A33D", euroTab: null, flag: "cu", top: null, topName: "", places: { cl: 0, el: 0, ecl: 0 }, adj: "eigenen", extraTabs: ["cu-manage", "cu-cups"] };
+COUNTRY.cu = { name: "Eigene Ligen", ids: [], leagues: [], first: "cu-manage", cupKey: "cucup", cupName: "Pokal", cupAccent: "#E8A33D", euroTab: null, flag: "cu", top: null, topName: "", places: { cl: 0, el: 0, ecl: 0 }, adj: "eigenen", extraTabs: ["cu-manage", "cu-cups", "cu-map"] };
 const CUSTOM_ACCENTS = ["#E8A33D", "#5FBFA8", "#C97BE0", "#6FA8F0", "#E07A5F", "#8FCB5A", "#E0C23C", "#4FC3D0"];
 const CUSTOM_BASE_N = ALL_LEAGUE_IDS.length;
 let CUSTOM_REG = [];
@@ -11501,6 +11502,25 @@ const CSS = `
 .lr-cu-ar { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid var(--line); }
 .lr-cu-ar .lr-logo { margin: 0; width: 20px; height: 20px; }
 .lr-cu-ar .lr-cu-n { flex: 1; min-width: 0; }
+.lr-cq-grid { display: grid; grid-template-columns: minmax(280px, 560px) 1fr; gap: 22px; align-items: start; margin-top: 12px; }
+@media (max-width: 860px) { .lr-cq-grid { grid-template-columns: 1fr; } }
+.lr-cq-map { position: relative; width: 100%; max-width: 560px; border: 1px solid var(--line-2); border-radius: 6px; background: #0d1511; overflow: hidden; }
+.lr-cq-map canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+.lr-cq-pin { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+.lr-cq-pin img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 2px rgba(0,0,0,0.9)); }
+.lr-cq-pin i { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 3px #000; }
+.lr-cq-dot { position: absolute; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: rgba(255,255,255,0.75); pointer-events: none; }
+.lr-cq-hover { position: absolute; left: 8px; bottom: 8px; background: rgba(10,16,12,0.85); padding: 3px 9px; border-radius: 4px; font-size: 12px; pointer-events: none; }
+.lr-cq-panel { border: 1px solid var(--line-2); border-radius: 4px; padding: 10px 12px; margin-bottom: 12px; background: var(--board-2); }
+.lr-cq-vs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lr-cq-nb { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.lr-cq-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.lr-cq-row i { width: 12px; height: 12px; border-radius: 2px; flex: none; }
+.lr-cq-row .lr-logo { margin: 0; width: 20px; height: 20px; }
+.lr-cq-pct { margin-left: auto; font-variant-numeric: tabular-nums; }
+.lr-cq-lg { font-size: 12px; padding: 3px 0; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px; }
+.lr-cq-lg em { color: var(--chalk-dim); font-style: normal; }
+.lr-cq-lg[data-win="a"] em { color: #E8A33D; }
 .lr-cu-opts { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 8px 0; }
 .lr-cu-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; font-size: 12px; }
 .lr-cu-h { font-family: 'Oswald', sans-serif; font-size: 18px; margin: 16px 0 8px; }
@@ -13090,7 +13110,7 @@ export default function Tabellenrechner() {
         };
         if (canRealSchedule(active[id], id)) active[id] = applyRealSchedule(active[id], id, false);
       });
-      return { ...d, active, cups: (d.cups || []).map((c) => ({ ...c, run: null, edition: 1 })), cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, history: [], euro: { ...d.euro, runs: { cl: null, el: null, ecl: null } } };
+      return { ...d, active, conquest: null, cups: (d.cups || []).map((c) => ({ ...c, run: null, edition: 1 })), cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, history: [], euro: { ...d.euro, runs: { cl: null, el: null, ecl: null } } };
     });
     setMd(ZERO_MD);
     setCupRound(0);
@@ -13222,6 +13242,8 @@ export default function Tabellenrechner() {
                 ))}
                 <button className="lr-tab" data-on={tab === "cu-manage" ? "1" : "0"} id="tab-cu-manage"
                   style={tab === "cu-manage" ? accentVars("#E8A33D") : undefined} onClick={() => setTab("cu-manage")}>Ligen &amp; Vereine</button>
+                <button className="lr-tab" data-on={tab === "cu-map" ? "1" : "0"} id="tab-cu-map"
+                  style={tab === "cu-map" ? accentVars("#E07A5F") : undefined} onClick={() => setTab("cu-map")}>Eroberung</button>
                 <button className="lr-tab" data-on={tab === "cu-cups" ? "1" : "0"} id="tab-cu-cups"
                   style={tab === "cu-cups" ? accentVars("#E0C23C") : undefined} onClick={() => setTab("cu-cups")}>Pokale</button>
                 <button className="lr-tab" data-on={tab === "top" ? "1" : "0"}
@@ -13450,6 +13472,7 @@ export default function Tabellenrechner() {
         </div>
       )}
 
+      {tab === "cu-map" && section === "cu" && <ConquestTab data={data} setData={setData} logos={allLogos} />}
       {tab === "cu-cups" && section === "cu" && <CupsTab data={data} setData={setData} logos={allLogos} />}
       {tab === "cu-manage" && section === "cu" && <CustomTab data={data} setData={setData} logos={allLogos} setLogo={setLogo} />}
       {tab === "tourn" && section === "nt" && <TournamentTab data={data} setData={setData} />}
@@ -16138,6 +16161,387 @@ function CupsTab({ data, setData, logos }) {
             ) : <button className="lr-btn lr-btn-sm" id="cup-del" onClick={() => setAskDel(true)}>Pokal löschen</button>}
           </div>
         )}
+      </section>
+    </div>
+  );
+}
+
+/**
+ * Geodaten der Eroberungskarte: Standorte der Vereine [Breite, Länge] (Stadion bzw. Ort; Quellen: Wikipedia/OpenStreetMap) und
+ * der Umriss Deutschlands (vereinfacht, Länge/Breite; Quelle: Natural-Earth-Daten über github.com/isellsoap/deutschlandGeoJSON).
+ */
+// <<GEO>>
+const CLUB_GEO = {"FC Bayern München":[48.2188,11.6247],"Bayer 04 Leverkusen":[51.0383,7.0023],"Borussia Dortmund":[51.4926,7.4519],"RB Leipzig":[51.3458,12.3483],"Eintracht Frankfurt":[50.0686,8.6455],"VfB Stuttgart":[48.7922,9.2319],"SC Freiburg":[48.0215,7.8296],"Borussia Mönchengladbach":[51.1746,6.3855],"1. FC Union Berlin":[52.4572,13.5681],"Werder Bremen":[53.0664,8.8376],"TSG Hoffenheim":[49.2386,8.8885],"FC Augsburg":[48.3233,10.886],"1. FSV Mainz 05":[49.9843,8.2245],"1. FC Köln":[50.9333,6.875],"Hamburger SV":[53.587,9.8985],"FC Schalke 04":[51.5546,7.0678],"SV Elversberg":[49.3036,7.0847],"SC Paderborn 07":[51.7311,8.7119],"Hannover 96":[52.36,9.7311],"1. FC Kaiserslautern":[49.4345,7.7767],"Hertha BSC":[52.5147,13.2395],"1. FC Nürnberg":[49.4262,11.1255],"VfL Bochum":[51.4903,7.2369],"Karlsruher SC":[49.02,8.4128],"Dynamo Dresden":[51.0405,13.748],"Holstein Kiel":[54.3485,10.1273],"Arminia Bielefeld":[52.032,8.5166],"1. FC Magdeburg":[52.125,11.6709],"Eintracht Braunschweig":[52.2886,10.5217],"SV Darmstadt 98":[49.8586,8.6726],"SpVgg Greuther Fürth":[49.4837,10.9988],"VfL Wolfsburg":[52.4326,10.8039],"1. FC Heidenheim":[48.6683,10.1396],"FC St. Pauli":[53.5544,9.9677],"VfL Osnabrück":[52.2807,8.0472],"FC Energie Cottbus":[51.7527,14.3365],"MSV Duisburg":[51.4094,6.7778],"Hansa Rostock":[54.086,12.0966],"SC Verl":[51.8797,8.5147],"Alemannia Aachen":[50.7933,6.1011],"SV Wehen Wiesbaden":[50.0711,8.2573],"SV Waldhof Mannheim":[49.4647,8.5035],"FC Viktoria Köln":[50.9448,7.0227],"FC Ingolstadt 04":[48.7945,11.4033],"SSV Jahn Regensburg":[49.0104,12.1318],"VfB Stuttgart II":[48.7949,9.2299],"1. FC Saarbrücken":[49.2528,7.0381],"TSG Hoffenheim II":[49.2536,8.853],"TSV Havelse":[52.414,9.636],"SC Preußen Münster":[51.9264,7.6172],"Fortuna Düsseldorf":[51.2617,6.7335],"Rot-Weiss Essen":[51.4825,6.9822],"SV Meppen":[52.689,7.304],"SG Sonnenhof Großaspach":[48.9453,9.3425],"SC Fortuna Köln":[50.9051,6.9625],"Würzburger Kickers":[49.7878,9.9707],"SC Weiche Flensburg":[54.7583,9.398],"SV Drochtersen/Assel":[53.723,9.3681],"VfB Oldenburg":[53.1221,8.2517],"1. FC Phönix Lübeck":[53.8689,10.6928],"FC Schöningen":[52.1389,10.9671],"SV Atlas Delmenhorst":[53.0481,8.6286],"Kickers Emden":[53.3671,7.2058],"VfB Lübeck":[53.8568,10.6831],"HSC Hannover":[52.338,9.7698],"Eimsbütteler TV":[53.6063,9.923],"SSV Jeddeloh":[53.0883,8.0544],"Eintracht Norderstedt":[53.709,9.9892],"SV Todesfelde":[53.8949,10.181],"Bremer SV":[53.1352,8.7417],"SV Wilhelmshaven":[53.5279,8.1063],"USC Paloma":[53.5865,10.1232],"SV Hemelingen":[53.0539,8.8872],"FC Kilia Kiel":[54.2993,10.1383],"FC Rot-Weiß Erfurt":[50.9778,11.0287],"Chemnitzer FC":[50.8324,12.9189],"Hallescher FC":[51.4824,11.9713],"VSG Altglienicke":[52.407,13.5583],"FC Carl Zeiss Jena":[50.9282,11.5879],"BFC Dynamo":[52.5662,13.5122],"Erzgebirge Aue":[50.5917,12.6986],"Greifswalder FC":[54.0958,13.3815],"FSV Zwickau":[50.7185,12.4939],"1. FC Lokomotive Leipzig":[51.3042,12.4261],"SV Babelsberg 03":[52.3914,13.093],"BFC Preussen":[52.4388,13.3421],"Tasmania Berlin":[52.4811,13.4354],"BSG Chemie Leipzig":[51.3541,12.3049],"RSV Eintracht 1949":[52.387,13.2077],"FSV 63 Luckenwalde":[52.0902,13.1742],"Eintracht Mahlsdorf":[52.5119,13.6108],"ZFC Meuselwitz":[51.0475,12.2975],"Rot-Weiß Oberhausen":[51.4696,6.8514],"FC Gütersloh":[51.9167,8.4043],"Sportfreunde Siegen":[50.8751,8.0256],"Westfalia Rhynern":[51.6172,7.8432],"VfB 03 Hilden":[51.1674,6.9307],"Bonner SC":[50.7353,7.1025],"FC Bocholt":[51.8383,6.6149],"SV Bergisch Gladbach 09":[50.9929,7.1277],"SG Wattenscheid 09":[51.4716,7.1401],"SV Rödinghausen":[52.231,8.498],"SC Wiedenbrück":[51.8428,8.2986],"Sportfreunde Lotte":[52.2752,7.9159],"1. FC Gievenbeck":[51.9708,7.5821],"SpVg Schonnebeck":[51.4807,7.0583],"FC Wegberg-Beeck":[51.1424,6.2777],"SpVgg Vreden":[52.0359,6.8236],"SSVg Velbert":[51.3407,7.044],"SSV Merten":[50.7841,6.9224],"SGV Heilbronn-Freiberg":[48.9346,9.1923],"VfR Aalen":[48.8376,10.093],"VfR Mannheim":[49.4555,8.4947],"Stuttgarter Kickers":[48.7065,9.1616],"Eintracht Trier":[49.7596,6.6442],"Kickers Offenbach":[50.1055,8.7611],"FC 08 Homburg":[49.3437,7.3042],"SV Sandhausen":[49.3424,8.6595],"TSV Steinbach Haiger":[50.7753,8.2129],"KSV Hessen Kassel":[51.3158,9.4978],"FC-Astoria Walldorf":[49.295,8.6388],"FSV Frankfurt":[50.1166,8.7279],"SSV Ulm 1846":[48.3985,9.9912],"SG Barockstadt Fulda-Lehnerz":[50.5515,9.6762],"TSV Eintracht Stadtallendorf":[50.8252,9.0292],"TuS Mechtersheim":[49.2814,8.4065],"SV Oberachern":[48.63,8.0736],"SV Unter-Flockenbach":[49.5462,8.6717],"FC Memmingen":[47.9816,10.1687],"TSV Buchbach":[48.3333,12.3667],"SpVgg Unterhaching":[48.0662,11.6102],"TSV 1860 München":[48.1111,11.5961],"FV Illertissen":[48.2229,10.1053],"SpVgg Bayreuth":[49.9446,11.5744],"DJK Vilzing":[49.1761,12.6795],"VfB Eichstätt":[48.8863,11.1989],"Wacker Burghausen":[48.1589,12.8329],"SC Eltersdorf":[49.5434,10.9929],"TSV Schwaben Augsburg":[48.3653,10.8917],"1. FC Schweinfurt 05":[50.0451,10.2341],"SpVgg Ansbach":[49.2889,10.5598],"TSV Aubstadt":[50.3339,10.4339],"TSV Landsberg":[48.0497,10.8769],"ASV Cham":[49.225,12.6625],"FC Pipinsried":[48.4052,11.2897],"Würzburger FV":[49.778,9.9435]};
+const GER_OUTLINE = [[[8.41,55.04],[8.44,55.02],[8.35,54.97],[8.37,54.9],[8.43,54.88],[8.81,54.92],[9.22,54.86],[9.28,54.8],[9.41,54.84],[9.44,54.79],[9.61,54.88],[9.6,54.83],[9.84,54.76],[9.96,54.78],[10.03,54.67],[9.98,54.7],[9.96,54.67],[10.03,54.67],[10.03,54.55],[9.84,54.47],[10.2,54.46],[10.13,54.31],[10.23,54.41],[10.32,54.44],[10.7,54.3],[10.93,54.38],[11.13,54.39],[11.06,54.35],[11.09,54.2],[10.75,54.05],[10.89,53.96],[11.18,54.02],[11.26,53.98],[11.26,53.93],[11.34,53.96],[11.45,53.9],[11.48,53.97],[11.38,54.0],[11.49,54.02],[11.49,53.97],[11.63,54.09],[11.53,54.07],[11.68,54.15],[12.09,54.18],[12.12,54.15],[12.1,54.18],[12.34,54.3],[12.52,54.48],[12.96,54.44],[12.68,54.41],[12.72,54.4],[12.68,54.37],[12.79,54.4],[12.81,54.35],[13.02,54.44],[13.09,54.37],[13.11,54.28],[13.29,54.24],[13.35,54.18],[13.32,54.16],[13.42,54.18],[13.38,54.14],[13.46,54.09],[13.7,54.17],[13.81,54.1],[13.74,54.03],[13.91,53.92],[13.82,53.87],[13.94,53.91],[13.91,53.99],[13.97,53.99],[13.96,53.93],[14.04,53.94],[14.05,54.0],[14.0,54.04],[14.22,53.93],[14.19,53.92],[14.22,53.87],[13.81,53.86],[14.04,53.76],[14.28,53.74],[14.22,53.7],[14.27,53.7],[14.32,53.62],[14.3,53.54],[14.45,53.26],[14.38,53.2],[14.35,53.05],[14.14,52.96],[14.12,52.84],[14.64,52.58],[14.6,52.53],[14.63,52.5],[14.53,52.4],[14.57,52.29],[14.7,52.24],[14.67,52.12],[14.74,52.07],[14.7,51.94],[14.59,51.82],[14.74,51.67],[14.7,51.56],[14.93,51.48],[14.97,51.35],[15.03,51.31],[14.93,50.99],[14.81,50.83],[14.71,50.83],[14.61,50.85],[14.65,50.93],[14.56,50.92],[14.6,50.99],[14.5,51.05],[14.4,51.01],[14.29,51.05],[14.25,50.97],[14.4,50.94],[14.37,50.89],[13.95,50.8],[13.85,50.72],[13.55,50.71],[13.47,50.6],[13.37,50.64],[13.33,50.58],[13.25,50.59],[13.2,50.5],[13.03,50.51],[12.98,50.41],[12.83,50.46],[12.71,50.4],[12.52,50.4],[12.36,50.28],[12.33,50.18],[12.28,50.18],[12.19,50.32],[12.09,50.26],[12.2,50.2],[12.2,50.11],[12.26,50.06],[12.55,49.93],[12.47,49.79],[12.4,49.76],[12.53,49.69],[12.59,49.54],[12.65,49.53],[12.66,49.43],[12.78,49.35],[13.03,49.31],[13.18,49.14],[13.4,49.05],[13.4,48.98],[13.63,48.95],[13.84,48.78],[13.79,48.72],[13.81,48.59],[13.72,48.52],[13.5,48.6],[13.44,48.56],[13.41,48.38],[13.29,48.31],[12.87,48.2],[12.75,48.12],[13.0,47.85],[12.91,47.73],[13.04,47.72],[13.11,47.64],[13.01,47.47],[12.8,47.56],[12.83,47.62],[12.78,47.68],[12.61,47.68],[12.51,47.63],[12.44,47.7],[12.26,47.68],[12.25,47.74],[12.17,47.7],[12.21,47.6],[11.64,47.6],[11.58,47.51],[11.44,47.51],[11.39,47.47],[11.42,47.45],[11.34,47.45],[11.27,47.39],[11.22,47.39],[11.25,47.43],[10.98,47.4],[10.93,47.48],[10.86,47.48],[10.92,47.52],[10.88,47.54],[10.77,47.52],[10.6,47.57],[10.56,47.54],[10.43,47.59],[10.47,47.43],[10.43,47.38],[10.17,47.27],[10.23,47.39],[10.1,47.35],[10.09,47.46],[10.0,47.49],[9.97,47.55],[9.87,47.53],[9.77,47.6],[9.69,47.54],[9.04,47.82],[9.22,47.67],[9.16,47.65],[8.99,47.75],[8.94,47.73],[9.01,47.7],[8.89,47.66],[8.81,47.74],[8.77,47.72],[8.8,47.68],[8.73,47.7],[8.73,47.77],[8.57,47.81],[8.4,47.68],[8.47,47.64],[8.61,47.68],[8.58,47.6],[8.52,47.64],[8.46,47.61],[8.49,47.58],[8.38,47.57],[8.2,47.63],[8.09,47.56],[7.94,47.55],[7.82,47.59],[7.67,47.54],[7.63,47.56],[7.67,47.59],[7.61,47.58],[7.51,47.7],[7.62,47.97],[7.57,48.04],[7.58,48.12],[7.75,48.33],[7.73,48.4],[7.84,48.63],[8.09,48.8],[8.23,48.97],[7.94,49.06],[7.64,49.05],[7.45,49.18],[7.29,49.12],[7.1,49.15],[7.06,49.11],[7.03,49.19],[6.92,49.22],[6.84,49.21],[6.83,49.15],[6.74,49.16],[6.54,49.43],[6.35,49.46],[6.36,49.57],[6.52,49.72],[6.53,49.81],[6.31,49.84],[6.1,50.06],[6.19,50.19],[6.17,50.24],[6.41,50.33],[6.34,50.38],[6.37,50.45],[6.33,50.49],[6.17,50.55],[6.28,50.62],[6.17,50.62],[6.12,50.71],[5.96,50.8],[6.07,50.85],[6.08,50.92],[6.02,50.93],[6.03,50.98],[5.9,50.98],[5.87,51.04],[5.97,51.03],[6.17,51.15],[6.14,51.17],[6.19,51.19],[6.09,51.18],[6.08,51.24],[6.23,51.37],[6.22,51.51],[6.09,51.61],[6.12,51.66],[5.96,51.74],[6.0,51.77],[5.96,51.82],[6.17,51.85],[6.11,51.89],[6.16,51.91],[6.42,51.83],[6.4,51.87],[6.74,51.9],[6.84,52.0],[6.7,52.04],[6.7,52.07],[7.07,52.24],[7.03,52.29],[7.08,52.38],[7.01,52.47],[6.95,52.44],[6.76,52.46],[6.68,52.56],[6.77,52.57],[6.72,52.59],[6.74,52.65],[7.05,52.64],[7.09,52.85],[7.26,53.0],[7.23,53.12],[7.28,53.2],[7.21,53.24],[7.25,53.33],[7.0,53.36],[7.03,53.53],[7.13,53.53],[7.09,53.58],[7.16,53.63],[7.32,53.68],[8.02,53.71],[8.17,53.55],[8.16,53.51],[8.06,53.51],[8.07,53.46],[8.25,53.4],[8.32,53.47],[8.32,53.52],[8.23,53.52],[8.27,53.61],[8.52,53.56],[8.56,53.53],[8.52,53.5],[8.57,53.52],[8.48,53.69],[8.61,53.88],[8.88,53.83],[9.1,53.86],[8.96,53.89],[8.82,54.02],[8.98,54.05],[8.93,54.13],[8.86,54.12],[8.81,54.17],[8.84,54.25],[8.95,54.31],[8.85,54.26],[8.58,54.3],[8.6,54.36],[8.69,54.36],[8.61,54.39],[8.89,54.41],[9.02,54.47],[8.99,54.52],[8.9,54.46],[8.81,54.47],[8.89,54.59],[8.81,54.6],[8.82,54.65],[8.69,54.73],[8.59,54.89],[8.42,54.85],[8.31,54.87],[8.28,54.75],[8.3,54.91],[8.41,55.04]],[[12.65,54.4],[12.44,54.38],[12.36,54.27],[12.46,54.25],[12.41,54.28],[12.65,54.4]],[[9.94,54.64],[9.93,54.63],[9.86,54.59],[9.94,54.62],[9.94,54.64]],[[9.74,54.53],[9.71,54.52],[9.55,54.51],[9.57,54.48],[9.62,54.51],[9.71,54.49],[9.74,54.53]],[[13.95,54.06],[13.91,54.06],[13.86,54.0],[13.86,54.05],[13.77,54.02],[13.81,54.1],[13.75,54.16],[13.8,54.18],[13.87,54.1],[13.95,54.06]],[[8.41,55.05],[8.42,55.06],[8.46,55.05],[8.41,55.05]],[[13.41,54.6],[13.37,54.61],[13.24,54.56],[13.28,54.65],[13.16,54.56],[13.25,54.66],[13.43,54.68],[13.38,54.64],[13.41,54.6]],[[13.45,54.58],[13.68,54.56],[13.57,54.46],[13.77,54.34],[13.73,54.27],[13.65,54.3],[13.7,54.33],[13.61,54.32],[13.68,54.35],[13.58,54.35],[13.35,54.27],[13.42,54.25],[13.39,54.22],[13.29,54.25],[13.34,54.28],[13.14,54.28],[13.18,54.3],[13.11,54.33],[13.13,54.37],[13.26,54.38],[13.15,54.43],[13.27,54.48],[13.16,54.5],[13.14,54.55],[13.31,54.51],[13.3,54.55],[13.37,54.58],[13.34,54.55],[13.38,54.56],[13.41,54.49],[13.51,54.48],[13.5,54.55],[13.45,54.58]],[[13.18,54.49],[13.23,54.47],[13.12,54.44],[13.18,54.49]],[[13.13,54.58],[13.14,54.61],[13.16,54.58],[13.13,54.58]],[[11.07,54.53],[11.23,54.51],[11.31,54.4],[11.01,54.44],[11.07,54.53]],[[8.69,54.56],[8.67,54.49],[8.59,54.51],[8.69,54.56]],[[8.54,54.76],[8.6,54.72],[8.57,54.68],[8.4,54.71],[8.54,54.76]],[[8.55,54.58],[8.57,54.56],[8.51,54.57],[8.55,54.58]],[[8.48,54.48],[8.53,54.43],[8.47,54.42],[8.48,54.48]],[[8.48,54.58],[8.5,54.56],[8.46,54.56],[8.48,54.58]],[[8.36,54.71],[8.4,54.61],[8.29,54.67],[8.36,54.71]],[[7.9,53.79],[7.97,53.77],[7.85,53.79],[7.9,53.79]],[[7.71,53.78],[7.81,53.77],[7.67,53.76],[7.71,53.78]],[[7.57,53.76],[7.63,53.75],[7.47,53.73],[7.57,53.76]],[[7.39,53.73],[7.43,53.73],[7.36,53.73],[7.39,53.73]],[[7.06,53.68],[7.1,53.68],[6.85,53.66],[7.06,53.68]],[[6.76,53.62],[6.81,53.6],[6.72,53.58],[6.75,53.56],[6.63,53.6],[6.76,53.62]]];
+// <</GEO>>
+
+/* ---------------- Eroberungskarte („Football Imperialism“) ---------------- */
+
+// Jeder Verein bekommt auf der Deutschlandkarte das Gebiet um sein Stadion (nächstgelegene Zellen). Ein Verein greift einen
+// Nachbarn an; gewinnt er (Heimrecht hat der Verteidiger), übernimmt er das ganze Reich des Verlierers (oder nur ein Grenzgebiet).
+// Wer am Ende alles besitzt, hat gewonnen. `data.conquest = {clubs, owner, log, mode, champion, edition}`: `owner[i]` = Index des
+// Vereins, dem das Ursprungsgebiet von Verein i gerade gehört.
+const CONQ = { W: 360, H: 488, LON0: 5.8, LON1: 15.1, LAT0: 47.2, LAT1: 55.1, K: Math.cos((51.2 * Math.PI) / 180) };
+CONQ.WU = (CONQ.LON1 - CONQ.LON0) * CONQ.K;
+CONQ.HU = CONQ.LAT1 - CONQ.LAT0;
+let CONQ_MASK = null;
+
+/** Zellen innerhalb Deutschlands (Umriss `GER_OUTLINE`, gerade-ungerade-Regel über alle Ringe). */
+function conqMask() {
+  if (CONQ_MASK) return CONQ_MASK;
+  const { W, H, LON0, LON1, LAT0, LAT1 } = CONQ;
+  const m = new Uint8Array(W * H);
+  const rings = GER_OUTLINE.map((ring) => ({ ring, minX: Math.min(...ring.map((p) => p[0])), maxX: Math.max(...ring.map((p) => p[0])), minY: Math.min(...ring.map((p) => p[1])), maxY: Math.max(...ring.map((p) => p[1])) }));
+  for (let y = 0; y < H; y++) {
+    const lat = LAT1 - ((y + 0.5) / H) * (LAT1 - LAT0);
+    for (let x = 0; x < W; x++) {
+      const lon = LON0 + ((x + 0.5) / W) * (LON1 - LON0);
+      let inside = false;
+      for (const r of rings) {
+        if (lon < r.minX || lon > r.maxX || lat < r.minY || lat > r.maxY) continue;
+        const p = r.ring;
+        let c = false;
+        for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+          if ((p[i][1] > lat) !== (p[j][1] > lat) && lon < ((p[j][0] - p[i][0]) * (lat - p[i][1])) / (p[j][1] - p[i][1]) + p[i][0]) c = !c;
+        }
+        if (c) inside = !inside;
+      }
+      m[y * W + x] = inside ? 1 : 0;
+    }
+  }
+  CONQ_MASK = m;
+  return m;
+}
+
+/** Koordinaten der Vereine; zwei Standorte, die fast zusammenfallen (Reserve und Profis), werden leicht auseinandergerückt. */
+function conqPoints(names) {
+  const pts = names.map((n) => [...CLUB_GEO[n]]);
+  for (let i = 0; i < pts.length; i++) {
+    for (let j = 0; j < i; j++) {
+      if (Math.abs(pts[i][0] - pts[j][0]) < 0.03 && Math.abs(pts[i][1] - pts[j][1]) < 0.03) { pts[i][0] += 0.03; pts[i][1] += 0.035; j = -1; }
+    }
+  }
+  return pts;
+}
+
+let CONQ_CACHE = { key: "", r: null };
+/** Rasterkarte: je Zelle der nächstgelegene Verein, Zellenzahl je Verein und Nachbarschaften (aneinandergrenzende Gebiete). */
+function conqRaster(names) {
+  const key = names.join("|");
+  if (CONQ_CACHE.key === key) return CONQ_CACHE.r;
+  const { W, H, LON0, LON1, LAT1, K, WU, HU } = CONQ;
+  const mask = conqMask();
+  const geo = conqPoints(names);
+  const pts = geo.map((g) => [(g[1] - LON0) * K, g[0]]);
+  const cell = new Int16Array(W * H).fill(-1);
+  const cnt = new Int32Array(names.length);
+  for (let y = 0; y < H; y++) {
+    const py = LAT1 - ((y + 0.5) / H) * HU;
+    for (let x = 0; x < W; x++) {
+      const idx = y * W + x;
+      if (!mask[idx]) continue;
+      const px = ((x + 0.5) / W) * WU;
+      let best = 0;
+      let bd = Infinity;
+      for (let s = 0; s < pts.length; s++) {
+        const dx = pts[s][0] - px;
+        const dy = pts[s][1] - py;
+        const dd = dx * dx + dy * dy;
+        if (dd < bd) { bd = dd; best = s; }
+      }
+      cell[idx] = best;
+      cnt[best]++;
+    }
+  }
+  const adj = names.map(() => new Set());
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const a = cell[y * W + x];
+      if (a < 0) continue;
+      if (x + 1 < W) { const b = cell[y * W + x + 1]; if (b >= 0 && b !== a) { adj[a].add(b); adj[b].add(a); } }
+      if (y + 1 < H) { const b = cell[(y + 1) * W + x]; if (b >= 0 && b !== a) { adj[a].add(b); adj[b].add(a); } }
+    }
+  }
+  const pos = geo.map((g) => [(g[1] - LON0) / (LON1 - LON0), (LAT1 - g[0]) / HU]);
+  const r = { W, H, cell, cnt, adj, pos };
+  CONQ_CACHE = { key, r };
+  return r;
+}
+
+/** Nur Vereine, die auf der Karte wirklich ein Gebiet bekommen (ein Standort dicht neben einem größeren Nachbarn kann leer ausgehen). */
+function conqUsable(names) {
+  let cur = names;
+  for (let k = 0; k < 6; k++) {
+    if (cur.length < 2) return cur;
+    const r = conqRaster(cur);
+    const keep = cur.filter((_, i) => r.cnt[i] > 0);
+    if (keep.length === cur.length) return cur;
+    cur = keep;
+  }
+  return cur;
+}
+
+const conqRgb = (i) => {
+  const h = ((i * 137.508) % 360) / 360;
+  const s = [0.62, 0.5, 0.75][i % 3];
+  const l = [0.46, 0.6, 0.38][(i >> 1) % 3];
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const f = (t) => { t = (t + 1) % 1; return Math.round(255 * (t < 1 / 6 ? p + (q - p) * 6 * t : t < 1 / 2 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p)); };
+  return [f(h + 1 / 3), f(h), f(h - 1 / 3)];
+};
+
+/** Welche Reiche grenzen aneinander? Map: Besitzer → Menge der Nachbar-Besitzer. */
+function conqNeighbors(r, owner) {
+  const m = new Map();
+  owner.forEach((o) => { if (!m.has(o)) m.set(o, new Set()); });
+  r.adj.forEach((s, i) => s.forEach((j) => { if (owner[i] !== owner[j]) m.get(owner[i]).add(owner[j]); }));
+  return m;
+}
+/** Fläche (Zellen) und Zahl der Gebiete je Besitzer. */
+function conqStanding(r, owner) {
+  const m = new Map();
+  owner.forEach((o, i) => { const e = m.get(o) || { o, cells: 0, regions: 0 }; e.cells += r.cnt[i]; e.regions += 1; m.set(o, e); });
+  return [...m.values()].sort((a, b) => b.cells - a.cells);
+}
+
+/** Wertet ein Spiel aus: `hg` = Tore des Verteidigers (Heimrecht), `ag` = Tore des Angreifers, `pen` = Sieger im Elfmeterschießen ("a"/"d"). */
+function conqApply(cq, r, att, dfn, hg, ag, pen) {
+  const win = hg === ag ? pen : ag > hg ? "a" : "d";
+  let owner = [...cq.owner];
+  let gained = 0;
+  if (win === "a") {
+    if (cq.mode === "one") {
+      const cand = [];
+      owner.forEach((o, i) => { if (o === dfn && [...r.adj[i]].some((j) => owner[j] === att)) cand.push(i); });
+      const pick = cand[Math.floor(Math.random() * cand.length)];
+      if (pick != null) { owner[pick] = att; gained = 1; }
+    } else {
+      owner = owner.map((o) => { if (o === dfn) { gained++; return att; } return o; });
+    }
+  }
+  const log = [...cq.log, { n: cq.log.length + 1, a: att, d: dfn, hg, ag, pen: hg === ag, win, gained }];
+  return { ...cq, owner, log, champion: new Set(owner).size === 1 ? cq.clubs[owner[0]] : null };
+}
+
+/** Würfelt ein Spiel Angreifer gegen Verteidiger (Heimrecht Verteidiger) und wertet es aus. */
+function conqPlay(d, cq, r, att, dfn) {
+  const ctx = cupCtx(d);
+  const leg = cupSimLeg(ctx, cq.clubs[dfn], cq.clubs[att], false, d);
+  const hg = Number(leg.h);
+  const ag = Number(leg.a);
+  const pen = hg === ag ? (shootout(ctx.str(cq.clubs[dfn]), ctx.str(cq.clubs[att])) === "h" ? "d" : "a") : null;
+  return conqApply(cq, r, att, dfn, hg, ag, pen);
+}
+/** Ein zufälliges Spiel zwischen zwei benachbarten Reichen. */
+function conqAuto(d, cq, r) {
+  const nb = conqNeighbors(r, cq.owner);
+  const owners = [...nb.keys()].filter((o) => nb.get(o).size);
+  if (!owners.length) return cq;
+  const att = owners[Math.floor(Math.random() * owners.length)];
+  const list = [...nb.get(att)];
+  return conqPlay(d, cq, r, att, list[Math.floor(Math.random() * list.length)]);
+}
+
+function ConquestMap({ r, cq, selA, selD, onPick, logos }) {
+  const ref = useRef(null);
+  const [hover, setHover] = useState(null);
+  useEffect(() => {
+    const cv = ref.current;
+    if (!cv) return;
+    cv.width = r.W;
+    cv.height = r.H;
+    const c2 = cv.getContext("2d");
+    const img = c2.createImageData(r.W, r.H);
+    const px = img.data;
+    const rgb = cq.clubs.map((_, i) => conqRgb(i));
+    const { W, H, cell } = r;
+    for (let idx = 0; idx < W * H; idx++) {
+      const s = cell[idx];
+      if (s < 0) continue;
+      const o = cq.owner[s];
+      let [R, G, B] = rgb[o];
+      const sel = o === selA || o === selD;
+      if (sel) { R = Math.min(255, R + 55); G = Math.min(255, G + 55); B = Math.min(255, B + 55); }
+      const x = idx % W;
+      const y = (idx / W) | 0;
+      let edge = 0;
+      const nb = [x + 1 < W ? cell[idx + 1] : -1, y + 1 < H ? cell[idx + W] : -1, x > 0 ? cell[idx - 1] : -1, y > 0 ? cell[idx - W] : -1];
+      for (const t of nb) {
+        if (t < 0) { edge = Math.max(edge, 3); continue; }
+        if (cq.owner[t] !== o) edge = Math.max(edge, 2);
+        else if (t !== s) edge = Math.max(edge, 1);
+      }
+      if (edge === 3) { R = 20; G = 28; B = 22; } else if (edge === 2) { if (sel) { R = 255; G = 255; B = 255; } else { R = Math.round(R * 0.35); G = Math.round(G * 0.35); B = Math.round(B * 0.35); } } else if (edge === 1) { R = Math.round(R * 0.88); G = Math.round(G * 0.88); B = Math.round(B * 0.88); }
+      const k = idx * 4;
+      px[k] = R; px[k + 1] = G; px[k + 2] = B; px[k + 3] = 255;
+    }
+    c2.putImageData(img, 0, 0);
+  }, [r, cq.owner, cq.clubs, selA, selD]);
+  const at = (e) => {
+    const rect = ref.current.getBoundingClientRect();
+    const x = Math.floor(((e.clientX - rect.left) / rect.width) * r.W);
+    const y = Math.floor(((e.clientY - rect.top) / rect.height) * r.H);
+    const s = x >= 0 && y >= 0 && x < r.W && y < r.H ? r.cell[y * r.W + x] : -1;
+    return s;
+  };
+  return (
+    <div className="lr-cq-map" style={{ aspectRatio: `${r.W} / ${r.H}` }}>
+      <canvas ref={ref} id="cq-canvas" onClick={(e) => { const s = at(e); if (s >= 0) onPick(cq.owner[s]); }}
+        onMouseMove={(e) => { const s = at(e); setHover(s >= 0 ? s : null); }} onMouseLeave={() => setHover(null)} />
+      {cq.clubs.map((n, i) => (cq.owner[i] === i ? (
+        <span key={n} className="lr-cq-pin" data-club={n} style={{ left: `${r.pos[i][0] * 100}%`, top: `${r.pos[i][1] * 100}%` }}>
+          {logos[n] ? <img src={logos[n]} alt="" /> : <i />}
+        </span>
+      ) : (
+        <span key={n} className="lr-cq-dot" style={{ left: `${r.pos[i][0] * 100}%`, top: `${r.pos[i][1] * 100}%` }} />
+      )))}
+      {hover != null && <div className="lr-cq-hover">{cq.clubs[cq.owner[hover]]}{cq.owner[hover] !== hover ? ` (Gebiet von ${cq.clubs[hover]})` : ""}</div>}
+    </div>
+  );
+}
+
+/** Reiter „Eroberung“: Eroberungskarte mit allen Vereinen, die Koordinaten haben. */
+function ConquestTab({ data, setData, logos }) {
+  const cq = data.conquest;
+  const [cfg, setCfg] = useState({ pro: true, rl: true, mode: "all" });
+  const [sel, setSel] = useState({ a: null, d: null });
+  const [score, setScore] = useState({ h: "", a: "" });
+  const [pen, setPen] = useState(null);
+  const names = useMemo(() => {
+    const out = [];
+    const add = (ids) => ids.forEach((id) => { const s = data.active[id]; if (s) s.teams.forEach((n) => { if (CLUB_GEO[n] && out.indexOf(n) < 0) out.push(n); }); });
+    if (cfg.pro) add(PRO_IDS);
+    if (cfg.rl) add(DE_RL.map((l) => l.id));
+    return conqUsable(out);
+  }, [data.active, cfg.pro, cfg.rl]);
+  const preview = useMemo(() => ({ clubs: names, owner: names.map((_, i) => i), log: [], mode: cfg.mode, champion: null }), [names, cfg.mode]);
+  const cur = cq || preview;
+  const r = useMemo(() => conqRaster(cur.clubs), [cur.clubs]);
+  const nb = useMemo(() => conqNeighbors(r, cur.owner), [r, cur.owner]);
+  const standing = useMemo(() => conqStanding(r, cur.owner), [r, cur.owner]);
+  const total = r.cnt.reduce((a, b) => a + b, 0) || 1;
+  const set = (fn) => setData((d) => ({ ...d, conquest: fn(d.conquest, d) }));
+  const clear = () => { setSel({ a: null, d: null }); setScore({ h: "", a: "" }); setPen(null); };
+  const start = () => { setData((d) => ({ ...d, conquest: { clubs: names, owner: names.map((_, i) => i), log: [], mode: cfg.mode, champion: null, edition: ((d.conquest && d.conquest.edition) || 0) + 1 } })); clear(); };
+  const pick = (o) => {
+    if (!cq || cq.champion) return;
+    if (sel.a == null || o === sel.a) { setSel(o === sel.a ? { a: null, d: null } : { a: o, d: null }); return; }
+    if (nb.get(sel.a) && nb.get(sel.a).has(o)) { setSel({ a: sel.a, d: o }); setScore({ h: "", a: "" }); setPen(null); } else setSel({ a: o, d: null });
+  };
+  const played = (fn) => { set((c, d) => fn(c, d)); clear(); };
+  const nm = (o) => cur.clubs[o];
+  const logo = (n) => (logos[n] ? <img className="lr-logo" src={logos[n]} alt="" /> : null);
+  const hgN = Number(score.h);
+  const agN = Number(score.a);
+  const scoreOk = score.h !== "" && score.a !== "";
+  const needPen = scoreOk && hgN === agN;
+  const cap = (s) => s.slice(0, 1).toUpperCase() + s.slice(1);
+
+  return (
+    <div className="lr-wrap">
+      <section style={accentVars("#E8A33D")}>
+        <h2>Eroberung</h2>
+        <p className="lr-hint">
+          Jeder Verein besitzt das Gebiet um sein Stadion. Ein Verein greift ein angrenzendes Reich an: Das Spiel wird simuliert oder du trägst das Ergebnis ein, der
+          Verteidiger hat Heimrecht, bei Gleichstand entscheidet ein Elfmeterschießen. Gewinnt der Angreifer, {cur.mode === "one" ? "übernimmt er ein Grenzgebiet des Verlierers" : "übernimmt er das ganze Reich des Verlierers"}.
+          Wer am Ende alles besitzt, hat gewonnen. Tippe zuerst auf das Gebiet des Angreifers, dann auf ein Nachbargebiet.
+        </p>
+
+        {!cq && (
+          <div className="lr-cu-opts" id="cq-setup">
+            <CupSel label="Profiligen (56 Vereine)" id="cq-pro" value={cfg.pro ? "1" : "0"} onChange={(v) => setCfg({ ...cfg, pro: v === "1" })} options={[["1", "mit"], ["0", "ohne"]]} />
+            <CupSel label="Regionalligen (90 Vereine)" id="cq-rl" value={cfg.rl ? "1" : "0"} onChange={(v) => setCfg({ ...cfg, rl: v === "1" })} options={[["1", "mit"], ["0", "ohne"]]} />
+            <CupSel label="Beute" id="cq-mode" value={cfg.mode} onChange={(v) => setCfg({ ...cfg, mode: v })} options={[["all", "ganzes Reich des Verlierers"], ["one", "nur ein Grenzgebiet"]]} />
+            <button className="lr-btn lr-btn-p" id="cq-start" disabled={names.length < 2} onClick={start}>Eroberung starten ({names.length} Vereine)</button>
+          </div>
+        )}
+        {cq && (
+          <div className="lr-cu-new" id="cq-bar">
+            <span className="lr-tag" id="cq-status">{cq.champion ? "beendet" : `Spiel ${cq.log.length + 1} · ${standing.length} Reiche`}</span>
+            <div className="lr-spacer" />
+            {!cq.champion && <>
+              <button className="lr-btn lr-btn-sm" id="cq-auto" onClick={() => played((c, d) => conqAuto(d, c, r))}>Zufälliges Spiel</button>
+              <button className="lr-btn lr-btn-sm" id="cq-auto10" onClick={() => played((c, d) => { let x = c; for (let i = 0; i < 10 && !x.champion; i++) x = conqAuto(d, x, r); return x; })}>10 Spiele</button>
+              <button className="lr-btn lr-btn-sm" id="cq-auto-all" onClick={() => played((c, d) => { let x = c; for (let i = 0; i < 2000 && !x.champion; i++) x = conqAuto(d, x, r); return x; })}>Bis zum Sieger</button>
+            </>}
+            <button className="lr-btn lr-btn-sm" id="cq-reset" onClick={() => { setData((d) => ({ ...d, conquest: null })); clear(); }}>Neu einrichten</button>
+          </div>
+        )}
+        {cq && cq.champion && <div className="lr-champ-box"><div className="lr-tag">Herrscher über Deutschland</div><div className="disp">{cq.champion}</div></div>}
+
+        <div className="lr-cq-grid">
+          <div>
+            <ConquestMap r={r} cq={cur} selA={sel.a} selD={sel.d} onPick={pick} logos={logos} />
+          </div>
+          <div className="lr-cq-side">
+            {cq && !cq.champion && (
+              <div className="lr-cq-panel" id="cq-panel">
+                {sel.a == null && <p className="lr-hint" style={{ margin: 0 }}>Wähle den Angreifer: tippe auf sein Gebiet.</p>}
+                {sel.a != null && sel.d == null && (
+                  <>
+                    <b>{logo(nm(sel.a))}{nm(sel.a)}</b> greift an — wen?
+                    <div className="lr-cq-nb">
+                      {[...(nb.get(sel.a) || [])].map((o) => (
+                        <button key={o} className="lr-round-btn" onClick={() => setSel({ a: sel.a, d: o })}>{nm(o)}</button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {sel.a != null && sel.d != null && (
+                  <>
+                    <div className="lr-cq-vs"><b>{logo(nm(sel.a))}{nm(sel.a)}</b> greift <b>{logo(nm(sel.d))}{nm(sel.d)}</b> an</div>
+                    <small className="lr-hint">Heimrecht: {nm(sel.d)}</small>
+                    <div className="lr-score" style={{ margin: "8px 0" }}>
+                      <ScoreBox value={score.h} team={nm(sel.d)} onType={(v) => { setScore({ ...score, h: cupDigits(v) }); setPen(null); }} />
+                      <span className="lr-colon">:</span>
+                      <ScoreBox value={score.a} team={nm(sel.a)} onType={(v) => { setScore({ ...score, a: cupDigits(v) }); setPen(null); }} />
+                    </div>
+                    {needPen && (
+                      <div className="lr-pen" data-pen="1">
+                        <span className="lr-tag" style={{ alignSelf: "center" }}>Sieger n. E.:</span>
+                        <button data-on={pen === "d" ? "1" : "0"} onClick={() => setPen("d")}>{nm(sel.d)}</button>
+                        <button data-on={pen === "a" ? "1" : "0"} onClick={() => setPen("a")}>{nm(sel.a)}</button>
+                      </div>
+                    )}
+                    <div className="lr-cu-new">
+                      <button className="lr-btn lr-btn-sm lr-btn-p" id="cq-sim" onClick={() => played((c, d) => conqPlay(d, c, r, sel.a, sel.d))}>Spiel simulieren</button>
+                      <button className="lr-btn lr-btn-sm" id="cq-take" disabled={!scoreOk || (needPen && !pen)} onClick={() => played((c) => conqApply(c, r, sel.a, sel.d, hgN, agN, pen))}>Ergebnis übernehmen</button>
+                      <button className="lr-btn lr-btn-sm" onClick={clear}>Abbrechen</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            <h4 className="lr-cu-h4">Reiche ({standing.length})</h4>
+            <div className="lr-cq-stand" id="cq-stand">
+              {standing.slice(0, 14).map((e) => (
+                <div className="lr-cq-row" key={e.o} data-owner={nm(e.o)}>
+                  <i style={{ background: `rgb(${conqRgb(e.o).join(",")})` }} />
+                  {logo(nm(e.o))}<TeamLink name={nm(e.o)} />
+                  <span className="lr-cq-pct">{Math.round((e.cells / total) * 1000) / 10} %</span>
+                  <small>{e.regions} {e.regions === 1 ? "Gebiet" : "Gebiete"}</small>
+                </div>
+              ))}
+              {standing.length > 14 && <p className="lr-hint">und {standing.length - 14} weitere …</p>}
+            </div>
+
+            {cq && cq.log.length > 0 && (
+              <>
+                <h4 className="lr-cu-h4">Letzte Spiele</h4>
+                <div className="lr-cq-log" id="cq-log">
+                  {[...cq.log].reverse().slice(0, 12).map((g) => (
+                    <div key={g.n} className="lr-cq-lg" data-win={g.win}>
+                      <small>{g.n}.</small> <span>{cq.clubs[g.d]}</span> <b>{g.hg}:{g.ag}{g.pen ? " n.E." : ""}</b> <span>{cq.clubs[g.a]}</span>
+                      <em>{g.win === "a" ? (g.gained > 1 ? `${cap(cq.clubs[g.a])} erobert ${g.gained} Gebiete` : "erobert ein Gebiet") : "Verteidigt"}</em>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </section>
     </div>
   );
