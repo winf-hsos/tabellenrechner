@@ -88,6 +88,32 @@ with sync_playwright() as p:
     pg.locator("#cq-auto-all").click(); pg.wait_for_timeout(8000)
     f = state(pg)["conquest"]
     ok(f["champion"] is not None, f"auch im Grenzgebiet-Modus gibt es einen Sieger ({len(f['log'])} Spiele)")
+    # Vereine selbst auswählen
+    pg.locator("#cq-reset").click(); pg.wait_for_selector("#cq-setup")
+    pg.locator("#cq-select").click(); pg.wait_for_selector("#cq-chosen")
+    ok(pg.locator("#cq-chosen .lr-cu-chip").count() >= 54, "Auswahl startet mit den bisherigen Vereinen")
+    pg.locator("#cq-clear").click(); pg.wait_for_timeout(200)
+    ok(pg.locator("#cq-start").is_disabled(), "ohne Vereine nicht startbar")
+    pg.locator("#cq-add").click(); pg.wait_for_selector("#picker-list")
+    ok(pg.locator("#picker-list input[aria-label='Real Madrid']").count() == 0 and pg.locator("#picker-list input[aria-label='FC Bayern München']").count() == 1, "Auswahlliste zeigt nur Vereine mit Standort")
+    for n in ["FC Bayern München", "Borussia Dortmund", "SC Freiburg", "VfB Stuttgart", "Hamburger SV", "SV Werder Bremen" if False else "Werder Bremen"]:
+        pg.fill("#picker-q", n); pg.wait_for_timeout(150); pg.locator(f"#picker-list input[aria-label='{n}']").first.check()
+    pg.locator("#picker-add").click(); pg.wait_for_timeout(300)
+    ok(pg.locator("#cq-chosen .lr-cu-chip").count() == 6 and "Meine Auswahl (6)" in pg.locator("#cq-chosen").inner_text(), "6 Vereine ausgewählt")
+    pg.locator("button[aria-label='Hamburger SV entfernen']").click(); pg.wait_for_timeout(200)
+    ok(pg.locator("#cq-chosen .lr-cu-chip").count() == 5, "Verein wieder entfernt")
+    pg.locator("#cq-start").click(); pg.wait_for_selector("#cq-bar")
+    g = state(pg)["conquest"]
+    ok(sorted(g["clubs"]) == sorted(["FC Bayern München", "Borussia Dortmund", "SC Freiburg", "VfB Stuttgart", "Werder Bremen"]), "Eroberung mit genau den 5 gewählten Vereinen: " + ", ".join(g["clubs"]))
+    pg.locator("#cq-auto-all").click(); pg.wait_for_timeout(2500)
+    g = state(pg)["conquest"]
+    ok(g["champion"] in g["clubs"], f"Sieger unter den 5: {g['champion']}")
+    # Logo größer ziehen
+    w0 = pg.locator(".lr-cq-pin").first.bounding_box()["width"]
+    pg.locator("#cq-logo-size").evaluate("e => { const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; set.call(e, '60'); e.dispatchEvent(new Event('input', { bubbles: true })); }"); pg.wait_for_timeout(300)
+    w1 = pg.locator(".lr-cq-pin").first.bounding_box()["width"]
+    ok(w1 > w0 * 1.8 and abs(w1 - 60) < 2, f"Regler Logogröße: {w0:.0f} px -> {w1:.0f} px")
+    ok(state(pg)["conquest"]["logoSize"] == 60, "Logogröße wird mit dem Stand gespeichert")
     ok(not perr, f"keine JS-Fehler {perr[:2]}")
     b.close()
 print("Fehler:", errs)
