@@ -11506,6 +11506,8 @@ const CSS = `
 @media (max-width: 860px) { .lr-cq-grid { grid-template-columns: 1fr; } }
 .lr-cq-map { position: relative; width: 100%; max-width: 560px; border: 1px solid var(--line-2); border-radius: 6px; background: #0d1511; overflow: hidden; }
 .lr-cq-map canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+.lr-cq-size { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 12px; }
+.lr-cq-size input { flex: 1; max-width: 300px; }
 .lr-cq-pin { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; display: flex; align-items: center; justify-content: center; }
 .lr-cq-pin img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 2px rgba(0,0,0,0.9)); }
 .lr-cq-pin i { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 3px #000; }
@@ -16228,7 +16230,8 @@ let CONQ_CACHE = { key: "", r: null };
 /** Rasterkarte: je Zelle der nächstgelegene Verein, Zellenzahl je Verein und Nachbarschaften (aneinandergrenzende Gebiete). */
 function conqRaster(names) {
   const key = names.join("|");
-  if (CONQ_CACHE.key === key) return CONQ_CACHE.r;
+  if (CONQ_CACHE.r && CONQ_CACHE.key === key) return CONQ_CACHE.r;
+  if (!names.length) return { W: CONQ.W, H: CONQ.H, cell: new Int16Array(CONQ.W * CONQ.H).fill(-1), cnt: new Int32Array(0), adj: [], pos: [] };
   const { W, H, LON0, LON1, LAT1, K, WU, HU } = CONQ;
   const mask = conqMask();
   const geo = conqPoints(names);
@@ -16343,7 +16346,7 @@ function conqAuto(d, cq, r) {
   return conqPlay(d, cq, r, att, list[Math.floor(Math.random() * list.length)]);
 }
 
-function ConquestMap({ r, cq, selA, selD, onPick, logos }) {
+function ConquestMap({ r, cq, selA, selD, onPick, logos, pin }) {
   const ref = useRef(null);
   const [hover, setHover] = useState(null);
   useEffect(() => {
@@ -16390,7 +16393,7 @@ function ConquestMap({ r, cq, selA, selD, onPick, logos }) {
       <canvas ref={ref} id="cq-canvas" onClick={(e) => { const s = at(e); if (s >= 0) onPick(cq.owner[s]); }}
         onMouseMove={(e) => { const s = at(e); setHover(s >= 0 ? s : null); }} onMouseLeave={() => setHover(null)} />
       {cq.clubs.map((n, i) => (cq.owner[i] === i ? (
-        <span key={n} className="lr-cq-pin" data-club={n} style={{ left: `${r.pos[i][0] * 100}%`, top: `${r.pos[i][1] * 100}%` }}>
+        <span key={n} className="lr-cq-pin" data-club={n} style={{ left: `${r.pos[i][0] * 100}%`, top: `${r.pos[i][1] * 100}%`, width: pin, height: pin, margin: `${-pin / 2}px 0 0 ${-pin / 2}px` }}>
           {logos[n] ? <img src={logos[n]} alt="" /> : <i />}
         </span>
       ) : (
@@ -16404,7 +16407,9 @@ function ConquestMap({ r, cq, selA, selD, onPick, logos }) {
 /** Reiter „Eroberung“: Eroberungskarte mit allen Vereinen, die Koordinaten haben. */
 function ConquestTab({ data, setData, logos }) {
   const cq = data.conquest;
-  const [cfg, setCfg] = useState({ pro: true, rl: true, mode: "all" });
+  const [cfg, setCfg] = useState({ pro: true, rl: true, mode: "all", sel: null });
+  const [pick2, setPick2] = useState(false);
+  const [pin, setPin] = useState((data.conquest && data.conquest.logoSize) || 26);
   const [sel, setSel] = useState({ a: null, d: null });
   const [score, setScore] = useState({ h: "", a: "" });
   const [pen, setPen] = useState(null);
@@ -16413,8 +16418,8 @@ function ConquestTab({ data, setData, logos }) {
     const add = (ids) => ids.forEach((id) => { const s = data.active[id]; if (s) s.teams.forEach((n) => { if (CLUB_GEO[n] && out.indexOf(n) < 0) out.push(n); }); });
     if (cfg.pro) add(PRO_IDS);
     if (cfg.rl) add(DE_RL.map((l) => l.id));
-    return conqUsable(out);
-  }, [data.active, cfg.pro, cfg.rl]);
+    return conqUsable(cfg.sel ? cfg.sel.filter((n) => CLUB_GEO[n]) : out);
+  }, [data.active, cfg.pro, cfg.rl, cfg.sel]);
   const preview = useMemo(() => ({ clubs: names, owner: names.map((_, i) => i), log: [], mode: cfg.mode, champion: null }), [names, cfg.mode]);
   const cur = cq || preview;
   const r = useMemo(() => conqRaster(cur.clubs), [cur.clubs]);
@@ -16450,12 +16455,38 @@ function ConquestTab({ data, setData, logos }) {
 
         {!cq && (
           <div className="lr-cu-opts" id="cq-setup">
-            <CupSel label="Profiligen (56 Vereine)" id="cq-pro" value={cfg.pro ? "1" : "0"} onChange={(v) => setCfg({ ...cfg, pro: v === "1" })} options={[["1", "mit"], ["0", "ohne"]]} />
-            <CupSel label="Regionalligen (90 Vereine)" id="cq-rl" value={cfg.rl ? "1" : "0"} onChange={(v) => setCfg({ ...cfg, rl: v === "1" })} options={[["1", "mit"], ["0", "ohne"]]} />
+            {!cfg.sel && <>
+              <CupSel label="Profiligen (56 Vereine)" id="cq-pro" value={cfg.pro ? "1" : "0"} onChange={(v) => setCfg({ ...cfg, pro: v === "1" })} options={[["1", "mit"], ["0", "ohne"]]} />
+              <CupSel label="Regionalligen (90 Vereine)" id="cq-rl" value={cfg.rl ? "1" : "0"} onChange={(v) => setCfg({ ...cfg, rl: v === "1" })} options={[["1", "mit"], ["0", "ohne"]]} />
+              <button className="lr-btn" id="cq-select" onClick={() => setCfg({ ...cfg, sel: [...names] })}>Vereine selbst auswählen</button>
+            </>}
             <CupSel label="Beute" id="cq-mode" value={cfg.mode} onChange={(v) => setCfg({ ...cfg, mode: v })} options={[["all", "ganzes Reich des Verlierers"], ["one", "nur ein Grenzgebiet"]]} />
             <button className="lr-btn lr-btn-p" id="cq-start" disabled={names.length < 2} onClick={start}>Eroberung starten ({names.length} Vereine)</button>
           </div>
         )}
+        {!cq && cfg.sel && (
+          <div id="cq-chosen">
+            <div className="lr-cu-new" style={{ margin: "0 0 6px" }}>
+              <b>Meine Auswahl ({cfg.sel.length})</b>
+              <div className="lr-spacer" />
+              <button className="lr-btn lr-btn-sm" id="cq-add" onClick={() => setPick2(true)}>Vereine hinzufügen</button>
+              <button className="lr-btn lr-btn-sm" id="cq-clear" onClick={() => setCfg({ ...cfg, sel: [] })}>Alle entfernen</button>
+              <button className="lr-btn lr-btn-sm" id="cq-preset" onClick={() => setCfg({ ...cfg, sel: null })}>Zurück zur Voreinstellung</button>
+            </div>
+            <div className="lr-cu-teams" style={{ maxHeight: "30vh", overflowY: "auto" }}>
+              {cfg.sel.map((n) => (
+                <span className="lr-cu-chip" key={n}>
+                  {logos[n] ? <img className="lr-logo" src={logos[n]} alt="" /> : null}{n}
+                  <button type="button" className="lr-logo-del" aria-label={`${n} entfernen`} onClick={() => setCfg({ ...cfg, sel: cfg.sel.filter((x) => x !== n) })}>×</button>
+                </span>
+              ))}
+              {cfg.sel.length === 0 && <span className="lr-hint">Noch keine Vereine — „Vereine hinzufügen“ drücken (mindestens 2).</span>}
+            </div>
+            <p className="lr-hint">Zur Auswahl stehen die {Object.keys(CLUB_GEO).length} Vereine von Bundesliga bis Regionalliga, für die ein Standort auf der Karte bekannt ist.</p>
+          </div>
+        )}
+        {pick2 && <ClubPicker data={data} logos={logos} leagueId="" free only={(n) => !!CLUB_GEO[n]} exclude={cfg.sel || []} onClose={() => setPick2(false)}
+          onAdd={(list) => { setCfg({ ...cfg, sel: [...(cfg.sel || []), ...list.filter((n) => (cfg.sel || []).indexOf(n) < 0)] }); setPick2(false); }} />}
         {cq && (
           <div className="lr-cu-new" id="cq-bar">
             <span className="lr-tag" id="cq-status">{cq.champion ? "beendet" : `Spiel ${cq.log.length + 1} · ${standing.length} Reiche`}</span>
@@ -16472,7 +16503,13 @@ function ConquestTab({ data, setData, logos }) {
 
         <div className="lr-cq-grid">
           <div>
-            <ConquestMap r={r} cq={cur} selA={sel.a} selD={sel.d} onPick={pick} logos={logos} />
+            <label className="lr-prog lr-cq-size">
+              Logogröße
+              <input type="range" id="cq-logo-size" min="14" max="80" step="2" value={pin} aria-label="Logogröße auf der Karte"
+                onChange={(e) => { const v = Number(e.target.value); setPin(v); if (cq) set((c) => ({ ...c, logoSize: v })); }} />
+              <span>{pin}</span>
+            </label>
+            <ConquestMap r={r} cq={cur} selA={sel.a} selD={sel.d} onPick={pick} logos={logos} pin={pin} />
           </div>
           <div className="lr-cq-side">
             {cq && !cq.champion && (
@@ -16550,7 +16587,7 @@ function ConquestTab({ data, setData, logos }) {
 /* ---------------- Eigene Ligen: Verwaltung ---------------- */
 
 /** Auswahl von Mannschaften aus allen Ligen der App (und eigenen Vereinen) für eine eigene Liga. */
-function ClubPicker({ data, logos, leagueId, onAdd, onClose, free }) {
+function ClubPicker({ data, logos, leagueId, onAdd, onClose, free, only, exclude }) {
   const [q, setQ] = useState("");
   const [sec, setSec] = useState("");
   const [sel, setSel] = useState([]);
@@ -16561,9 +16598,9 @@ function ClubPicker({ data, logos, leagueId, onAdd, onClose, free }) {
     return m;
   }, [data, free]);
   const secName = (k) => (k === "eu" ? "Europapokal-Teilnehmer" : k === "own" ? "Eigene Vereine" : secLabel(k));
-  const secs = [...new Set(clubs.map((c) => c.sec))];
+  const secs = [...new Set(clubs.filter((c) => (!only || only(c.name)) && (!exclude || exclude.indexOf(c.name) < 0)).map((c) => c.sec))];
   const needle = q.trim().toLowerCase();
-  const list = clubs.filter((c) => (!sec || c.sec === sec) && (!needle || c.name.toLowerCase().indexOf(needle) >= 0 || c.league.toLowerCase().indexOf(needle) >= 0));
+  const list = clubs.filter((c) => (!only || only(c.name)) && (!exclude || exclude.indexOf(c.name) < 0) && (!sec || c.sec === sec) && (!needle || c.name.toLowerCase().indexOf(needle) >= 0 || c.league.toLowerCase().indexOf(needle) >= 0));
   const shown = list.slice(0, 200);
   const toggle = (n) => setSel((c) => (c.indexOf(n) >= 0 ? c.filter((x) => x !== n) : [...c, n]));
   const selectable = list.filter((c) => !where[c.name]).map((c) => c.name);
