@@ -10071,7 +10071,7 @@ function normalize(d0) {
   // Eigene Ligen: Planung und Saisons übernehmen
   out.custom = normCustom(d.custom);
   out.cups = normCups(d.cups);
-  out.conquest = d.conquest && Array.isArray(d.conquest.clubs) && Array.isArray(d.conquest.owner) && d.conquest.clubs.every((n) => CLUB_GEO[n]) ? d.conquest : null;
+  out.conquest = d.conquest && Array.isArray(d.conquest.clubs) && Array.isArray(d.conquest.owner) && (d.conquest.map === "neutral" || d.conquest.clubs.every((n) => CLUB_GEO[n])) ? d.conquest : null;
   out.custom.leagues.forEach((l) => {
     const s = d.active[l.id];
     if (!s || !Array.isArray(s.teams)) return;
@@ -11511,7 +11511,7 @@ const CSS = `
 .lr-cq-pin { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; display: flex; align-items: center; justify-content: center; }
 .lr-cq-pin img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 2px rgba(0,0,0,0.9)); }
 .lr-cq-pin i { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 3px #000; }
-.lr-cq-pin[data-edit="1"] { outline: 1px dashed rgba(255,255,255,0.6); border-radius: 4px; }
+.lr-cq-pin[data-edit="1"] { pointer-events: auto; cursor: move; touch-action: none; outline: 1px dashed rgba(255,255,255,0.6); border-radius: 4px; }
 .lr-cq-handle { position: absolute; right: -7px; bottom: -7px; width: 14px; height: 14px; border-radius: 50%; background: #E8A33D; border: 2px solid #fff; cursor: nwse-resize; pointer-events: auto; touch-action: none; }
 .lr-cq-arrow { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .lr-wheel { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 6px 0; }
@@ -16190,19 +16190,38 @@ const GER_OUTLINE = [[[8.41,55.04],[8.44,55.02],[8.35,54.97],[8.37,54.9],[8.43,5
 /* ---------------- Eroberungskarte („Football Imperialism“) ---------------- */
 
 // Jeder Verein bekommt auf der Deutschlandkarte das Gebiet um sein Stadion (nächstgelegene Zellen). Ein Verein greift einen
-// Nachbarn an; gewinnt er (Heimrecht hat der Verteidiger), übernimmt er das ganze Reich des Verlierers (oder nur ein Grenzgebiet).
+// Nachbarn an; der Sieger (Heimrecht hat der Verteidiger) übernimmt das ganze Reich des Verlierers (oder nur ein Grenzgebiet), egal wer angegriffen hat.
 // Wer am Ende alles besitzt, hat gewonnen. `data.conquest = {clubs, owner, log, mode, champion, edition}`: `owner[i]` = Index des
 // Vereins, dem das Ursprungsgebiet von Verein i gerade gehört.
 const CONQ = { W: 360, H: 488, LON0: 5.8, LON1: 15.1, LAT0: 47.2, LAT1: 55.1, K: Math.cos((51.2 * Math.PI) / 180) };
 CONQ.WU = (CONQ.LON1 - CONQ.LON0) * CONQ.K;
 CONQ.HU = CONQ.LAT1 - CONQ.LAT0;
-let CONQ_MASK = null;
+const CONQ_MAPS = {
+  de: { W: CONQ.W, H: CONQ.H, sx: CONQ.WU, sy: CONQ.HU, name: "Deutschlandkarte" },
+  neutral: { W: 420, H: 420, sx: 1, sy: 1, name: "Neutrale Karte" },
+};
+const CONQ_MASKS = {};
 
-/** Zellen innerhalb Deutschlands (Umriss `GER_OUTLINE`, gerade-ungerade-Regel über alle Ringe). */
-function conqMask() {
-  if (CONQ_MASK) return CONQ_MASK;
-  const { W, H, LON0, LON1, LAT0, LAT1 } = CONQ;
+/** Zellen innerhalb der Karte: Deutschland (Umriss `GER_OUTLINE`, gerade-ungerade-Regel) oder die neutrale „Insel“ (unregelmäßiger Umriss aus Sinuswellen). */
+function conqMask(mapKey) {
+  if (CONQ_MASKS[mapKey]) return CONQ_MASKS[mapKey];
+  const M = CONQ_MAPS[mapKey];
+  const { W, H } = M;
   const m = new Uint8Array(W * H);
+  if (mapKey === "neutral") {
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const nx = (x + 0.5) / W - 0.5;
+        const ny = (y + 0.5) / H - 0.5;
+        const th = Math.atan2(ny, nx);
+        const rr = 0.45 + 0.035 * Math.sin(2 * th + 0.7) + 0.03 * Math.sin(3 * th + 2.1) + 0.022 * Math.sin(5 * th + 0.3) + 0.012 * Math.sin(9 * th + 1.1);
+        m[y * W + x] = Math.hypot(nx, ny) < rr ? 1 : 0;
+      }
+    }
+    CONQ_MASKS[mapKey] = m;
+    return m;
+  }
+  const { LON0, LON1, LAT0, LAT1 } = CONQ;
   const rings = GER_OUTLINE.map((ring) => ({ ring, minX: Math.min(...ring.map((p) => p[0])), maxX: Math.max(...ring.map((p) => p[0])), minY: Math.min(...ring.map((p) => p[1])), maxY: Math.max(...ring.map((p) => p[1])) }));
   for (let y = 0; y < H; y++) {
     const lat = LAT1 - ((y + 0.5) / H) * (LAT1 - LAT0);
@@ -16221,46 +16240,84 @@ function conqMask() {
       m[y * W + x] = inside ? 1 : 0;
     }
   }
-  CONQ_MASK = m;
+  CONQ_MASKS[mapKey] = m;
   return m;
 }
 
-/** Koordinaten der Vereine; zwei Standorte, die fast zusammenfallen (Reserve und Profis), werden leicht auseinandergerückt. */
-function conqPoints(names) {
-  const pts = names.map((n) => [...CLUB_GEO[n]]);
-  for (let i = 0; i < pts.length; i++) {
-    for (let j = 0; j < i; j++) {
-      if (Math.abs(pts[i][0] - pts[j][0]) < 0.03 && Math.abs(pts[i][1] - pts[j][1]) < 0.03) { pts[i][0] += 0.03; pts[i][1] += 0.035; j = -1; }
+let CONQ_BASE = { key: "", pos: null };
+/** Ausgangspositionen [x, y] (0–1) der Vereine: auf der Deutschlandkarte nach Standort (fast zusammenfallende Standorte werden auseinandergerückt), auf der neutralen Karte gleichmäßig verteilt (Best-Candidate-Verfahren, immer gleich). */
+function conqBasePos(names, mapKey) {
+  const key = `${mapKey}|${names.join("|")}`;
+  if (CONQ_BASE.pos && CONQ_BASE.key === key) return CONQ_BASE.pos;
+  let out;
+  if (mapKey === "neutral") {
+    const M = CONQ_MAPS.neutral;
+    const mask = conqMask("neutral");
+    const rnd = mulberry32(7771);
+    out = [];
+    names.forEach(() => {
+      let best = null;
+      let bd = -1;
+      for (let k = 0; k < 24; k++) {
+        let p = null;
+        for (let t = 0; t < 60 && !p; t++) {
+          const x = rnd();
+          const y = rnd();
+          if (mask[Math.floor(y * M.H) * M.W + Math.floor(x * M.W)]) p = [x, y];
+        }
+        if (!p) continue;
+        let md = Infinity;
+        for (const q of out) md = Math.min(md, (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2);
+        if (md > bd) { bd = md; best = p; }
+      }
+      out.push(best || [0.5, 0.5]);
+    });
+  } else {
+    const geo = names.map((n) => [...CLUB_GEO[n]]);
+    for (let i = 0; i < geo.length; i++) {
+      for (let j = 0; j < i; j++) {
+        if (Math.abs(geo[i][0] - geo[j][0]) < 0.03 && Math.abs(geo[i][1] - geo[j][1]) < 0.03) { geo[i][0] += 0.03; geo[i][1] += 0.035; j = -1; }
+      }
     }
+    out = geo.map((g) => [(g[1] - CONQ.LON0) / (CONQ.LON1 - CONQ.LON0), (CONQ.LAT1 - g[0]) / CONQ.HU]);
   }
-  return pts;
+  CONQ_BASE = { key, pos: out };
+  return out;
 }
 
 let CONQ_CACHE = { key: "", r: null };
-/** Rasterkarte: je Zelle der nächstgelegene Verein, Zellenzahl je Verein und Nachbarschaften (aneinandergrenzende Gebiete). */
-function conqRaster(names) {
-  const key = names.join("|");
+/**
+ * Rasterkarte: je Zelle der Verein mit dem kleinsten gewichteten Abstand (Standort, Gebietsgröße `weights[name]` = Faktor),
+ * Zellenzahl je Verein und Nachbarschaften. `moves[name]` = vom Nutzer verschobener Standort [x, y] (0–1).
+ */
+function conqRaster(names, mapKey, moves, weights) {
+  const key = `${mapKey}|${names.map((n) => `${n}${moves && moves[n] ? `@${moves[n][0].toFixed(3)},${moves[n][1].toFixed(3)}` : ""}${weights && weights[n] && weights[n] !== 1 ? `*${weights[n]}` : ""}`).join("|")}`;
   if (CONQ_CACHE.r && CONQ_CACHE.key === key) return CONQ_CACHE.r;
-  if (!names.length) return { W: CONQ.W, H: CONQ.H, cell: new Int16Array(CONQ.W * CONQ.H).fill(-1), cnt: new Int32Array(0), adj: [], pos: [] };
-  const { W, H, LON0, LON1, LAT1, K, WU, HU } = CONQ;
-  const mask = conqMask();
-  const geo = conqPoints(names);
-  const pts = geo.map((g) => [(g[1] - LON0) * K, g[0]]);
+  const M = CONQ_MAPS[mapKey];
+  const { W, H, sx, sy } = M;
+  if (!names.length) return { W, H, cell: new Int16Array(W * H).fill(-1), cnt: new Int32Array(0), adj: [], pos: [] };
+  const mask = conqMask(mapKey);
+  const base = conqBasePos(names, mapKey);
+  const pos = names.map((n, i) => (moves && moves[n]) || base[i]);
+  const px0 = pos.map((p) => p[0] * sx);
+  const py0 = pos.map((p) => p[1] * sy);
+  const iw2 = names.map((n) => { const w = (weights && weights[n]) || 1; return 1 / (w * w); });
   const cell = new Int16Array(W * H).fill(-1);
   const cnt = new Int32Array(names.length);
+  const m = names.length;
   for (let y = 0; y < H; y++) {
-    const py = LAT1 - ((y + 0.5) / H) * HU;
+    const py = ((y + 0.5) / H) * sy;
     for (let x = 0; x < W; x++) {
       const idx = y * W + x;
       if (!mask[idx]) continue;
-      const px = ((x + 0.5) / W) * WU;
+      const px = ((x + 0.5) / W) * sx;
       let best = 0;
       let bd = Infinity;
-      for (let s = 0; s < pts.length; s++) {
-        const dx = pts[s][0] - px;
-        const dy = pts[s][1] - py;
-        const dd = dx * dx + dy * dy;
-        if (dd < bd) { bd = dd; best = s; }
+      for (let q = 0; q < m; q++) {
+        const dx = px0[q] - px;
+        const dy = py0[q] - py;
+        const dd = (dx * dx + dy * dy) * iw2[q];
+        if (dd < bd) { bd = dd; best = q; }
       }
       cell[idx] = best;
       cnt[best]++;
@@ -16275,18 +16332,17 @@ function conqRaster(names) {
       if (y + 1 < H) { const b = cell[(y + 1) * W + x]; if (b >= 0 && b !== a) { adj[a].add(b); adj[b].add(a); } }
     }
   }
-  const pos = geo.map((g) => [(g[1] - LON0) / (LON1 - LON0), (LAT1 - g[0]) / HU]);
   const r = { W, H, cell, cnt, adj, pos };
   CONQ_CACHE = { key, r };
   return r;
 }
 
 /** Nur Vereine, die auf der Karte wirklich ein Gebiet bekommen (ein Standort dicht neben einem größeren Nachbarn kann leer ausgehen). */
-function conqUsable(names) {
+function conqUsable(names, mapKey, moves, weights) {
   let cur = names;
   for (let k = 0; k < 6; k++) {
     if (cur.length < 2) return cur;
-    const r = conqRaster(cur);
+    const r = conqRaster(cur, mapKey, moves, weights);
     const keep = cur.filter((_, i) => r.cnt[i] > 0);
     if (keep.length === cur.length) return cur;
     cur = keep;
@@ -16307,34 +16363,35 @@ const conqRgb = (i) => {
 /** Welche Reiche grenzen aneinander? Map: Besitzer → Menge der Nachbar-Besitzer. */
 function conqNeighbors(r, owner) {
   const m = new Map();
-  owner.forEach((o) => { if (!m.has(o)) m.set(o, new Set()); });
-  r.adj.forEach((s, i) => s.forEach((j) => { if (owner[i] !== owner[j]) m.get(owner[i]).add(owner[j]); }));
+  owner.forEach((o, i) => { if (r.cnt[i] > 0 && !m.has(o)) m.set(o, new Set()); });
+  r.adj.forEach((s, i) => s.forEach((j) => { if (owner[i] !== owner[j] && m.has(owner[i])) m.get(owner[i]).add(owner[j]); }));
   return m;
 }
 /** Fläche (Zellen) und Zahl der Gebiete je Besitzer. */
 function conqStanding(r, owner) {
   const m = new Map();
-  owner.forEach((o, i) => { const e = m.get(o) || { o, cells: 0, regions: 0 }; e.cells += r.cnt[i]; e.regions += 1; m.set(o, e); });
+  owner.forEach((o, i) => { if (r.cnt[i] <= 0) return; const e = m.get(o) || { o, cells: 0, regions: 0 }; e.cells += r.cnt[i]; e.regions += 1; m.set(o, e); });
   return [...m.values()].sort((a, b) => b.cells - a.cells);
 }
 
-/** Wertet ein Spiel aus: `hg` = Tore des Verteidigers (Heimrecht), `ag` = Tore des Angreifers, `pen` = Sieger im Elfmeterschießen ("a"/"d"). */
+/** Wertet ein Spiel aus: `hg` = Tore des Verteidigers (Heimrecht), `ag` = Tore des Angreifers, `pen` = Sieger im Elfmeterschießen ("a"/"d"). Der Sieger übernimmt das Gebiet des Verlierers. */
 function conqApply(cq, r, att, dfn, hg, ag, pen) {
   const win = hg === ag ? pen : ag > hg ? "a" : "d";
+  // Der Sieger bekommt immer das Gebiet des Verlierers, auch wenn der Verteidiger gewinnt.
+  const [w, l] = win === "a" ? [att, dfn] : [dfn, att];
   let owner = [...cq.owner];
   let gained = 0;
-  if (win === "a") {
-    if (cq.mode === "one") {
-      const cand = [];
-      owner.forEach((o, i) => { if (o === dfn && [...r.adj[i]].some((j) => owner[j] === att)) cand.push(i); });
-      const pick = cand[Math.floor(Math.random() * cand.length)];
-      if (pick != null) { owner[pick] = att; gained = 1; }
-    } else {
-      owner = owner.map((o) => { if (o === dfn) { gained++; return att; } return o; });
-    }
+  if (cq.mode === "one") {
+    const cand = [];
+    owner.forEach((o, i) => { if (o === l && r.cnt[i] > 0 && [...r.adj[i]].some((j) => owner[j] === w)) cand.push(i); });
+    const pick = cand[Math.floor(Math.random() * cand.length)];
+    if (pick != null) { owner[pick] = w; gained = 1; }
+  } else {
+    owner = owner.map((o) => { if (o === l) { gained++; return w; } return o; });
   }
   const log = [...cq.log, { n: cq.log.length + 1, a: att, d: dfn, hg, ag, pen: hg === ag, win, gained }];
-  return { ...cq, owner, log, champion: new Set(owner).size === 1 ? cq.clubs[owner[0]] : null };
+  const alive = new Set(owner.filter((_, i) => r.cnt[i] > 0));
+  return { ...cq, owner, log, champion: alive.size === 1 ? cq.clubs[[...alive][0]] : null };
 }
 
 /** Würfelt ein Spiel Angreifer gegen Verteidiger (Heimrecht Verteidiger) und wertet es aus. */
@@ -16447,7 +16504,7 @@ function Wheel({ items, spinKey, onDone, size = 280, ms = 3200, logos }) {
   );
 }
 
-function ConquestMap({ r, cq, selA, selD, onPick, logos, pin, sizes, edit, onSize, onSizeEnd }) {
+function ConquestMap({ r, cq, selA, selD, onPick, logos, pin, sizes, edit, onSize, onSizeEnd, moves, onMove, onMoveEnd, onTouch, marked }) {
   const mid = useMemo(() => {
     if (selA == null || selD == null) return null;
     const acc = new Map();
@@ -16466,6 +16523,8 @@ function ConquestMap({ r, cq, selA, selD, onPick, logos, pin, sizes, edit, onSiz
   }, [r, cq.owner, selA, selD]);
   const ref = useRef(null);
   const drag = useRef(null);
+  const mv = useRef(null);
+  const posOf = (n, i) => (moves && moves[n]) || r.pos[i];
   const [hover, setHover] = useState(null);
   useEffect(() => {
     const cv = ref.current;
@@ -16511,8 +16570,15 @@ function ConquestMap({ r, cq, selA, selD, onPick, logos, pin, sizes, edit, onSiz
       <canvas ref={ref} id="cq-canvas" onClick={(e) => { const s = at(e); if (s >= 0) onPick(cq.owner[s]); }}
         onMouseMove={(e) => { const s = at(e); setHover(s >= 0 ? s : null); }} onMouseLeave={() => setHover(null)} />
       {cq.clubs.map((n, i) => (cq.owner[i] === i ? (
-        <span key={n} className="lr-cq-pin" data-club={n} data-edit={edit ? "1" : "0"}
-          style={{ left: `${r.pos[i][0] * 100}%`, top: `${r.pos[i][1] * 100}%`, width: (sizes && sizes[n]) || pin, height: (sizes && sizes[n]) || pin, margin: `${-((sizes && sizes[n]) || pin) / 2}px 0 0 ${-((sizes && sizes[n]) || pin) / 2}px` }}>
+        <span key={n} className="lr-cq-pin" data-club={n} data-edit={edit ? "1" : "0"} data-marked={edit && marked === n ? "1" : "0"}
+          onPointerDown={edit ? (e) => { if (e.target.closest(".lr-cq-handle")) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); mv.current = { n }; if (onTouch) onTouch(n); } : undefined}
+          onPointerMove={edit ? (e) => {
+            if (!mv.current || mv.current.n !== n) return;
+            const rc = e.currentTarget.parentElement.getBoundingClientRect();
+            onMove(n, [Math.max(0, Math.min(1, (e.clientX - rc.left) / rc.width)), Math.max(0, Math.min(1, (e.clientY - rc.top) / rc.height))]);
+          } : undefined}
+          onPointerUp={edit ? () => { if (mv.current) { mv.current = null; onMoveEnd(); } } : undefined}
+          style={{ left: `${posOf(n, i)[0] * 100}%`, top: `${posOf(n, i)[1] * 100}%`, width: (sizes && sizes[n]) || pin, height: (sizes && sizes[n]) || pin, margin: `${-((sizes && sizes[n]) || pin) / 2}px 0 0 ${-((sizes && sizes[n]) || pin) / 2}px` }}>
           {logos[n] ? <img src={logos[n]} alt="" draggable={false} /> : <i />}
           {edit && (
             <b className="lr-cq-handle" data-handle={n} title="Ziehen: dieses Logo größer oder kleiner machen"
@@ -16522,7 +16588,7 @@ function ConquestMap({ r, cq, selA, selD, onPick, logos, pin, sizes, edit, onSiz
           )}
         </span>
       ) : (
-        <span key={n} className="lr-cq-dot" style={{ left: `${r.pos[i][0] * 100}%`, top: `${r.pos[i][1] * 100}%` }} />
+        <span key={n} className="lr-cq-dot" style={{ left: `${posOf(n, i)[0] * 100}%`, top: `${posOf(n, i)[1] * 100}%` }} />
       )))}
       {mid && (
         <svg className="lr-cq-arrow" id="cq-arrow" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
@@ -16540,10 +16606,21 @@ function ConquestMap({ r, cq, selA, selD, onPick, logos, pin, sizes, edit, onSiz
 function ConquestTab({ data, setData, logos }) {
   const cq = data.conquest;
   const [cfg, setCfg] = useState({ pro: true, rl: true, mode: "all", sel: null });
+  const geoOk = (n) => cqMap === "neutral" || !!CLUB_GEO[n];
   const [pick2, setPick2] = useState(false);
   const [pin, setPin] = useState((data.conquest && data.conquest.logoSize) || 26);
   const [sizes, setSizes] = useState((data.conquest && data.conquest.sizes) || {});
   const [editLogos, setEditLogos] = useState(false);
+  const [moves, setMoves] = useState((data.conquest && data.conquest.pos) || {});
+  const movesRef = useRef(moves);
+  movesRef.current = moves;
+  const [mc, setMc] = useState((data.conquest && data.conquest.pos) || {});
+  const [weights, setWeights] = useState((data.conquest && data.conquest.weights) || {});
+  const [marked, setMarked] = useState(null);
+  const weightsRef = useRef(weights);
+  weightsRef.current = weights;
+  const [mapKey, setMapKey] = useState((data.conquest && data.conquest.map) || "de");
+  const cqMap = cq ? cq.map || "de" : mapKey;
   const [spin, setSpin] = useState({ key: 0, phase: null, att: null, items: [] });
   const [autoSim, setAutoSim] = useState(false);
   const sizesRef = useRef(sizes);
@@ -16553,20 +16630,20 @@ function ConquestTab({ data, setData, logos }) {
   const [pen, setPen] = useState(null);
   const names = useMemo(() => {
     const out = [];
-    const add = (ids) => ids.forEach((id) => { const s = data.active[id]; if (s) s.teams.forEach((n) => { if (CLUB_GEO[n] && out.indexOf(n) < 0) out.push(n); }); });
+    const add = (ids) => ids.forEach((id) => { const s = data.active[id]; if (s) s.teams.forEach((n) => { if (geoOk(n) && out.indexOf(n) < 0) out.push(n); }); });
     if (cfg.pro) add(PRO_IDS);
     if (cfg.rl) add(DE_RL.map((l) => l.id));
-    return conqUsable(cfg.sel ? cfg.sel.filter((n) => CLUB_GEO[n]) : out);
-  }, [data.active, cfg.pro, cfg.rl, cfg.sel]);
-  const preview = useMemo(() => ({ clubs: names, owner: names.map((_, i) => i), log: [], mode: cfg.mode, champion: null }), [names, cfg.mode]);
+    return conqUsable(cfg.sel ? cfg.sel.filter(geoOk) : out, cqMap, mc, weights);
+  }, [data.active, cfg.pro, cfg.rl, cfg.sel, cqMap, mc, weights]);
+  const preview = useMemo(() => ({ clubs: names, owner: names.map((_, i) => i), log: [], mode: cfg.mode, champion: null, map: mapKey }), [names, cfg.mode, mapKey]);
   const cur = cq || preview;
-  const r = useMemo(() => conqRaster(cur.clubs), [cur.clubs]);
+  const r = useMemo(() => conqRaster(cur.clubs, cqMap, mc, weights), [cur.clubs, cqMap, mc, weights]);
   const nb = useMemo(() => conqNeighbors(r, cur.owner), [r, cur.owner]);
   const standing = useMemo(() => conqStanding(r, cur.owner), [r, cur.owner]);
   const total = r.cnt.reduce((a, b) => a + b, 0) || 1;
   const set = (fn) => setData((d) => ({ ...d, conquest: fn(d.conquest, d) }));
   const clear = () => { setSel({ a: null, d: null }); setScore({ h: "", a: "" }); setPen(null); setSpin({ key: 0, phase: null, att: null, items: [] }); };
-  const start = () => { setData((d) => ({ ...d, conquest: { clubs: names, owner: names.map((_, i) => i), log: [], mode: cfg.mode, champion: null, edition: ((d.conquest && d.conquest.edition) || 0) + 1 } })); clear(); };
+  const start = () => { setData((d) => ({ ...d, conquest: { clubs: names, owner: names.map((_, i) => i), log: [], mode: cfg.mode, map: mapKey, pos: mc, weights, champion: null, logoSize: pin, sizes, edition: ((d.conquest && d.conquest.edition) || 0) + 1 } })); clear(); };
   const pick = (o) => {
     if (!cq || cq.champion) return;
     if (sel.a == null || o === sel.a) { setSel(o === sel.a ? { a: null, d: null } : { a: o, d: null }); return; }
@@ -16608,17 +16685,19 @@ function ConquestTab({ data, setData, logos }) {
       <section style={accentVars("#E8A33D")}>
         <h2>Eroberung</h2>
         <p className="lr-hint">
-          Jeder Verein besitzt das Gebiet um sein Stadion. Ein Verein greift ein angrenzendes Reich an: Das Spiel wird simuliert oder du trägst das Ergebnis ein, der
-          Verteidiger hat Heimrecht, bei Gleichstand entscheidet ein Elfmeterschießen. Gewinnt der Angreifer, {cur.mode === "one" ? "übernimmt er ein Grenzgebiet des Verlierers" : "übernimmt er das ganze Reich des Verlierers"}.
+          {cqMap === "neutral" ? "Jeder Verein besitzt ein Gebiet auf der neutralen Karte (du kannst Gebiete selbst verschieben und vergrößern)." : "Jeder Verein besitzt das Gebiet um sein Stadion."} Ein Verein greift ein angrenzendes Reich an: Das Spiel wird simuliert oder du trägst das Ergebnis ein, der
+          Verteidiger hat Heimrecht, bei Gleichstand entscheidet ein Elfmeterschießen. Der Sieger bekommt immer das Gebiet des Verlierers (auch wenn der Verteidiger gewinnt): {cur.mode === "one" ? "ein Grenzgebiet" : "das ganze Reich"}.
           Wer am Ende alles besitzt, hat gewonnen. Tippe zuerst auf das Gebiet des Angreifers, dann auf ein Nachbargebiet.
         </p>
 
         {!cq && (
           <div className="lr-cu-opts" id="cq-setup">
+            <CupSel label="Karte" id="cq-map" value={mapKey} onChange={(v) => { setMapKey(v); setMoves({}); setMc({}); setWeights({}); setMarked(null); setCfg({ ...cfg, sel: cfg.sel ? cfg.sel.filter((n) => v === "neutral" || CLUB_GEO[n]) : null }); }} options={[["de", "Deutschlandkarte (nach Stadion)"], ["neutral", "Neutrale Karte (frei)"]]} />
             {!cfg.sel && <>
               <CupSel label="Profiligen (56 Vereine)" id="cq-pro" value={cfg.pro ? "1" : "0"} onChange={(v) => setCfg({ ...cfg, pro: v === "1" })} options={[["1", "mit"], ["0", "ohne"]]} />
               <CupSel label="Regionalligen (90 Vereine)" id="cq-rl" value={cfg.rl ? "1" : "0"} onChange={(v) => setCfg({ ...cfg, rl: v === "1" })} options={[["1", "mit"], ["0", "ohne"]]} />
               <button className="lr-btn" id="cq-select" onClick={() => setCfg({ ...cfg, sel: [...names] })}>Vereine selbst auswählen</button>
+              <button className="lr-btn" id="cq-all" onClick={() => setCfg({ ...cfg, sel: allClubs(data).map((c) => c.name).filter(geoOk) })}>Alle Vereine</button>
             </>}
             <CupSel label="Beute" id="cq-mode" value={cfg.mode} onChange={(v) => setCfg({ ...cfg, mode: v })} options={[["all", "ganzes Reich des Verlierers"], ["one", "nur ein Grenzgebiet"]]} />
             <button className="lr-btn lr-btn-p" id="cq-start" disabled={names.length < 2} onClick={start}>Eroberung starten ({names.length} Vereine)</button>
@@ -16642,10 +16721,10 @@ function ConquestTab({ data, setData, logos }) {
               ))}
               {cfg.sel.length === 0 && <span className="lr-hint">Noch keine Vereine — „Vereine hinzufügen“ drücken (mindestens 2).</span>}
             </div>
-            <p className="lr-hint">Zur Auswahl stehen die {Object.keys(CLUB_GEO).length} Vereine von Bundesliga bis Regionalliga, für die ein Standort auf der Karte bekannt ist.</p>
+            <p className="lr-hint">{cqMap === "neutral" ? "Auf der neutralen Karte kannst du jeden Verein wählen (alle Länder, Europapokal-Teilnehmer, eigene Vereine). Die Gebiete verteilen sich gleichmäßig; Logo ziehen verschiebt das Gebiet." : `Zur Auswahl stehen die ${Object.keys(CLUB_GEO).length} Vereine von Bundesliga bis Regionalliga, für die ein Standort auf der Karte bekannt ist.`}</p>
           </div>
         )}
-        {pick2 && <ClubPicker data={data} logos={logos} leagueId="" free only={(n) => !!CLUB_GEO[n]} exclude={cfg.sel || []} onClose={() => setPick2(false)}
+        {pick2 && <ClubPicker data={data} logos={logos} leagueId="" free only={cqMap === "neutral" ? undefined : (n) => !!CLUB_GEO[n]} exclude={cfg.sel || []} onClose={() => setPick2(false)}
           onAdd={(list) => { setCfg({ ...cfg, sel: [...(cfg.sel || []), ...list.filter((n) => (cfg.sel || []).indexOf(n) < 0)] }); setPick2(false); }} />}
         {cq && (
           <div className="lr-cu-new" id="cq-bar">
@@ -16660,7 +16739,7 @@ function ConquestTab({ data, setData, logos }) {
             <button className="lr-btn lr-btn-sm" id="cq-reset" onClick={() => { setData((d) => ({ ...d, conquest: null })); clear(); }}>Neu einrichten</button>
           </div>
         )}
-        {cq && cq.champion && <div className="lr-champ-box"><div className="lr-tag">Herrscher über Deutschland</div><div className="disp">{cq.champion}</div></div>}
+        {cq && cq.champion && <div className="lr-champ-box"><div className="lr-tag">{cqMap === "neutral" ? "Herrscher der Karte" : "Herrscher über Deutschland"}</div><div className="disp">{cq.champion}</div></div>}
 
         <div className="lr-cq-grid">
           <div>
@@ -16673,11 +16752,25 @@ function ConquestTab({ data, setData, logos }) {
             <div className="lr-cu-new" style={{ margin: "0 0 6px" }}>
               <button className="lr-btn lr-btn-sm" id="cq-edit" data-on={editLogos ? "1" : "0"} onClick={() => setEditLogos(!editLogos)}>{editLogos ? "Fertig" : "Logos einzeln anpassen"}</button>
               {Object.keys(sizes).length > 0 && <button className="lr-btn lr-btn-sm" id="cq-sizes-reset" onClick={() => { setSizes({}); if (cq) set((c) => ({ ...c, sizes: {} })); }}>Alle gleich groß</button>}
-              {editLogos && <small className="lr-hint" style={{ margin: 0 }}>Am Griff (Punkt rechts unten) eines Logos ziehen.</small>}
+              {Object.keys(moves).length > 0 && <button className="lr-btn lr-btn-sm" id="cq-pos-reset" onClick={() => { setMoves({}); setMc({}); if (cq) set((c) => ({ ...c, pos: {} })); }}>Logos zurück an den Standort</button>}
+              {Object.keys(weights).length > 0 && <button className="lr-btn lr-btn-sm" id="cq-w-reset" onClick={() => { setWeights({}); if (cq) set((c) => ({ ...c, weights: {} })); }}>Gebiete gleich groß</button>}
+              {editLogos && <small className="lr-hint" style={{ margin: 0 }}>Logo ziehen = Gebiet verschieben (die Grenzen passen sich beim Loslassen an). Punkt rechts unten = Logogröße.</small>}
+              {editLogos && marked && cur.clubs.indexOf(marked) >= 0 && (
+                <label className="lr-prog" style={{ display: "flex", gap: 6, alignItems: "center" }}>Gebiet von {marked}
+                  <input type="range" id="cq-weight" min="0.4" max="2.5" step="0.1" value={weights[marked] || 1} aria-label="Gebietsgröße"
+                    onChange={(e) => { const v = Number(e.target.value); setWeights((o) => ({ ...o, [marked]: v })); }}
+                    onPointerUp={() => { if (cq) set((c) => ({ ...c, weights: weightsRef.current })); }}
+                    onKeyUp={() => { if (cq) set((c) => ({ ...c, weights: weightsRef.current })); }} />
+                  <span>{Math.round((weights[marked] || 1) * 100)} %</span>
+                </label>
+              )}
             </div>
             <ConquestMap r={r} cq={cur} selA={sel.a} selD={sel.d} onPick={pick} logos={logos} pin={pin} sizes={sizes} edit={editLogos}
               onSize={(n, v) => setSizes((o) => ({ ...o, [n]: v }))}
-              onSizeEnd={() => { if (cq) set((c) => ({ ...c, sizes: sizesRef.current })); }} />
+              onSizeEnd={() => { if (cq) set((c) => ({ ...c, sizes: sizesRef.current })); }}
+              moves={moves} onMove={(n, p) => setMoves((o) => ({ ...o, [n]: p }))}
+              onMoveEnd={() => { setMc(movesRef.current); if (cq) set((c) => ({ ...c, pos: movesRef.current })); }}
+              onTouch={setMarked} marked={marked} />
           </div>
           <div className="lr-cq-side">
             {cq && !cq.champion && spin.phase && (
@@ -16747,7 +16840,7 @@ function ConquestTab({ data, setData, logos }) {
                   {[...cq.log].reverse().slice(0, 12).map((g) => (
                     <div key={g.n} className="lr-cq-lg" data-win={g.win}>
                       <small>{g.n}.</small> <span>{cq.clubs[g.d]}</span> <b>{g.hg}:{g.ag}{g.pen ? " n.E." : ""}</b> <span>{cq.clubs[g.a]}</span>
-                      <em>{g.win === "a" ? (g.gained > 1 ? `${cap(cq.clubs[g.a])} erobert ${g.gained} Gebiete` : "erobert ein Gebiet") : "Verteidigt"}</em>
+                      <em>{`${cq.clubs[g.win === "a" ? g.a : g.d]} ${g.win === "a" ? "erobert" : "gewinnt zu Hause und erobert"} ${g.gained > 1 ? `${g.gained} Gebiete` : "ein Gebiet"} von ${cq.clubs[g.win === "a" ? g.d : g.a]}`}</em>
                     </div>
                   ))}
                 </div>
