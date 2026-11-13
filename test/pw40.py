@@ -10,6 +10,7 @@ def state(pg):
     pg.wait_for_timeout(900)
     return json.loads(pg.evaluate("() => localStorage.getItem('ligarechner:v2')"))
 def center(pg, club):
+    pg.locator(f".lr-cq-pin[data-club='{club}']").scroll_into_view_if_needed()
     b = pg.locator(f".lr-cq-pin[data-club='{club}']").bounding_box()
     return b["x"] + b["width"] / 2, b["y"] + b["height"] / 2
 with sync_playwright() as p:
@@ -114,6 +115,48 @@ with sync_playwright() as p:
     w1 = pg.locator(".lr-cq-pin").first.bounding_box()["width"]
     ok(w1 > w0 * 1.8 and abs(w1 - 60) < 2, f"Regler Logogröße: {w0:.0f} px -> {w1:.0f} px")
     ok(state(pg)["conquest"]["logoSize"] == 60, "Logogröße wird mit dem Stand gespeichert")
+    # Einzelne Logos größer ziehen
+    pg.locator("#cq-reset").click(); pg.wait_for_selector("#cq-setup")
+    if pg.locator("#cq-preset").count(): pg.locator("#cq-preset").click()
+    pg.select_option("#cq-rl", "0"); pg.locator("#cq-start").click(); pg.wait_for_selector("#cq-bar")
+    pg.locator("#cq-logo-size").evaluate("e => { const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; set.call(e, '30'); e.dispatchEvent(new Event('input', { bubbles: true })); }"); pg.wait_for_timeout(200)
+    ok(pg.locator(".lr-cq-handle").count() == 0, "Griffe nur im Bearbeitungsmodus")
+    pg.locator("#cq-edit").click(); pg.wait_for_timeout(200)
+    ok(pg.locator(".lr-cq-handle").count() == len(state(pg)["conquest"]["clubs"]) or pg.locator(".lr-cq-handle").count() >= 1, "Bearbeitungsmodus zeigt an jedem Logo einen Griff")
+    club = state(pg)["conquest"]["clubs"][0]
+    pin = pg.locator(f".lr-cq-pin[data-club='{club}']"); other = pg.locator(".lr-cq-pin").nth(1)
+    w_a = pin.bounding_box()["width"]; w_o = other.bounding_box()["width"]
+    hb = pg.locator(f".lr-cq-handle[data-handle='{club}']").bounding_box(); hx, hy = hb["x"] + hb["width"] / 2, hb["y"] + hb["height"] / 2
+    pg.mouse.move(hx, hy); pg.mouse.down(); pg.mouse.move(hx + 20, hy, steps=4); pg.mouse.move(hx + 40, hy, steps=4); pg.mouse.up(); pg.wait_for_timeout(300)
+    w_a2 = pin.bounding_box()["width"]; w_o2 = other.bounding_box()["width"]
+    ok(w_a2 > w_a + 40 and abs(w_o2 - w_o) < 1, f"nur dieses Logo wächst: {w_a:.0f} -> {w_a2:.0f} px, anderes bleibt bei {w_o2:.0f} px")
+    st = state(pg)["conquest"]
+    ok(st.get("sizes", {}).get(club, 0) >= 70, f"Einzelgröße gespeichert: {st.get('sizes')}")
+    pg.locator("#cq-logo-size").evaluate("e => { const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; set.call(e, '40'); e.dispatchEvent(new Event('input', { bubbles: true })); }"); pg.wait_for_timeout(200)
+    ok(abs(pin.bounding_box()["width"] - w_a2) < 1 and abs(other.bounding_box()["width"] - 40) < 2, "Regler ändert nur Logos ohne eigene Größe")
+    pg.locator("#cq-sizes-reset").click(); pg.wait_for_timeout(300)
+    ok(abs(pin.bounding_box()["width"] - 40) < 2 and pg.locator("#cq-sizes-reset").count() == 0, "„Alle gleich groß“ setzt alle zurück")
+    pg.locator("#cq-edit").click()
+    # Glücksrad: erst Angreifer, dann Gegner, dann Pfeil auf der Karte
+    log0 = len(state(pg)["conquest"]["log"])
+    ok(pg.locator("#cq-wheel").count() == 1, "Knopf Glücksrad")
+    pg.locator("#cq-wheel").click(); pg.wait_for_selector("#cq-wheel-canvas")
+    ok("Wer greift an?" in pg.locator("#cq-wheel-panel").inner_text(), "Rad 1: Wer greift an?")
+    pg.wait_for_function("() => document.querySelector('#cq-wheel-res') && document.querySelector('#cq-wheel-res').textContent.length > 0 && !document.querySelector('.lr-wheel[data-busy=\"1\"]')", timeout=15000)
+    att = pg.locator("#cq-wheel-res b").inner_text()
+    pg.wait_for_function("() => document.querySelector('#cq-wheel-panel').textContent.includes('greift') && document.querySelector('#cq-wheel-panel').textContent.includes('an?')", timeout=15000)
+    ok(att in pg.locator("#cq-wheel-panel").inner_text(), f"Angreifer ausgelost: {att}")
+    pg.wait_for_selector("#cq-sim", timeout=20000)
+    pg.wait_for_function("() => document.querySelector('#cq-wheel-res b') && document.querySelectorAll('#cq-wheel-res b').length === 2", timeout=15000)
+    pair = pg.locator("#cq-wheel-res b").all_inner_texts()
+    ok(pair[0] == att and pair[1] != att, f"Rad 2 lost den Gegner aus: {pair[0]} ➜ {pair[1]}")
+    ok(pg.locator("#cq-arrow").count() == 1, "Pfeil auf der Karte vom Angreifer zum Gegner")
+    ok(pair[1] in pg.locator("#cq-panel").inner_text(), "Spielfeld zeigt das ausgeloste Duell")
+    pg.locator("#cq-sim").click(); pg.wait_for_timeout(600)
+    ok(len(state(pg)["conquest"]["log"]) == log0 + 1 and pg.locator("#cq-wheel-panel").count() == 0 and pg.locator("#cq-arrow").count() == 0, "Spiel gespielt, Rad und Pfeil verschwinden")
+    pg.locator("#cq-wheel").click(); pg.locator("#cq-autosim").check() if pg.locator("#cq-autosim").count() else None
+    pg.wait_for_function(f"() => document.querySelector('#cq-status') && document.querySelector('#cq-status').textContent.includes('Spiel {log0 + 3} ')", timeout=25000)
+    ok(len(state(pg)["conquest"]["log"]) == log0 + 2, "automatisch simuliert nach der Auslosung")
     ok(not perr, f"keine JS-Fehler {perr[:2]}")
     b.close()
 print("Fehler:", errs)

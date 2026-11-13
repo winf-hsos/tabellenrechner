@@ -11511,6 +11511,16 @@ const CSS = `
 .lr-cq-pin { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; display: flex; align-items: center; justify-content: center; }
 .lr-cq-pin img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 2px rgba(0,0,0,0.9)); }
 .lr-cq-pin i { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 3px #000; }
+.lr-cq-pin[data-edit="1"] { outline: 1px dashed rgba(255,255,255,0.6); border-radius: 4px; }
+.lr-cq-handle { position: absolute; right: -7px; bottom: -7px; width: 14px; height: 14px; border-radius: 50%; background: #E8A33D; border: 2px solid #fff; cursor: nwse-resize; pointer-events: auto; touch-action: none; }
+.lr-cq-arrow { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.lr-wheel { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 6px 0; }
+.lr-wheel-box { position: relative; }
+.lr-wheel-box canvas { display: block; border-radius: 50%; box-shadow: 0 4px 18px rgba(0,0,0,0.5); }
+.lr-wheel-arrow { position: absolute; left: 50%; top: -8px; margin-left: -14px; width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 30px solid #FFD84D; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.7)); z-index: 2; }
+.lr-wheel-res { min-height: 28px; display: flex; align-items: center; gap: 6px; font-size: 16px; }
+.lr-wheel-res .lr-logo { margin: 0; width: 26px; height: 26px; }
+.lr-cq-wh { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
 .lr-cq-dot { position: absolute; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: rgba(255,255,255,0.75); pointer-events: none; }
 .lr-cq-hover { position: absolute; left: 8px; bottom: 8px; background: rgba(10,16,12,0.85); padding: 3px 9px; border-radius: 4px; font-size: 12px; pointer-events: none; }
 .lr-cq-panel { border: 1px solid var(--line-2); border-radius: 4px; padding: 10px 12px; margin-bottom: 12px; background: var(--board-2); }
@@ -16346,8 +16356,116 @@ function conqAuto(d, cq, r) {
   return conqPlay(d, cq, r, att, list[Math.floor(Math.random() * list.length)]);
 }
 
-function ConquestMap({ r, cq, selA, selD, onPick, logos, pin }) {
+/**
+ * Glücksrad mit festem Pfeil oben: `items` = [{label, color, logo}]. `spinKey` startet eine Drehung (jede Änderung = neue Drehung),
+ * `onDone(index)` meldet das Ergebnis, sobald das Rad steht. Das Ergebnis wird vorher ausgewürfelt, das Rad läuft darauf zu.
+ */
+function Wheel({ items, spinKey, onDone, size = 280, ms = 3200, logos }) {
   const ref = useRef(null);
+  const rot = useRef(0);
+  const [res, setRes] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const n = items.length;
+  const draw = useCallback((angle) => {
+    const cv = ref.current;
+    if (!cv) return;
+    const c2 = cv.getContext("2d");
+    const R = size / 2;
+    c2.clearRect(0, 0, size, size);
+    const seg = (2 * Math.PI) / Math.max(1, n);
+    for (let i = 0; i < n; i++) {
+      const a0 = angle + i * seg - Math.PI / 2;
+      c2.beginPath();
+      c2.moveTo(R, R);
+      c2.arc(R, R, R - 4, a0, a0 + seg);
+      c2.closePath();
+      c2.fillStyle = items[i].color;
+      c2.fill();
+      c2.strokeStyle = "rgba(12,18,14,0.85)";
+      c2.lineWidth = n > 60 ? 0.4 : 1.5;
+      c2.stroke();
+      if (n <= 16) {
+        c2.save();
+        c2.translate(R, R);
+        c2.rotate(a0 + seg / 2);
+        c2.fillStyle = "#fff";
+        c2.font = `600 ${n <= 8 ? 13 : 11}px sans-serif`;
+        c2.textAlign = "right";
+        c2.shadowColor = "rgba(0,0,0,0.7)";
+        c2.shadowBlur = 3;
+        const t = items[i].label.length > 20 ? `${items[i].label.slice(0, 19)}…` : items[i].label;
+        c2.fillText(t, R - 14, 4);
+        c2.restore();
+      }
+    }
+    c2.beginPath();
+    c2.arc(R, R, 22, 0, 2 * Math.PI);
+    c2.fillStyle = "#15211B";
+    c2.fill();
+    c2.strokeStyle = "#E8A33D";
+    c2.lineWidth = 3;
+    c2.stroke();
+  }, [items, n, size]);
+  useEffect(() => { draw(rot.current); }, [draw]);
+  useEffect(() => {
+    if (!spinKey || !n) return undefined;
+    const target = Math.floor(Math.random() * n);
+    const seg = (2 * Math.PI) / n;
+    // Segment `target` soll oben unter dem Pfeil enden: Mitte des Segments bei Winkel 0 (oben)
+    const base = -(target + 0.5) * seg;
+    const jitter = (Math.random() - 0.5) * seg * 0.7;
+    const turns = 5 + Math.floor(Math.random() * 3);
+    const from = rot.current % (2 * Math.PI);
+    let to = base + jitter;
+    while (to < from + turns * 2 * Math.PI) to += 2 * Math.PI;
+    const t0 = performance.now();
+    let raf;
+    setBusy(true);
+    setRes(null);
+    const ease = (t) => 1 - Math.pow(1 - t, 4);
+    const step = (now) => {
+      const t = Math.min(1, (now - t0) / ms);
+      rot.current = from + (to - from) * ease(t);
+      draw(rot.current);
+      if (t < 1) raf = requestAnimationFrame(step);
+      else { setBusy(false); setRes(target); onDone(target); }
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [spinKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const win = res != null ? items[res] : null;
+  return (
+    <div className="lr-wheel" data-busy={busy ? "1" : "0"}>
+      <div className="lr-wheel-box" style={{ width: size, height: size }}>
+        <canvas ref={ref} width={size} height={size} id="cq-wheel-canvas" />
+        <div className="lr-wheel-arrow" aria-hidden="true" />
+      </div>
+      <div className="lr-wheel-res" id="cq-wheel-res">
+        {busy ? "Das Rad dreht sich …" : win ? <>{win.logo && logos[win.logo] ? <img className="lr-logo" src={logos[win.logo]} alt="" /> : null}<b>{win.label}</b></> : ""}
+      </div>
+    </div>
+  );
+}
+
+function ConquestMap({ r, cq, selA, selD, onPick, logos, pin, sizes, edit, onSize, onSizeEnd }) {
+  const mid = useMemo(() => {
+    if (selA == null || selD == null) return null;
+    const acc = new Map();
+    for (let i = 0; i < r.cell.length; i++) {
+      const sId = r.cell[i];
+      if (sId < 0) continue;
+      const o = cq.owner[sId];
+      if (o !== selA && o !== selD) continue;
+      const e = acc.get(o) || [0, 0, 0];
+      e[0] += i % r.W; e[1] += (i / r.W) | 0; e[2] += 1;
+      acc.set(o, e);
+    }
+    const pt = (o) => { const e = acc.get(o); return e ? [(e[0] / e[2]) / r.W * 100, (e[1] / e[2]) / r.H * 100] : null; };
+    const a = pt(selA); const d = pt(selD);
+    return a && d ? { a, d } : null;
+  }, [r, cq.owner, selA, selD]);
+  const ref = useRef(null);
+  const drag = useRef(null);
   const [hover, setHover] = useState(null);
   useEffect(() => {
     const cv = ref.current;
@@ -16393,12 +16511,26 @@ function ConquestMap({ r, cq, selA, selD, onPick, logos, pin }) {
       <canvas ref={ref} id="cq-canvas" onClick={(e) => { const s = at(e); if (s >= 0) onPick(cq.owner[s]); }}
         onMouseMove={(e) => { const s = at(e); setHover(s >= 0 ? s : null); }} onMouseLeave={() => setHover(null)} />
       {cq.clubs.map((n, i) => (cq.owner[i] === i ? (
-        <span key={n} className="lr-cq-pin" data-club={n} style={{ left: `${r.pos[i][0] * 100}%`, top: `${r.pos[i][1] * 100}%`, width: pin, height: pin, margin: `${-pin / 2}px 0 0 ${-pin / 2}px` }}>
-          {logos[n] ? <img src={logos[n]} alt="" /> : <i />}
+        <span key={n} className="lr-cq-pin" data-club={n} data-edit={edit ? "1" : "0"}
+          style={{ left: `${r.pos[i][0] * 100}%`, top: `${r.pos[i][1] * 100}%`, width: (sizes && sizes[n]) || pin, height: (sizes && sizes[n]) || pin, margin: `${-((sizes && sizes[n]) || pin) / 2}px 0 0 ${-((sizes && sizes[n]) || pin) / 2}px` }}>
+          {logos[n] ? <img src={logos[n]} alt="" draggable={false} /> : <i />}
+          {edit && (
+            <b className="lr-cq-handle" data-handle={n} title="Ziehen: dieses Logo größer oder kleiner machen"
+              onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); e.currentTarget.setPointerCapture(e.pointerId); drag.current = { n, x: e.clientX, start: (sizes && sizes[n]) || pin }; }}
+              onPointerMove={(e) => { const d = drag.current; if (d && d.n === n) onSize(n, Math.max(10, Math.min(160, Math.round(d.start + 2 * (e.clientX - d.x))))); }}
+              onPointerUp={() => { if (drag.current) { drag.current = null; onSizeEnd(); } }} />
+          )}
         </span>
       ) : (
         <span key={n} className="lr-cq-dot" style={{ left: `${r.pos[i][0] * 100}%`, top: `${r.pos[i][1] * 100}%` }} />
       )))}
+      {mid && (
+        <svg className="lr-cq-arrow" id="cq-arrow" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <defs><marker id="cq-head" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#FFD84D" stroke="#222" strokeWidth="0.8" /></marker></defs>
+          <line x1={mid.a[0]} y1={mid.a[1]} x2={mid.d[0]} y2={mid.d[1]} stroke="#222" strokeWidth="2.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+          <line x1={mid.a[0]} y1={mid.a[1]} x2={mid.d[0]} y2={mid.d[1]} stroke="#FFD84D" strokeWidth="1.4" vectorEffect="non-scaling-stroke" strokeLinecap="round" markerEnd="url(#cq-head)" strokeDasharray="5 3" />
+        </svg>
+      )}
       {hover != null && <div className="lr-cq-hover">{cq.clubs[cq.owner[hover]]}{cq.owner[hover] !== hover ? ` (Gebiet von ${cq.clubs[hover]})` : ""}</div>}
     </div>
   );
@@ -16410,6 +16542,12 @@ function ConquestTab({ data, setData, logos }) {
   const [cfg, setCfg] = useState({ pro: true, rl: true, mode: "all", sel: null });
   const [pick2, setPick2] = useState(false);
   const [pin, setPin] = useState((data.conquest && data.conquest.logoSize) || 26);
+  const [sizes, setSizes] = useState((data.conquest && data.conquest.sizes) || {});
+  const [editLogos, setEditLogos] = useState(false);
+  const [spin, setSpin] = useState({ key: 0, phase: null, att: null, items: [] });
+  const [autoSim, setAutoSim] = useState(false);
+  const sizesRef = useRef(sizes);
+  sizesRef.current = sizes;
   const [sel, setSel] = useState({ a: null, d: null });
   const [score, setScore] = useState({ h: "", a: "" });
   const [pen, setPen] = useState(null);
@@ -16427,7 +16565,7 @@ function ConquestTab({ data, setData, logos }) {
   const standing = useMemo(() => conqStanding(r, cur.owner), [r, cur.owner]);
   const total = r.cnt.reduce((a, b) => a + b, 0) || 1;
   const set = (fn) => setData((d) => ({ ...d, conquest: fn(d.conquest, d) }));
-  const clear = () => { setSel({ a: null, d: null }); setScore({ h: "", a: "" }); setPen(null); };
+  const clear = () => { setSel({ a: null, d: null }); setScore({ h: "", a: "" }); setPen(null); setSpin({ key: 0, phase: null, att: null, items: [] }); };
   const start = () => { setData((d) => ({ ...d, conquest: { clubs: names, owner: names.map((_, i) => i), log: [], mode: cfg.mode, champion: null, edition: ((d.conquest && d.conquest.edition) || 0) + 1 } })); clear(); };
   const pick = (o) => {
     if (!cq || cq.champion) return;
@@ -16435,6 +16573,28 @@ function ConquestTab({ data, setData, logos }) {
     if (nb.get(sel.a) && nb.get(sel.a).has(o)) { setSel({ a: sel.a, d: o }); setScore({ h: "", a: "" }); setPen(null); } else setSel({ a: o, d: null });
   };
   const played = (fn) => { set((c, d) => fn(c, d)); clear(); };
+  /** Glücksrad: erst der Angreifer unter allen Reichen mit Nachbarn, dann sein Gegner unter den Nachbarn; danach zeigt ein Pfeil auf der Karte, wer gegen wen spielt. */
+  const startWheel = () => {
+    if (!cq || cq.champion) return;
+    const owners = [...nb.keys()].filter((o) => nb.get(o).size);
+    if (!owners.length) return;
+    setSel({ a: null, d: null }); setScore({ h: "", a: "" }); setPen(null);
+    setSpin((sp) => ({ key: sp.key + 1, phase: "att", att: null, items: owners.map((o) => ({ o, label: cq.clubs[o], logo: cq.clubs[o], color: `rgb(${conqRgb(o).join(",")})` })) }));
+  };
+  const wheelDone = (idx) => {
+    if (spin.phase === "att") {
+      const att = spin.items[idx].o;
+      setSel({ a: att, d: null });
+      const foes = [...nb.get(att)];
+      setTimeout(() => setSpin((sp) => ({ key: sp.key + 1, phase: "def", att, items: foes.map((o) => ({ o, label: cq.clubs[o], logo: cq.clubs[o], color: `rgb(${conqRgb(o).join(",")})` })) })), 900);
+    } else if (spin.phase === "def") {
+      const dfn = spin.items[idx].o;
+      setSel({ a: spin.att, d: dfn });
+      setSpin((sp) => ({ ...sp, phase: "done" }));
+      if (autoSim) setTimeout(() => set((c, d) => conqPlay(d, c, r, spin.att, dfn)), 1400);
+      if (autoSim) setTimeout(() => clear(), 1500);
+    }
+  };
   const nm = (o) => cur.clubs[o];
   const logo = (n) => (logos[n] ? <img className="lr-logo" src={logos[n]} alt="" /> : null);
   const hgN = Number(score.h);
@@ -16492,6 +16652,7 @@ function ConquestTab({ data, setData, logos }) {
             <span className="lr-tag" id="cq-status">{cq.champion ? "beendet" : `Spiel ${cq.log.length + 1} · ${standing.length} Reiche`}</span>
             <div className="lr-spacer" />
             {!cq.champion && <>
+              <button className="lr-btn lr-btn-sm lr-btn-p" id="cq-wheel" disabled={spin.phase === "att" || spin.phase === "def"} onClick={startWheel}>🎡 Glücksrad drehen</button>
               <button className="lr-btn lr-btn-sm" id="cq-auto" onClick={() => played((c, d) => conqAuto(d, c, r))}>Zufälliges Spiel</button>
               <button className="lr-btn lr-btn-sm" id="cq-auto10" onClick={() => played((c, d) => { let x = c; for (let i = 0; i < 10 && !x.champion; i++) x = conqAuto(d, x, r); return x; })}>10 Spiele</button>
               <button className="lr-btn lr-btn-sm" id="cq-auto-all" onClick={() => played((c, d) => { let x = c; for (let i = 0; i < 2000 && !x.champion; i++) x = conqAuto(d, x, r); return x; })}>Bis zum Sieger</button>
@@ -16509,9 +16670,24 @@ function ConquestTab({ data, setData, logos }) {
                 onChange={(e) => { const v = Number(e.target.value); setPin(v); if (cq) set((c) => ({ ...c, logoSize: v })); }} />
               <span>{pin}</span>
             </label>
-            <ConquestMap r={r} cq={cur} selA={sel.a} selD={sel.d} onPick={pick} logos={logos} pin={pin} />
+            <div className="lr-cu-new" style={{ margin: "0 0 6px" }}>
+              <button className="lr-btn lr-btn-sm" id="cq-edit" data-on={editLogos ? "1" : "0"} onClick={() => setEditLogos(!editLogos)}>{editLogos ? "Fertig" : "Logos einzeln anpassen"}</button>
+              {Object.keys(sizes).length > 0 && <button className="lr-btn lr-btn-sm" id="cq-sizes-reset" onClick={() => { setSizes({}); if (cq) set((c) => ({ ...c, sizes: {} })); }}>Alle gleich groß</button>}
+              {editLogos && <small className="lr-hint" style={{ margin: 0 }}>Am Griff (Punkt rechts unten) eines Logos ziehen.</small>}
+            </div>
+            <ConquestMap r={r} cq={cur} selA={sel.a} selD={sel.d} onPick={pick} logos={logos} pin={pin} sizes={sizes} edit={editLogos}
+              onSize={(n, v) => setSizes((o) => ({ ...o, [n]: v }))}
+              onSizeEnd={() => { if (cq) set((c) => ({ ...c, sizes: sizesRef.current })); }} />
           </div>
           <div className="lr-cq-side">
+            {cq && !cq.champion && spin.phase && (
+              <div className="lr-cq-panel" id="cq-wheel-panel">
+                <div className="lr-cq-wh"><b>{spin.phase === "att" ? "Wer greift an?" : spin.phase === "def" ? `Wen greift ${cq.clubs[spin.att]} an?` : "Das Spiel steht fest"}</b>
+                  <label className="lr-prog" style={{ display: "flex", gap: 5, alignItems: "center" }}><input type="checkbox" id="cq-autosim" checked={autoSim} onChange={(e) => setAutoSim(e.target.checked)} /> danach automatisch simulieren</label></div>
+                {spin.phase !== "done" && <Wheel key={spin.phase} items={spin.items} spinKey={spin.key} onDone={wheelDone} logos={logos} ms={spin.phase === "att" ? 3600 : 2600} />}
+                {spin.phase === "done" && sel.a != null && sel.d != null && <div className="lr-wheel-res" id="cq-wheel-res"><b>{cq.clubs[sel.a]}</b> &nbsp;➜&nbsp; <b>{cq.clubs[sel.d]}</b></div>}
+              </div>
+            )}
             {cq && !cq.champion && (
               <div className="lr-cq-panel" id="cq-panel">
                 {sel.a == null && <p className="lr-hint" style={{ margin: 0 }}>Wähle den Angreifer: tippe auf sein Gebiet.</p>}
