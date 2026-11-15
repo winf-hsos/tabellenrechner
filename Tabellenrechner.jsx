@@ -10004,7 +10004,7 @@ function freshData() {
   [...ENGLAND, ...SPAIN, ...ITALY, ...FRANCE, ...WORLD_LEAGUES].forEach((l) => {
     active[l.id] = newSeason(l.teams, l.teams.map((n) => TEAM_START[n]), "2026/27", defaultStart(l.id, "2026/27"));
   });
-  return { active, custom: { leagues: [], clubs: [] }, cups: [], conquest: null, cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
+  return { active, custom: { leagues: [], clubs: [] }, cups: [], conquest: null, tips: { players: [], matches: [] }, cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
     regional: [] };
 }
 
@@ -10071,6 +10071,7 @@ function normalize(d0) {
   // Eigene Ligen: Planung und Saisons übernehmen
   out.custom = normCustom(d.custom);
   out.cups = normCups(d.cups);
+  out.tips = normTips(d.tips);
   out.conquest = d.conquest && Array.isArray(d.conquest.clubs) && Array.isArray(d.conquest.owner) && (d.conquest.map === "neutral" || d.conquest.clubs.every((n) => CLUB_GEO[n])) ? d.conquest : null;
   out.custom.leagues.forEach((l) => {
     const s = d.active[l.id];
@@ -13256,6 +13257,8 @@ export default function Tabellenrechner() {
                   style={tab === "cu-manage" ? accentVars("#E8A33D") : undefined} onClick={() => setTab("cu-manage")}>Ligen &amp; Vereine</button>
                 <button className="lr-tab" data-on={tab === "cu-map" ? "1" : "0"} id="tab-cu-map"
                   style={tab === "cu-map" ? accentVars("#E07A5F") : undefined} onClick={() => setTab("cu-map")}>Eroberung</button>
+                <button className="lr-tab" data-on={tab === "cu-tips" ? "1" : "0"} id="tab-cu-tips"
+                  style={tab === "cu-tips" ? accentVars("#5FB3A1") : undefined} onClick={() => setTab("cu-tips")}>Tippspiel</button>
                 <button className="lr-tab" data-on={tab === "cu-cups" ? "1" : "0"} id="tab-cu-cups"
                   style={tab === "cu-cups" ? accentVars("#E0C23C") : undefined} onClick={() => setTab("cu-cups")}>Pokale</button>
                 <button className="lr-tab" data-on={tab === "top" ? "1" : "0"}
@@ -13485,6 +13488,7 @@ export default function Tabellenrechner() {
       )}
 
       {tab === "cu-map" && section === "cu" && <ConquestTab data={data} setData={setData} logos={allLogos} />}
+      {tab === "cu-tips" && section === "cu" && <TipsTab data={data} setData={setData} />}
       {tab === "cu-cups" && section === "cu" && <CupsTab data={data} setData={setData} logos={allLogos} />}
       {tab === "cu-manage" && section === "cu" && <CustomTab data={data} setData={setData} logos={allLogos} setLogo={setLogo} />}
       {tab === "tourn" && section === "nt" && <TournamentTab data={data} setData={setData} />}
@@ -16848,6 +16852,198 @@ function ConquestTab({ data, setData, logos }) {
             )}
           </div>
         </div>
+      </section>
+    </div>
+  );
+}
+
+/* ---------------- Tippspiel ---------------- */
+
+// Mitspieler und Spiele frei eintragen, Tipps je Spieler erfassen, Ergebnis nachtragen: Wer am besten getippt hat, bekommt den Punkt
+// (mehrere bei gleich gutem Tipp). `data.tips = {players:[{id,name}], matches:[{id,home,away,tips:{[playerId]:{h,a}}, res:{h,a}|null}]}`.
+function normTips(t) {
+  const num = (v) => (Number.isFinite(Number(v)) && v !== "" && v != null && Number(v) >= 0 ? Math.floor(Number(v)) : null);
+  const players = (t && Array.isArray(t.players) ? t.players : []).filter((p) => p && p.id && typeof p.name === "string");
+  const matches = (t && Array.isArray(t.matches) ? t.matches : []).filter((m) => m && m.id).map((m) => {
+    const tips = {};
+    Object.keys(m.tips || {}).forEach((pid) => { const x = m.tips[pid]; if (x && num(x.h) != null && num(x.a) != null) tips[pid] = { h: num(x.h), a: num(x.a) }; });
+    const res = m.res && num(m.res.h) != null && num(m.res.a) != null ? { h: num(m.res.h), a: num(m.res.a) } : null;
+    return { id: m.id, home: String(m.home || ""), away: String(m.away || ""), tips, res };
+  });
+  return { players, matches };
+}
+/** Wer hat am besten getippt? Erst zählt die richtige Tendenz (Sieg/Remis/Niederlage), dann der Abstand zum Ergebnis (Summe der Torunterschiede). Alle mit dem besten Tipp bekommen einen Punkt. */
+function tipWinners(m) {
+  if (!m.res) return [];
+  const sign = (a, b) => Math.sign(a - b);
+  const keyOf = (t) => [sign(t.h, t.a) === sign(m.res.h, m.res.a) ? 0 : 1, Math.abs(t.h - m.res.h) + Math.abs(t.a - m.res.a)];
+  const ids = Object.keys(m.tips);
+  if (!ids.length) return [];
+  const keys = ids.map((id) => [id, keyOf(m.tips[id])]);
+  const best = keys.reduce((b, [, k]) => (k[0] < b[0] || (k[0] === b[0] && k[1] < b[1]) ? k : b), keys[0][1]);
+  return keys.filter(([, k]) => k[0] === best[0] && k[1] === best[1]).map(([id]) => id);
+}
+function tipPoints(tips) {
+  const pts = {};
+  tips.players.forEach((p) => { pts[p.id] = 0; });
+  tips.matches.forEach((m) => tipWinners(m).forEach((id) => { if (id in pts) pts[id]++; }));
+  return pts;
+}
+
+function TipsTab({ data, setData }) {
+  const tips = data.tips || { players: [], matches: [] };
+  const [pname, setPname] = useState("");
+  const [home, setHome] = useState("");
+  const [away, setAway] = useState("");
+  const [draft, setDraft] = useState({});
+  const set = (fn) => setData((d) => ({ ...d, tips: fn(d.tips || { players: [], matches: [] }) }));
+  const uid = () => Math.random().toString(36).slice(2, 9);
+  const pts = tipPoints(tips);
+  const ranking = [...tips.players].sort((a, b) => pts[b.id] - pts[a.id] || a.name.localeCompare(b.name));
+  const digits = (v) => v.replace(/[^0-9]/g, "").slice(0, 2);
+  const addPlayer = () => {
+    const n = pname.trim();
+    if (!n || tips.players.some((p) => p.name.toLowerCase() === n.toLowerCase())) return;
+    set((t) => ({ ...t, players: [...t.players, { id: "p" + uid(), name: n }] }));
+    setPname("");
+  };
+  const addMatch = () => {
+    const h = home.trim();
+    const a = away.trim();
+    if (!h || !a) return;
+    set((t) => ({ ...t, matches: [{ id: "m" + uid(), home: h, away: a, tips: {}, res: null }, ...t.matches] }));
+    setHome(""); setAway("");
+  };
+  /** Eintrag im Entwurf (Textfeld) oder gespeicherter Wert. */
+  const val = (m, pid, side) => {
+    const k = `${m.id}:${pid}:${side}`;
+    if (k in draft) return draft[k];
+    const t = m.tips[pid];
+    return t ? String(t[side]) : "";
+  };
+  const typeTip = (m, pid, side, v) => {
+    const nv = digits(v);
+    const k = `${m.id}:${pid}:${side}`;
+    const other = side === "h" ? "a" : "h";
+    const ov = val(m, pid, other);
+    setDraft((d) => ({ ...d, [k]: nv }));
+    set((t) => ({
+      ...t,
+      matches: t.matches.map((x) => {
+        if (x.id !== m.id) return x;
+        const tt = { ...x.tips };
+        if (nv !== "" && ov !== "") tt[pid] = side === "h" ? { h: Number(nv), a: Number(ov) } : { h: Number(ov), a: Number(nv) };
+        else delete tt[pid];
+        return { ...x, tips: tt };
+      }),
+    }));
+  };
+  const setRes = (m, side, v) => {
+    const nv = digits(v);
+    const k = `${m.id}:res:${side}`;
+    setDraft((d) => ({ ...d, [k]: nv }));
+  };
+  const resVal = (m, side) => {
+    const k = `${m.id}:res:${side}`;
+    if (k in draft) return draft[k];
+    return m.res ? String(m.res[side]) : "";
+  };
+  const saveRes = (m) => {
+    const h = resVal(m, "h");
+    const a = resVal(m, "a");
+    if (h === "" || a === "") return;
+    set((t) => ({ ...t, matches: t.matches.map((x) => (x.id === m.id ? { ...x, res: { h: Number(h), a: Number(a) } } : x)) }));
+  };
+  const clearRes = (m) => {
+    setDraft((d) => { const n = { ...d }; delete n[`${m.id}:res:h`]; delete n[`${m.id}:res:a`]; return n; });
+    set((t) => ({ ...t, matches: t.matches.map((x) => (x.id === m.id ? { ...x, res: null } : x)) }));
+  };
+  const nameOf = (id) => (tips.players.find((p) => p.id === id) || { name: "?" }).name;
+
+  return (
+    <div className="lr-wrap">
+      <section style={accentVars("#5FB3A1")}>
+        <h2>Tippspiel</h2>
+        <p className="lr-hint">
+          Mitspieler eintragen, Spiel anlegen, Tipps erfassen und danach das Ergebnis eintragen. Den Punkt bekommt, wer am besten getippt hat:
+          zuerst zählt die richtige Tendenz (Sieg, Unentschieden, Niederlage), dann der kleinste Abstand zum Ergebnis. Tippen mehrere gleich gut, bekommen alle einen Punkt.
+        </p>
+
+        <div className="lr-cu-new" id="tip-players-bar">
+          <input className="lr-team-in" id="tip-pname" placeholder="Name des Mitspielers" value={pname} maxLength={30}
+            onChange={(e) => setPname(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addPlayer(); }} />
+          <button className="lr-btn lr-btn-p" id="tip-padd" disabled={!pname.trim()} onClick={addPlayer}>Mitspieler hinzufügen</button>
+        </div>
+
+        {tips.players.length > 0 && (
+          <>
+            <h4 className="lr-cu-h4">Rangliste</h4>
+            <div className="lr-cq-stand" id="tip-rank">
+              {ranking.map((p, i) => (
+                <div className="lr-cq-row" key={p.id} data-player={p.name}>
+                  <b>{i + 1}.</b>
+                  <input className="lr-team-in" style={{ maxWidth: 200 }} value={p.name} maxLength={30} aria-label={`Name ${p.name}`}
+                    onChange={(e) => { const v = e.target.value; set((t) => ({ ...t, players: t.players.map((x) => (x.id === p.id ? { ...x, name: v } : x)) })); }} />
+                  <span className="lr-cq-pct" data-pts={pts[p.id]}>{pts[p.id]} {pts[p.id] === 1 ? "Punkt" : "Punkte"}</span>
+                  <button type="button" className="lr-logo-del" aria-label={`${p.name} entfernen`} title="Mitspieler entfernen"
+                    onClick={() => set((t) => ({ ...t, players: t.players.filter((x) => x.id !== p.id), matches: t.matches.map((m) => { const tt = { ...m.tips }; delete tt[p.id]; return { ...m, tips: tt }; }) }))}>×</button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <h4 className="lr-cu-h4">Spiele</h4>
+        <div className="lr-cu-new" id="tip-match-bar">
+          <input className="lr-team-in" id="tip-home" placeholder="Heim" value={home} maxLength={40} onChange={(e) => setHome(e.target.value)} />
+          <span>–</span>
+          <input className="lr-team-in" id="tip-away" placeholder="Gast" value={away} maxLength={40} onChange={(e) => setAway(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") addMatch(); }} />
+          <button className="lr-btn lr-btn-p" id="tip-madd" disabled={!home.trim() || !away.trim()} onClick={addMatch}>Spiel anlegen</button>
+        </div>
+        {tips.players.length === 0 && <p className="lr-hint">Zuerst oben die Mitspieler eintragen.</p>}
+        {tips.matches.length === 0 && tips.players.length > 0 && <p className="lr-hint">Noch kein Spiel — Heim und Gast eintragen und „Spiel anlegen“ drücken.</p>}
+
+        {tips.matches.map((m) => {
+          const win = tipWinners(m);
+          return (
+            <div className="lr-cq-panel" key={m.id} data-match={`${m.home} - ${m.away}`} style={{ marginBottom: 10 }}>
+              <div className="lr-cu-new" style={{ margin: "0 0 6px" }}>
+                <b>{m.home} – {m.away}</b>
+                {m.res && <span className="lr-tag" data-res="1">{m.res.h}:{m.res.a}</span>}
+                <div className="lr-spacer" />
+                <button type="button" className="lr-logo-del" aria-label="Spiel löschen" title="Spiel löschen"
+                  onClick={() => set((t) => ({ ...t, matches: t.matches.filter((x) => x.id !== m.id) }))}>×</button>
+              </div>
+              {tips.players.map((p) => (
+                <div className="lr-cq-row" key={p.id} data-tipper={p.name} data-win={win.indexOf(p.id) >= 0 ? "1" : "0"}>
+                  <span style={{ minWidth: 90 }}>{p.name}</span>
+                  <div className="lr-score" style={{ margin: 0 }}>
+                    <ScoreBox value={val(m, p.id, "h")} team={`${p.name} Tipp ${m.home}`} onType={(v) => typeTip(m, p.id, "h", v)} />
+                    <span className="lr-colon">:</span>
+                    <ScoreBox value={val(m, p.id, "a")} team={`${p.name} Tipp ${m.away}`} onType={(v) => typeTip(m, p.id, "a", v)} />
+                  </div>
+                  {m.res && win.indexOf(p.id) >= 0 && <b className="lr-tag" data-point="1">+1 Punkt</b>}
+                </div>
+              ))}
+              <div className="lr-cu-new" style={{ marginBottom: 0 }}>
+                <span className="lr-tag">Ergebnis</span>
+                <div className="lr-score" style={{ margin: 0 }}>
+                  <ScoreBox value={resVal(m, "h")} team={`Ergebnis ${m.home}`} onType={(v) => setRes(m, "h", v)} />
+                  <span className="lr-colon">:</span>
+                  <ScoreBox value={resVal(m, "a")} team={`Ergebnis ${m.away}`} onType={(v) => setRes(m, "a", v)} />
+                </div>
+                <button className="lr-btn lr-btn-sm lr-btn-p" data-act="res" disabled={resVal(m, "h") === "" || resVal(m, "a") === ""} onClick={() => saveRes(m)}>
+                  {m.res ? "Ergebnis ändern" : "Ergebnis speichern"}
+                </button>
+                {m.res && <button className="lr-btn lr-btn-sm" data-act="res-clear" onClick={() => clearRes(m)}>Ergebnis löschen</button>}
+              </div>
+              {m.res && <p className="lr-hint" style={{ margin: "6px 0 0" }} data-result-note="1">
+                {win.length ? `Punkt für: ${win.map(nameOf).join(" und ")}` : "Niemand hat getippt — kein Punkt."}
+              </p>}
+            </div>
+          );
+        })}
       </section>
     </div>
   );
