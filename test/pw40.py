@@ -197,6 +197,7 @@ with sync_playwright() as p:
     ok(0.45 < px < 0.85, f"neutrale Karte gefüllt ({px*100:.0f} %)")
     pg.locator("#cq-auto").click(); pg.wait_for_timeout(300)
     ok(len(state(pg)["conquest"]["log"]) == 1, "Spiel auf der neutralen Karte")
+    ok(pg.locator(".lr-cq-dot").count() == 0, "kein Punkt mehr für eroberte Logos")
     pg.locator("#cq-edit").click()
     top = pg.locator("#cq-stand .lr-cq-row").first
     club = top.get_attribute("data-owner")
