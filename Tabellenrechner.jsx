@@ -16554,9 +16554,8 @@ function ConquestMap({ r, cq, selA, selD, onPick, logos, pin, sizes, edit, onSiz
       for (const t of nb) {
         if (t < 0) { edge = Math.max(edge, 3); continue; }
         if (cq.owner[t] !== o) edge = Math.max(edge, 2);
-        else if (t !== s) edge = Math.max(edge, 1);
       }
-      if (edge === 3) { R = 20; G = 28; B = 22; } else if (edge === 2) { if (sel) { R = 255; G = 255; B = 255; } else { R = Math.round(R * 0.35); G = Math.round(G * 0.35); B = Math.round(B * 0.35); } } else if (edge === 1) { R = Math.round(R * 0.88); G = Math.round(G * 0.88); B = Math.round(B * 0.88); }
+      if (edge === 3) { R = 20; G = 28; B = 22; } else if (edge === 2) { if (sel) { R = 255; G = 255; B = 255; } else { R = Math.round(R * 0.35); G = Math.round(G * 0.35); B = Math.round(B * 0.35); } }
       const k = idx * 4;
       px[k] = R; px[k + 1] = G; px[k + 2] = B; px[k + 3] = 255;
     }
@@ -16591,9 +16590,7 @@ function ConquestMap({ r, cq, selA, selD, onPick, logos, pin, sizes, edit, onSiz
               onPointerUp={() => { if (drag.current) { drag.current = null; onSizeEnd(); } }} />
           )}
         </span>
-      ) : (
-        <span key={n} className="lr-cq-dot" style={{ left: `${posOf(n, i)[0] * 100}%`, top: `${posOf(n, i)[1] * 100}%` }} />
-      )))}
+      ) : null))}
       {mid && (
         <svg className="lr-cq-arrow" id="cq-arrow" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           <defs><marker id="cq-head" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#FFD84D" stroke="#222" strokeWidth="0.8" /></marker></defs>
