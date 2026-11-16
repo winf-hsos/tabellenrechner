@@ -16055,6 +16055,8 @@ function CupDetail({ data, cup, setData, update, logos }) {
       {!locked && (
         <div className="lr-cu-new">
           <button className="lr-btn lr-btn-sm" id="cup-add" onClick={() => setPicker(true)}>Mannschaften hinzufügen</button>
+          <button className="lr-btn lr-btn-sm" id="cup-add-all" title="Alle Vereine aller Länder, Europapokal-Teilnehmer und eigene Vereine"
+            onClick={() => update(cup.id, (c, d) => ({ ...c, teams: [...c.teams, ...allClubs(d).map((x) => x.name).filter((n) => c.teams.indexOf(n) < 0)] }))}>Alle Mannschaften hinzufügen</button>
           {cup.teams.length > 0 && <button className="lr-btn lr-btn-sm" onClick={() => update(cup.id, (c) => ({ ...c, teams: [] }))}>Alle entfernen</button>}
         </div>
       )}
