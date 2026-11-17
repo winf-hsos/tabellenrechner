@@ -1725,6 +1725,48 @@ const LEAGUE_BY_ID = Object.fromEntries([...LEGACY_LEAGUES, ...LEAGUES, ...ENGLA
 const LEAGUE_IDS = LEAGUES.map((l) => l.id);
 const ALL_LEAGUE_IDS = [...LEAGUE_IDS, ...ENG_IDS, ...ES_IDS, ...IT_IDS, ...FR_IDS, ...WORLD_IDS];
 const ZERO_MD = Object.fromEntries(LEAGUE_IDS.map((id) => [id, 0]));
+
+/**
+ * EA FC 27: Team-Overall der Ligen außerhalb Deutschlands. Quelle: die Spielerwertungen auf den Mannschaftsseiten von ea.com/games/ea-sports-fc/ratings
+ * (Stand 17.11.2026); Team-Overall = Mittel der elf besten Spieler (an den deutschen Ligen geprüft: Korrelation 0,93 zu `FIFA27`).
+ * Fehlt ein Klub bei EA (Dijon), steht das Minimum der Liga; vier dänische Klubs, Kasımpaşa und Münster kommen aus dem Datenstand FC 26.
+ * Nicht bei EA: Primera Federación, Serie C, Ligue 3, Zweitligen von Portugal/Türkei/Belgien/Österreich/Dänemark/Schweiz/Schottland, Eerste Divisie, Regionalligen.
+ */
+// <<FC27_OTHER>>
+const FC27_OTHER = {
+  pl: {"FC Arsenal":86,"Aston Villa":81,"FC Chelsea":83,"FC Everton":80,"FC Liverpool":85,"Manchester City":86,"Manchester United":83,"Newcastle United":80,"Nottingham Forest":80,"Tottenham Hotspur":82,"FC Fulham":78,"Crystal Palace":80,"Brighton & Hove Albion":80,"FC Brentford":80,"AFC Bournemouth":79,"Leeds United":78,"AFC Sunderland":80,"Coventry City":75,"Hull City":75,"Ipswich Town":76},
+  ch: {"Birmingham City":73,"Charlton Athletic":70,"Wrexham":72,"West Bromwich Albion":71,"Portsmouth":70,"Norwich City":72,"Sheffield United":72,"Watford":71,"Preston North End":71,"Stoke City":72,"Bristol City":71,"Swansea City":73,"Southampton":75,"Blackburn Rovers":70,"Middlesbrough":73,"Queens Park Rangers":71,"Derby County":72,"Millwall":72,"Lincoln City":69,"Burnley":75,"Cardiff City":69,"Bolton Wanderers":69,"West Ham United":77,"Wolverhampton Wanderers":76},
+  l1: {"Stevenage":66,"Reading":67,"Wigan Athletic":65,"Blackpool":66,"Stockport County":67,"Barnsley":65,"Wycombe Wanderers":67,"Huddersfield Town":67,"Peterborough United":64,"Mansfield Town":66,"Leyton Orient":67,"Burton Albion":64,"Luton Town":68,"Plymouth Argyle":67,"Bradford City":67,"AFC Wimbledon":65,"Doncaster Rovers":65,"Leicester City":71,"Notts County":65,"Oxford United":69,"Milton Keynes Dons":67,"Sheffield Wednesday":69,"Cambridge United":64,"Bromley":65},
+  l2: {"Gillingham":63,"Walsall":63,"Chesterfield":64,"Swindon Town":64,"Colchester United":63,"Cheltenham Town":63,"Tranmere Rovers":63,"Accrington Stanley":61,"Newport County":61,"Fleetwood Town":63,"Salford City":65,"Barnet":63,"Oldham Athletic":63,"Grimsby Town":63,"Crewe Alexandra":63,"Shrewsbury Town":62,"Bristol Rovers":63,"Crawley Town":63,"Exeter City":63,"Rotherham United":64,"Port Vale":65,"Northampton Town":64,"York City":63,"Rochdale":62},
+  ll: {"Atlético Madrid":84,"FC Barcelona":87,"Deportivo La Coruña":75,"Real Madrid":87,"Athletic Bilbao":81,"Betis Sevilla":80,"Celta Vigo":78,"RCD Espanyol":76,"Racing Santander":74,"Real Sociedad":79,"Valencia CF":77,"Deportivo Alavés":76,"Elche CF":74,"CA Osasuna":78,"Rayo Vallecano":78,"Sevilla FC":76,"FC Villarreal":80,"Málaga CF":73,"Levante UD":76,"FC Getafe":76},
+  sd: {"CD Tenerife":68,"RCD Mallorca":75,"Sporting Gijón":71,"Real Valladolid":69,"SD Eibar":70,"UD Las Palmas":73,"Albacete Balompié":71,"UD Almería":73,"Córdoba CF":69,"AD Ceuta":68,"Cádiz CF":70,"Burgos CF":70,"CE Sabadell":67,"CD Castellón":70,"CD Leganés":71,"Girona FC":77,"Real Sociedad B":66,"Celta Fortuna":65,"Real Oviedo":73,"Granada CF":71,"FC Andorra":68,"CD Eldense":67},
+  sa: {"Juventus Turin":81,"SSC Neapel":82,"Parma Calcio":74,"AS Rom":82,"Torino FC":76,"FC Bologna":77,"Udinese Calcio":75,"US Lecce":73,"Como 1907":79,"Cagliari Calcio":74,"ACF Fiorentina":78,"Genoa CFC":75,"Lazio Rom":79,"Atalanta Bergamo":80,"Inter Mailand":84,"AC Mailand":82,"US Sassuolo":76,"AC Monza":73,"Venezia FC":75,"Frosinone Calcio":72},
+  sb: {"Modena FC":71,"UC Sampdoria":73,"Palermo FC":74,"US Catanzaro":70,"Cesena FC":68,"Mantova 1911":69,"Juve Stabia":67,"Carrarese Calcio":68,"FC Südtirol":69,"US Avellino":69,"Calcio Padova":70,"Virtus Entella":68,"Empoli FC":68,"Hellas Verona":72,"Ascoli Calcio":68,"Pisa SC":71,"SS Arezzo":67,"US Cremonese":72,"Benevento Calcio":69,"LR Vicenza":68},
+  fl1: {"AJ Auxerre":73,"RC Lens":78,"OSC Lille":78,"Olympique Lyon":79,"AS Monaco":78,"OGC Nizza":76,"Paris Saint-Germain":88,"Stade Rennes":78,"RC Straßburg":76,"FC Lorient":74,"Olympique Marseille":78,"Stade Brest":75,"Angers SCO":74,"Le Havre AC":72,"FC Toulouse":74,"Paris FC":76,"ES Troyes":71,"Le Mans FC":71},
+  fl2: {"EA Guingamp":67,"Grenoble Foot":67,"Stade Laval":67,"Clermont Foot":66,"AS Nancy":67,"Pau FC":68,"Red Star FC":69,"USL Dunkerque":66,"Rodez AF":67,"FC Annecy":68,"US Boulogne":65,"Montpellier HSC":69,"Stade Reims":72,"AS Saint-Étienne":72,"FC Metz":70,"FC Nantes":72,"FC Sochaux":65,"Dijon FCO":65},
+  nl1: {"Ajax Amsterdam":78,"Feyenoord Rotterdam":76,"PSV Eindhoven":78,"Fortuna Sittard":69,"FC Utrecht":72,"AZ Alkmaar":74,"FC Twente":73,"NEC Nijmegen":74,"SC Heerenveen":69,"PEC Zwolle":68,"Excelsior Rotterdam":68,"Go Ahead Eagles":70,"Sparta Rotterdam":68,"SC Cambuur":66,"ADO Den Haag":66,"Willem II":67,"FC Groningen":69,"SC Telstar":67},
+  pt1: {"Benfica Lissabon":79,"FC Porto":80,"Sporting Lissabon":80,"CF Estrela da Amadora":70,"Rio Ave FC":70,"CD Santa Clara":69,"Vitória SC":70,"Gil Vicente FC":70,"CD Nacional":69,"SC Braga":76,"Moreirense FC":69,"GD Estoril Praia":72,"FC Arouca":71,"FC Famalicão":72,"Casa Pia AC":70,"FC Alverca":69,"CS Marítimo":68,"Académico de Viseu FC":66},
+  tr1: {"Galatasaray":80,"Fenerbahçe":81,"Beşiktaş":77,"Trabzonspor":77,"Samsunspor":70,"İstanbul Başakşehir FK":73,"Göztepe SK":70,"Konyaspor":71,"Çaykur Rizespor":69,"Gaziantep FK":69,"Kasımpaşa SK":70,"Alanyaspor":70,"Eyüpspor":67,"Gençlerbirliği SK":70,"Kocaelispor":69,"Erzurumspor FK":69,"Amed SFK":70,"Çorum FK":71},
+  be1: {"RSC Anderlecht":73,"Royal Antwerp FC":69,"FC Brügge":76,"Standard Liège":71,"Royal Charleroi SC":70,"KRC Genk":75,"KAA Gent":73,"Sint-Truidense VV":71,"KVC Westerlo":68,"Cercle Brugge KSV":69,"Royale Union Saint-Gilloise":75,"KV Kortrijk":69,"Oud-Heverlee Leuven":70,"KV Mechelen":71,"SV Zulte Waregem":68,"RAAL La Louvière":68,"Lommel SK":68,"SK Beveren":68},
+  at1: {"Red Bull Salzburg":72,"Sturm Graz":69,"LASK":70,"Rapid Wien":70,"Austria Wien":69,"TSV Hartberg":66,"SC Rheindorf Altach":66,"WSG Tirol":65,"Wolfsberger AC":67,"Grazer AK":66,"SV Ried":66,"SC Austria Lustenau":65},
+  sc1: {"Aberdeen FC":68,"Celtic Glasgow":76,"Heart of Midlothian":71,"Hibernian FC":69,"Kilmarnock FC":65,"Motherwell FC":67,"Rangers Glasgow":74,"Dundee FC":65,"Dundee United FC":67,"St Johnstone FC":63,"St Mirren FC":64,"Falkirk FC":65},
+  dk1: {"Brøndby IF":71,"Silkeborg IF":66,"AGF Aarhus":72,"FC Kopenhagen":73,"Viborg FF":68,"Sønderjyske Fodbold":65,"FC Midtjylland":74,"Randers FC":70,"FC Nordsjælland":69,"Lyngby Boldklub":65,"Odense Boldklub":68,"AC Horsens":64},
+  ch1: {"Grasshopper Zürich":66,"Servette FC":71,"FC Zürich":67,"FC Basel":71,"FC Luzern":68,"FC St Gallen":70,"Young Boys Bern":72,"FC Lausanne-Sport":68,"FC Lugano":71,"FC Sion":70,"FC Thun":68,"FC Vaduz":64},
+};
+// <</FC27_OTHER>>
+/** Stärken auf die Spanne der Liga umgerechnet (wie `FIFA_STRENGTH`): stärkster Klub = oberes, schwächster = unteres Ende. */
+const FC27_START = (() => {
+  const m = {};
+  Object.keys(FC27_OTHER).forEach((id) => {
+    const vals = Object.values(FC27_OTHER[id]);
+    const lo = Math.min(...vals);
+    const hi = Math.max(...vals);
+    const [top, bot] = LEAGUE_BY_ID[id].range;
+    Object.entries(FC27_OTHER[id]).forEach(([name, v]) => { m[name] = Math.round(bot + ((v - lo) / Math.max(1, hi - lo)) * (top - bot)); });
+  });
+  return m;
+})();
+Object.assign(TEAM_START, FC27_START);
 const CUP_ACCENT = "#D8B24C";
 
 /** Stärkebereiche beim Zurücksetzen: die drei Europapokale (ausländische Teilnehmer). */
@@ -9979,6 +10021,19 @@ function driftSquad(squad) {
   return squad ? scaleSquadTo(squad, driftValue(squadStrength(squad))) : squad;
 }
 
+/** Setzt die Stärken aller Klubs, für die EA FC 27 einen Wert kennt (deutsche Profiligen `FIFA_STRENGTH`, übrige Ligen `FC27_START`), auf diese Werte. Ergebnisse bleiben. */
+function applyFc27(d) {
+  const active = { ...d.active };
+  [...LEAGUE_IDS, ...Object.keys(FC27_OTHER)].forEach((id) => {
+    const s = d.active[id];
+    if (!s) return;
+    const tab = FC27_OTHER[id] ? FC27_START : FIFA_STRENGTH;
+    const squads = s.squads.map((q, i) => (tab[s.teams[i]] != null ? scaleSquadTo(q, tab[s.teams[i]]) : q));
+    active[id] = { ...s, squads, strengths: squads.map(squadStrength) };
+  });
+  return { ...d, active };
+}
+
 /**
  * Neue Stärken auf Knopfdruck: jeder Kader der genannten Ligen ändert sich um höchstens ±DRIFT_MAX. Beim Saisonwechsel
  * bleiben die Stärken unverändert, bis dieser Knopf gedrückt wird. Für Deutschland (`mitDe`) zählen auch der
@@ -13243,6 +13298,8 @@ export default function Tabellenrechner() {
             <div className="lr-top-r">
               <div className="lr-status">{status}</div>
               <span className="lr-build" id="build-info" title="Stand dieser Seite">Stand {BUILD_INFO}</span>
+              {section !== "nt" && <button className="lr-btn lr-btn-sm" id="fc27-open" onClick={() => setModal({ type: "fc27" })}
+                title="Stärken aller Ligen auf die Werte von EA FC 27 setzen">EA FC 27</button>}
               {section !== "nt" && <button className="lr-btn lr-btn-sm" id="newstr-open" onClick={() => setModal({ type: "newstr" })}
                 title="Neue Stärken für alle Klubs dieses Abschnitts bestimmen (höchstens ±5)">Neue Stärken</button>}
               {section !== "nt" && <button className="lr-btn lr-btn-sm" id="playall-open" onClick={() => setModal({ type: "playall" })}
@@ -14076,6 +14133,22 @@ export default function Tabellenrechner() {
           <div className="lr-modal-foot">
             <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
             <button className="lr-btn lr-btn-p" id="playall-go" onClick={section === "cu" ? playAllCu : section === "en" ? playAllEn : section === "es" ? playAllEs : section === "it" ? playAllIt : section === "fr" ? playAllFr : COUNTRY[section].world ? () => playAllWorld(COUNTRY[section].world) : playAll}>Alles durchspielen</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal && modal.type === "fc27" && (
+        <Modal onClose={() => setModal(null)}>
+          <h2>Stärken wie in EA FC 27</h2>
+          <p>
+            Setzt die Stärke jedes Klubs auf den Wert aus EA FC 27 (Team-Overall, je Liga auf die Stärkespanne der Liga umgerechnet). Das gilt für
+            alle Ligen, zu denen EA Werte kennt: Bundesliga bis 3. Liga, England (4 Ligen), La Liga und Segunda, Serie A und B, Ligue 1 und 2,
+            Eredivisie, Primeira Liga, Süper Lig, Belgien, Österreich, Schweiz, Schottland und Dänemark. Alle anderen Klubs behalten ihre Stärke.
+            Ergebnisse, Tabellen und Historie bleiben; der Kader wird auf die neue Stärke skaliert.
+          </p>
+          <div className="lr-modal-foot">
+            <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
+            <button className="lr-btn lr-btn-p" id="fc27-go" onClick={() => { setData((d) => applyFc27(d)); setModal(null); }}>Stärken setzen</button>
           </div>
         </Modal>
       )}
