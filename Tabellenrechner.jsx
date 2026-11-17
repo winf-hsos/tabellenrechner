@@ -10086,7 +10086,7 @@ function freshData() {
     const sn = newSeason(l.teams, l.teams.map((n) => TEAM_START[n]), "2026/27", defaultStart(l.id, "2026/27"));
     active[l.id] = canRealSchedule(sn, l.id) ? applyRealSchedule(sn, l.id, false) : sn;
   });
-  return { active, custom: { leagues: [], clubs: [] }, cups: [], conquest: null, tips: { players: [], matches: [] }, cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
+  return { active, custom: { leagues: [], clubs: [] }, cups: [], conquest: null, tips: { players: [], matches: [] }, syncOthers: false, cup: null, facup: null, copa: null, coppa: null, coupe: null, ...WORLD_CUP_NULLS, tourn: null, nationStr: {}, news: [], clubInfo: {}, playerInfo: {}, matchInfo: {}, favorites: [], history: [], drawBias: 0, surpriseBias: 1, realSquads: [...REAL_NAMES], logos: {}, euro: freshEuro(),
     regional: [] };
 }
 
@@ -10154,6 +10154,7 @@ function normalize(d0) {
   out.custom = normCustom(d.custom);
   out.cups = normCups(d.cups);
   out.tips = normTips(d.tips);
+  out.syncOthers = !!d.syncOthers;
   out.conquest = d.conquest && Array.isArray(d.conquest.clubs) && Array.isArray(d.conquest.owner) && (d.conquest.map === "neutral" || d.conquest.clubs.every((n) => CLUB_GEO[n])) ? d.conquest : null;
   out.custom.leagues.forEach((l) => {
     const s = d.active[l.id];
@@ -10309,6 +10310,36 @@ function torGewichte(squad) {
     const st = Math.max(1, Number(pl.s) || 40);
     return pos * bank * (st / 60);
   });
+}
+
+/** Karten für ein Spiel auslosen: gelb (im Mittel knapp 2 je Team), selten Gelb-Rot und Rot. Das Ergebnis hängt nur von Spielschlüssel und Ergebnis ab, ist also bei jedem Öffnen dasselbe. */
+const KARTE_GEWICHT = { TW: 0.1, ABW: 1.4, MF: 1.2, ST: 0.7 };
+function drawCards(sqH, sqA, key, hg, ag) {
+  let hash = 2166136261;
+  const str = `${key}|${hg}:${ag}`;
+  for (let i = 0; i < str.length; i++) { hash ^= str.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+  const rnd = mulberry32(hash >>> 0);
+  const out = [];
+  [["h", sqH], ["a", sqA]].forEach(([t, sq]) => {
+    const spieler = ((sq && sq.p) || []).filter((pl) => !pl.b);
+    if (!spieler.length) return;
+    const w = spieler.map((pl) => KARTE_GEWICHT[pl.p] || 1);
+    const summe = w.reduce((x, y) => x + y, 0);
+    const pick = () => { let x = rnd() * summe, k = 0; while (k < w.length - 1 && x > w[k]) { x -= w[k]; k++; } return spieler[k].n; };
+    const used = new Set();
+    for (let i = 0; i < 6; i++) {
+      if (rnd() >= 0.32) continue;
+      const p = pick();
+      if (used.has(p)) continue;
+      used.add(p);
+      const m = 6 + Math.floor(rnd() * 84);
+      const r = rnd();
+      if (r < 0.09) { out.push({ k: "gelb", t, p, m: Math.max(3, m - 12) }, { k: "gelbrot", t, p, m }); }
+      else if (r < 0.14) out.push({ k: "rot", t, p, m });
+      else out.push({ k: "gelb", t, p, m });
+    }
+  });
+  return out.sort((x, y) => x.m - y.m);
 }
 
 /** Zufällige Torschützen für eine Anzahl Tore, mit Minuten. */
@@ -11707,7 +11738,10 @@ div.lr-name { display: flex; align-items: center; }
 .lr-bracket { font-size: 12px; }
 .lr-bracket h4 { font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 13px; margin: 16px 0 6px; color: var(--chalk-dim); }
 .lr-bracket div.g { display: flex; gap: 8px; padding: 3px 0; border-bottom: 1px solid var(--line); }
-.lr-bracket div.g span:first-child { flex: 1; text-align: right; }
+.lr-bracket div.g span { display: inline-flex; align-items: center; }
+.lr-bracket div.g span:first-child { flex: 1; justify-content: flex-end; text-align: right; }
+.lr-hist-n { display: inline-flex; align-items: center; }
+.lr-hist-champ { display: flex; align-items: center; flex-wrap: wrap; }
 .lr-bracket div.g span:last-child { flex: 1; }
 .lr-bracket b { min-width: 60px; text-align: center; }
 `;
@@ -12430,6 +12464,39 @@ function playLeagues(d, ids) {
   return { ...d, active };
 }
 
+/** Anzahl der vollständig gespielten Spieltage der Bundesliga (ab dem 1. Spieltag lückenlos). */
+function germanProgress(d) {
+  const s = d.active && d.active.bl1;
+  if (!s) return 0;
+  const fx = makeFixtures(s.teams.length, s.seed);
+  let n = 0;
+  while (n < fx.length && fx[n].every((_, gi) => parsedResult(s.results, n, gi))) n++;
+  return n;
+}
+/** Ligen außerhalb Deutschlands (England, Spanien, Italien, Frankreich, weitere Länder), die im Hintergrund mitlaufen können. */
+const otherLeagueIds = (d) => [...ENG_IDS, ...ES_IDS, ...IT_IDS, ...FR_IDS, ...WORLD_IDS].filter((id) => d.active[id]);
+/** Spielt in den genannten Ligen alle offenen Spiele der ersten `n` Spieltage aus; gibt dasselbe Objekt zurück, wenn nichts zu tun ist. */
+function playLeaguesTo(d, ids, n) {
+  const drawShare = DRAW_SHARE[d.drawBias || 0] != null ? DRAW_SHARE[d.drawBias || 0] : 0;
+  const surprise = d.surpriseBias == null ? 1 : Number(d.surpriseBias);
+  let changed = false;
+  const active = { ...d.active };
+  ids.forEach((id) => {
+    const s = d.active[id];
+    if (!s) return;
+    let results = null;
+    makeFixtures(s.teams.length, s.seed).slice(0, n).forEach((round, i) => round.forEach(([h, a], gi) => {
+      if (parsedResult((results || s.results), i, gi)) return;
+      if (!results) results = { ...s.results };
+      const [hg, ag] = simulateMatch(s.strengths[h], s.strengths[a], false, drawShare, surprise,
+        formationTilt(s.squads[h].f), formationTilt(s.squads[a].f));
+      results[`${i}:${gi}`] = { h: String(hg), a: String(ag), sc: makeGoals(s.squads[h], s.squads[a], hg, ag) };
+    }));
+    if (results) { active[id] = { ...s, results }; changed = true; }
+  });
+  return changed ? { ...d, active } : d;
+}
+
 /** Herkunft eines Europapokal-Teilnehmers: deutsche und englische Klubs sind markiert. */
 const euroTagOf = (t) => (t && t.de ? "DE" : t && (t.en || PL_NAMES.has(t.name)) ? "EN" : t && (t.es || ES_NAMES.has(t.name)) ? "ES" : t && (t.it || IT_NAMES.has(t.name)) ? "IT" : t && (t.fr || FR_NAMES.has(t.name)) ? "FR" : t ? ((WORLD.find((c) => t[c.key] || c.names.has(t.name)) || {}).key || "").toUpperCase() || null : null);
 function CTag({ t }) {
@@ -12504,6 +12571,14 @@ export default function Tabellenrechner() {
     });
     return () => { alive = false; };
   }, []);
+
+  // Andere Ligen laufen im Hintergrund mit, solange der Schalter an ist: sie spielen genau so viele Spieltage wie die Bundesliga.
+  const syncOn = !!(data && data.syncOthers);
+  const bl1Progress = data ? germanProgress(data) : 0;
+  useEffect(() => {
+    if (!syncOn || !ready) return;
+    setData((d) => playLeaguesTo(d, otherLeagueIds(d), germanProgress(d)));
+  }, [syncOn, bl1Progress, ready]);
 
   useEffect(() => {
     if (!data || !ready) return;
@@ -13298,6 +13373,8 @@ export default function Tabellenrechner() {
             <div className="lr-top-r">
               <div className="lr-status">{status}</div>
               <span className="lr-build" id="build-info" title="Stand dieser Seite">Stand {BUILD_INFO}</span>
+              {section !== "nt" && <button className="lr-btn lr-btn-sm" id="sync-open" onClick={() => setModal({ type: "sync" })}
+                title="Alle Ligen außer den deutschen im Hintergrund auf den Spieltag der Bundesliga bringen">Ligen angleichen{data.syncOthers ? " ✓" : ""}</button>}
               {section !== "nt" && <button className="lr-btn lr-btn-sm" id="fc27-open" onClick={() => setModal({ type: "fc27" })}
                 title="Stärken aller Ligen auf die Werte von EA FC 27 setzen">EA FC 27</button>}
               {section !== "nt" && <button className="lr-btn lr-btn-sm" id="newstr-open" onClick={() => setModal({ type: "newstr" })}
@@ -14133,6 +14210,25 @@ export default function Tabellenrechner() {
           <div className="lr-modal-foot">
             <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
             <button className="lr-btn lr-btn-p" id="playall-go" onClick={section === "cu" ? playAllCu : section === "en" ? playAllEn : section === "es" ? playAllEs : section === "it" ? playAllIt : section === "fr" ? playAllFr : COUNTRY[section].world ? () => playAllWorld(COUNTRY[section].world) : playAll}>Alles durchspielen</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal && modal.type === "sync" && (
+        <Modal onClose={() => setModal(null)}>
+          <h2>Andere Ligen angleichen</h2>
+          <p>
+            Alle Ligen außerhalb Deutschlands (England, Spanien, Italien, Frankreich und die weiteren Länder) werden im Hintergrund so weit simuliert,
+            wie die Bundesliga ist: aktuell <b>{bl1Progress}</b> {bl1Progress === 1 ? "Spieltag" : "Spieltage"}. Bereits eingetragene (auch echte) Ergebnisse bleiben, nur offene Spiele
+            bis dahin werden ausgewürfelt.
+          </p>
+          <label className="lr-prog" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <input type="checkbox" id="sync-auto" checked={!!data.syncOthers} onChange={(e) => { const v = e.target.checked; setData((d) => ({ ...d, syncOthers: v })); }} />
+            automatisch mitlaufen: sobald in der Bundesliga ein Spieltag fertig ist, ziehen die anderen Ligen nach
+          </label>
+          <div className="lr-modal-foot">
+            <button className="lr-btn" onClick={() => setModal(null)}>Schließen</button>
+            <button className="lr-btn lr-btn-p" id="sync-go" onClick={() => { setData((d) => playLeaguesTo(d, otherLeagueIds(d), germanProgress(d))); setModal(null); }}>Jetzt angleichen</button>
           </div>
         </Modal>
       )}
@@ -18370,6 +18466,7 @@ function MatchModal({ data, setData, at, onClose }) {
   const timeline = [
     ...goals.map((g) => ({ kind: "tor", t: g.t, p: g.p, m: g.m || 0 })),
     ...events.map((e, i) => ({ kind: e.k, t: e.t, p: e.p, m: Number(e.m) || 0, i })),
+    ...(res ? drawCards(sqH, sqA, key, res[0], res[1]).map((e) => ({ kind: e.k, t: e.t, p: e.p, m: e.m, auto: true })) : []),
   ].sort((x, y) => x.m - y.m);
   let sh = 0;
   let sa = 0;
@@ -18451,7 +18548,7 @@ function MatchModal({ data, setData, at, onClose }) {
                   <i className="lr-k-ic" data-k={e.kind} />
                   {e.kind === "tor" ? <>Tor {e.t === "h" ? home : away}{e.p ? <> — <PlayerLink name={e.p} /></> : ""} <b>{e.score}</b></> : <>{CARD_LABEL[e.kind]} {e.t === "h" ? home : away} — {e.p ? <PlayerLink name={e.p} /> : ""}</>}
                 </span>
-                {e.kind !== "tor" && <button className="lr-k-x" title="Eintrag entfernen" onClick={() => delCard(e.i)}>×</button>}
+                {e.kind !== "tor" && !e.auto && <button className="lr-k-x" title="Eintrag entfernen" onClick={() => delCard(e.i)}>×</button>}
               </div>
             ))}
             {res && <div className="lr-k-ev"><small>90'</small><span>Abpfiff — {home} {res[0]}:{res[1]} {away}</span></div>}
@@ -18514,6 +18611,8 @@ function MatchModal({ data, setData, at, onClose }) {
                 {cmp("Tore", rh.t, ra.t)}
                 {cmp("Gegentore", rh.gt, ra.gt, false)}
                 {cmp("Stärke", s.strengths[h], s.strengths[a])}
+                {res && cmp("Gelbe Karten", timeline.filter((e) => e.t === "h" && (e.kind === "gelb" || e.kind === "gelbrot")).length, timeline.filter((e) => e.t === "a" && (e.kind === "gelb" || e.kind === "gelbrot")).length, false)}
+                {res && cmp("Rote Karten", timeline.filter((e) => e.t === "h" && (e.kind === "rot" || e.kind === "gelbrot")).length, timeline.filter((e) => e.t === "a" && (e.kind === "rot" || e.kind === "gelbrot")).length, false)}
                 <div className="lr-k-cmp"><span><Form form={rh.form} /></span><span /><span><Form form={ra.form} /></span><small>Form</small></div>
               </>
             )}
@@ -20023,7 +20122,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
                 <h3 style={{ borderBottomColor: b.accent }}>{b.head}</h3>
                 <ol>
                   {entries.map(([name, count]) => (
-                    <li key={name}><span>{name}</span><span>{count}×</span></li>
+                    <li key={name}><span className="lr-hist-n"><Logo name={name} />{name}</span><span>{count}×</span></li>
                   ))}
                 </ol>
               </div>
@@ -20060,7 +20159,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
               <span className="lr-hist-season">{h.label}</span>
               <span className="lr-hist-league" style={{ color: accent }}>{h.leagueName}</span>
               <span className="lr-hist-champ">
-                <b>{champ}</b>
+                <Logo name={champ} /><b>{champ}</b>
                 {!isCup && h.table && h.table[0] ? (
                   <span style={{ color: "#96A093" }}> · {h.table[0].pkt} Punkte</span>
                 ) : null}
@@ -20092,9 +20191,9 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
                         <h4>{r.name}</h4>
                         {r.games.map((g, i) => (
                           <div className="g" key={i}>
-                            <span>{g.h}</span>
+                            <span><Logo name={g.h} />{g.h}</span>
                             <b>{g.note === "Freilos" ? "Freilos" : `${g.hg}:${g.ag}`}{g.pen ? " n.E." : ""}</b>
-                            <span>{g.a}{g.note && g.note !== "Freilos" ? ` ${g.note}` : ""}</span>
+                            <span><Logo name={g.a} />{g.a}{g.note && g.note !== "Freilos" ? ` ${g.note}` : ""}</span>
                           </div>
                         ))}
                       </div>
@@ -20122,7 +20221,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
                           <tr key={e.name + e.verein}>
                             <td className="r">{i + 1}</td>
                             <td>{e.name}</td>
-                            <td className="v">{e.verein}{e.vorher ? <span className="vor">{e.vorher}</span> : null}</td>
+                            <td className="v"><Logo name={e.verein} />{e.verein}{e.vorher ? <span className="vor">{e.vorher}</span> : null}</td>
                             <td className="g">{e.tore}</td>
                           </tr>
                         ))}
