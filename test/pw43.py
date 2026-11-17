@@ -1,4 +1,4 @@
-# Echter Spielplan 2026/27 auch für England, Spanien, Italien, Frankreich, Niederlande, Portugal, Türkei
+# Echter Spielplan 2026/27 auch für England (4 Ligen), Spanien, Italien, Frankreich, Niederlande, Portugal, Türkei, Belgien, Dänemark, Österreich
 import os, json
 from playwright.sync_api import sync_playwright
 D = "file://" + os.path.dirname(os.path.abspath(__file__)) + "/"
@@ -9,14 +9,14 @@ def ok(c, m):
 def state(pg):
     pg.wait_for_timeout(900)
     return json.loads(pg.evaluate("() => localStorage.getItem('ligarechner:v2')"))
-IDS = {"pl": (38, 20), "ch": (46, 24), "ll": (38, 20), "sa": (38, 20), "fl1": (34, 18), "fl2": (34, 18), "nl1": (34, 18), "pt1": (34, 18), "tr1": (34, 18)}
+IDS = {"pl": (38, 20), "ch": (46, 24), "ll": (38, 20), "sa": (38, 20), "fl1": (34, 18), "fl2": (34, 18), "nl1": (34, 18), "pt1": (34, 18), "tr1": (34, 18), "l1": (46, 24), "l2": (46, 24), "sd": (42, 22), "sb": (38, 20), "nl2": (38, 20), "be1": (34, 18), "dk1": (22, 12), "at1": (22, 12)}
 with sync_playwright() as p:
     b = p.chromium.launch(); pg = b.new_context(viewport={"width": 1400, "height": 1000}).new_page(); perr = []
     pg.on("pageerror", lambda e: perr.append(str(e)))
     pg.goto(D + "index.html"); pg.wait_for_selector(".lr-tab")
     pg.get_by_role("button", name="Spieltag simulieren").first.click(); pg.wait_for_timeout(700)
     d = state(pg)
-    ok(all(d["active"][i]["seed"] < 0 and len(d["active"][i]["kicks"]) == n for i, (n, _) in IDS.items()), "alle 9 weiteren Ligen starten mit echtem Spielplan")
+    ok(all(d["active"][i]["seed"] < 0 and len(d["active"][i]["kicks"]) == n for i, (n, _) in IDS.items()), "alle 17 weiteren Ligen starten mit echtem Spielplan")
     ok(all(len(d["active"][i]["results"]) == 0 for i in IDS), "ohne Ergebnisse")
     pg.locator("#sec-en").click(); pg.wait_for_selector("#real-open")
     ok(pg.locator("#real-tag").count() == 1, "Premier League mit Kennzeichen „echter Spielplan“")
@@ -30,7 +30,7 @@ with sync_playwright() as p:
     d = state(pg)
     for i, (n, t) in IDS.items():
         r = d["active"][i]["results"]
-        ok(len(r) >= 90, f"{i}: {len(r)} echte Ergebnisse geladen")
+        ok(len(r) >= 70, f"{i}: {len(r)} echte Ergebnisse geladen")
     ok(len(d["active"]["pl"]["results"]) == 100 and len(d["active"]["fl1"]["results"]) == 90, "Anzahl gespielter Partien wie in der Quelle (PL 100, Ligue 1 90)")
     ok(len(d["active"]["bl1"]["results"]) >= 80, "auch die Bundesliga neu geladen")
     ok("FC Arsenal" in pg.locator("body").inner_text(), "Premier-League-Seite zeigt Tabelle und Spiele")
