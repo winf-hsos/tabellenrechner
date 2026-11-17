@@ -11218,7 +11218,7 @@ const CSS = `
 .lr-top-in { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 26px 0 0; flex-wrap: wrap; }
 .lr-title { font-size: 30px; line-height: 1.05; }
 .lr-sub { color: var(--chalk-dim); font-size: 13px; margin-top: 6px; max-width: 48ch; line-height: 1.5; }
-.lr-status { font-size: 12px; color: var(--chalk-dim); }
+.lr-status { font-size: 12px; color: var(--chalk-dim); min-width: 78px; min-height: 16px; line-height: 16px; white-space: nowrap; }
 .lr-modal:has(> .lr-live) { max-width: 940px; }
 .lr-modal:has(> .lr-m3) { max-width: 980px; }
 .lr-flag { font-size: 1.15em; margin-right: 6px; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
@@ -13371,7 +13371,7 @@ export default function Tabellenrechner() {
               </p>
             </div>
             <div className="lr-top-r">
-              <div className="lr-status">{status}</div>
+              <div className="lr-status">{status || "\u00a0"}</div>
               <span className="lr-build" id="build-info" title="Stand dieser Seite">Stand {BUILD_INFO}</span>
               {section !== "nt" && <button className="lr-btn lr-btn-sm" id="sync-open" onClick={() => setModal({ type: "sync" })}
                 title="Alle Ligen außer den deutschen im Hintergrund auf den Spieltag der Bundesliga bringen">Ligen angleichen{data.syncOthers ? " ✓" : ""}</button>}
