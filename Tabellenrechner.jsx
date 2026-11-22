@@ -18065,6 +18065,23 @@ function partialTable(teams, fixtures, results, mode) {
 const matchKey = (leagueId, label, md, gi) => `${leagueId}|${label}|${md}:${gi}`;
 
 /** Suche nach Vereinen und Spielern in allen Ligen. */
+/** Titel eines Vereins aus der Historie: Meisterschaften (Platz 1 der Abschlusstabelle) und gewonnene Pokale/Europapokale. Nationalmannschafts-Turniere zählen nicht. */
+function clubTitles(history, name) {
+  const by = new Map();
+  (history || []).forEach((h) => {
+    if (h.leagueId === "tournko") return;
+    const isCup = h.type === "cup" || h.type === "euro";
+    const champ = isCup ? h.winner : h.table && h.table[0] ? h.table[0].name : null;
+    if (champ !== name) return;
+    const comp = isCup ? h.leagueName : `Meisterschaft – ${h.leagueName}`;
+    const e = by.get(comp) || { comp, seasons: [] };
+    e.seasons.push(h.label);
+    by.set(comp, e);
+  });
+  const list = [...by.values()].map((e) => ({ ...e, seasons: e.seasons.sort() })).sort((a, b) => b.seasons.length - a.seasons.length || a.comp.localeCompare(b.comp, "de"));
+  return { total: list.reduce((n, e) => n + e.seasons.length, 0), list };
+}
+
 function searchAll(data, query) {
   const q = query.trim().toLowerCase();
   if (q.length < 2) return { clubs: [], players: [] };
@@ -18074,7 +18091,7 @@ function searchAll(data, query) {
     const s = data.active[id];
     if (!s) return;
     s.teams.forEach((t, i) => {
-      if (t.toLowerCase().indexOf(q) >= 0) clubs.push({ name: t, lg: LEAGUE_BY_ID[id].name });
+      if (t.toLowerCase().indexOf(q) >= 0) clubs.push({ name: t, lg: LEAGUE_BY_ID[id].name, titles: clubTitles(data.history, t).total });
       if (players.length < 40) {
         playersOf(s.squads[i]).forEach((p) => {
           if (p.n && p.n.toLowerCase().indexOf(q) >= 0 && players.length < 40) players.push({ name: p.n, club: t, pos: p.p });
@@ -18204,6 +18221,7 @@ function ClubModal({ data, setData, name, onClose }) {
     return { rows, row, games, scorers };
   }, [club && club.s, name]);
 
+  const titles = useMemo(() => clubTitles(data.history, name), [data.history, name]);
   const articles = (data.news || []).filter((a) => a.team === name).sort((a, b) => (b.date > a.date ? 1 : -1));
   const goalsOf = (pn) => (view ? (view.scorers.find((x) => x.name === pn) || { tore: 0 }).tore : 0);
   const byPos = {};
@@ -18228,6 +18246,7 @@ function ClubModal({ data, setData, name, onClose }) {
             <span className="lr-k-sub">
               {club ? `${club.lg.name} · ${secLabel(club.sec)}${view && view.row ? ` · Platz ${view.row.pos}` : ""}` : "Europapokal-Teilnehmer"}
               {" · Stärke "}{club ? club.s.strengths[club.i] : squadStrength(squad)}
+              {titles.total ? ` · 🏆 ${titles.total} Titel` : ""}
             </span>
           </div>
           <button className={`lr-btn lr-btn-sm${fav ? " lr-btn-p" : ""}`} id="club-fav" onClick={toggleFav} title="Zu „Meine Vereine“ hinzufügen">
@@ -18240,6 +18259,13 @@ function ClubModal({ data, setData, name, onClose }) {
 
         {tab === "ueber" && (
           <div className="lr-k-body">
+            {titles.total > 0 && (
+              <div className="lr-k-card" id="club-titles"><small>Titel ({titles.total})</small>
+                {titles.list.map((t) => (
+                  <div className="lr-k-row" key={t.comp}><span>🏆 {t.comp}</span><b title={t.seasons.join(", ")}>{t.seasons.length}× <em style={{ fontWeight: 400, color: "var(--chalk-dim)" }}>{t.seasons.slice(-4).join(", ")}{t.seasons.length > 4 ? " …" : ""}</em></b></div>
+                ))}
+              </div>
+            )}
             {view && view.row ? (
               <div className="lr-k-stats">
                 <div><b>{view.row.pos}.</b><span>Platz</span></div>
@@ -18894,7 +18920,7 @@ function SearchBox({ data }) {
       {q.trim().length >= 2 && (
         <div className="lr-k-dd" id="search-res">
           {!any && <span className="lr-hint" style={{ padding: 8 }}>Nichts gefunden.</span>}
-          {res.clubs.map((c) => <button key={`c${c.name}`} onClick={() => go(openClub, c.name)}><Logo name={c.name} />{c.name}<small>{c.lg}</small></button>)}
+          {res.clubs.map((c) => <button key={`c${c.name}`} onClick={() => go(openClub, c.name)}><Logo name={c.name} />{c.name}<small>{c.lg}{c.titles ? ` · 🏆 ${c.titles} Titel` : ""}</small></button>)}
           {res.players.map((p) => <button key={`p${p.name}`} onClick={() => go(openPlayer, p.name)}><b>{p.name}</b><small>{p.club} · {POS_NAMES[p.pos] || p.pos}</small></button>)}
         </div>
       )}
