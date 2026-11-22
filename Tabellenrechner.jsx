@@ -11741,6 +11741,9 @@ div.lr-name { display: flex; align-items: center; }
 .lr-bracket div.g span { display: inline-flex; align-items: center; }
 .lr-bracket div.g span:first-child { flex: 1; justify-content: flex-end; text-align: right; }
 .lr-hist-n { display: inline-flex; align-items: center; }
+.lr-mini-tbl { margin: 6px 0 0; padding-left: 22px; font-size: 13px; }
+.lr-mini-tbl li { padding: 3px 0; }
+.lr-mini-tbl small { color: var(--chalk-dim); margin-left: 8px; }
 .lr-hist-champ { display: flex; align-items: center; flex-wrap: wrap; }
 .lr-bracket div.g span:last-child { flex: 1; }
 .lr-bracket b { min-width: 60px; text-align: center; }
@@ -12497,6 +12500,70 @@ function playLeaguesTo(d, ids, n) {
   return changed ? { ...d, active } : d;
 }
 
+/** Saisonwechsel Deutschland (Auf-/Abstieg, Europapokal-Plätze, Historie) als reine Funktion; `played` = bereits gespielte Regionalligen oder `null`. */
+function promotionPure(d0, duelA, duelB, aufsteiger, played) {
+  // Die Regionalligen laufen unsichtbar im Hintergrund: offene Spiele werden vor dem Saisonwechsel ausgewürfelt
+  // (der Dialog hat sie schon gespielt, damit die Auswahl der Aufsteiger zur Tabelle passt).
+  const d = played
+    ? { ...d0, active: { ...d0.active, ...Object.fromEntries(DE_RL.map((l) => [l.id, played.active[l.id]])) } }
+    : playLeagues(d0, DE_RL.map((l) => l.id));
+  const archives = [...PRO_IDS].reverse().map((id) => archiveSeason(d, id));
+  const t = {};
+  const rows = {};
+  const strengthOf = {};
+  const squadOf = {};
+  LEAGUE_IDS.forEach((id) => {
+    const s = d.active[id];
+    s.teams.forEach((name, i) => {
+      strengthOf[name] = Number(s.strengths[i]) || 30;
+      squadOf[name] = s.squads[i];
+    });
+    rows[id] = computeTable(s.teams, makeFixtures(s.teams.length, s.seed), s.results);
+    t[id] = rows[id].map((r) => r.name);
+  });
+
+  // Europapokal: deutsche Plätze aus der Endtabelle, beendete Wettbewerbe wandern in die Historie.
+  const euroQ = euroQualifiers(t.bl1, cupChampionName(d));
+  const euroHist = [];
+  EURO_COMPS.forEach((c) => {
+    const r = d.euro && d.euro.runs[c.id];
+    if (r && euroChampion(r)) euroHist.push(euroArchive(c.id, r));
+  });
+  const history = [...archives, ...euroHist, ...d.history];
+
+  const stay1 = duelA === "up" ? t.bl2[2] : t.bl1[15];
+  const down1 = duelA === "up" ? t.bl1[15] : t.bl2[2];
+  const stay2 = duelB === "up" ? t.bl3[2] : t.bl2[15];
+  const down2 = duelB === "up" ? t.bl2[15] : t.bl3[2];
+
+  const low = deLowMoves(rows, t.bl3.slice(16), aufsteiger);
+  const lists = {
+    bl1: [...t.bl1.slice(0, 15), t.bl2[0], t.bl2[1], stay1],
+    bl2: [...t.bl2.slice(3, 15), t.bl1[16], t.bl1[17], down1, t.bl3[0], t.bl3[1], stay2],
+    bl3: [...t.bl3.slice(3, 16), t.bl2[16], t.bl2[17], down2, ...low.promoted],
+    ...low.lists,
+  };
+  const st = (names) => names.map((n) => strengthOf[n] || 30);
+  const sq = (names) => names.map((n) => squadOf[n] || makeSquad(n, strengthOf[n] || 30));
+  const active = { ...d.active };
+  LEAGUE_IDS.forEach((id) => {
+    const names = lists[id];
+    active[id] = newSeason(names, st(names), nextLabel(d.active[id].label), shiftYear(d.active[id].start, 1), sq(names));
+  });
+
+  return {
+    ...d,
+    cup: d.cup,
+    history,
+    euro: {
+      teams: Object.fromEntries(Object.entries(euroApplyQualifiers(d.euro.teams, euroQ)).map(([id, list]) => [
+        id, list])),
+      runs: { cl: null, el: null, ecl: null },
+    },
+    active,
+  };
+}
+
 /** Eigene Pokale: jeden Pokal mit genug Mannschaften auslosen (falls noch nicht gestartet), zu Ende spielen und in die Historie legen. */
 function playCustomCups(d) {
   let out = d;
@@ -12534,6 +12601,38 @@ function playAllOthers(d) {
   WORLD.forEach((c) => { x = worldSeasonEnd(playWorldCup(playLeagues(x, c.leagues.map((l) => l.id)), c), c); });
   x = playCustomLeagues(x, [...COUNTRY.cu.ids].filter((id) => x.active[id]));
   return playCustomCups(x);
+}
+
+/**
+ * Historieneintrag verkürzen, damit lange Simulationen in den Browserspeicher passen: Tabellen nur die ersten drei Plätze, Torschützen nur der König,
+ * Turnierbäume nur die letzte Runde (Finale), keine Gruppentabellen. Meister, Sieger, Saison und Wettbewerb bleiben.
+ */
+function compactHistoryEntry(h) {
+  if (h.compact) return h;
+  const out = { ...h, compact: true };
+  if (Array.isArray(h.table)) out.table = h.table.slice(0, 3).map((r) => ({ pos: r.pos, name: r.name, pkt: r.pkt }));
+  delete out.scorers;
+  delete out.unbeaten;
+  delete out.unbeatenEnd;
+  if (Array.isArray(h.rounds)) out.rounds = h.rounds.slice(-1);
+  if (h.groups) out.groups = [];
+  return out;
+}
+/** Die neuesten `neu` Einträge (aus dem aktuellen Lauf) verkürzen, außer denen der letzten `behalten` Saisons. */
+function compactBatchHistory(history, neu, behalten) {
+  const labels = [];
+  history.slice(0, neu).forEach((h) => { if (labels.indexOf(h.label) < 0) labels.push(h.label); });
+  labels.sort().reverse();
+  const keep = new Set(labels.slice(0, behalten));
+  return history.map((h, i) => (i < neu && !keep.has(h.label) ? compactHistoryEntry(h) : h));
+}
+
+/** Eine ganze Saison aller Wettbewerbe (Deutschland mit Pokal und Europapokal, alle anderen Länder, eigene Ligen/Pokale) als reine Funktion; `drift` würfelt danach neue Stärken. */
+function playWholeSeason(d, drift) {
+  const played = playAllCompetitions(d);
+  const plan = autoPromotionPlan(played);
+  const x = playAllOthers({ ...promotionPure(played, plan.duelA, plan.duelB), cup: null });
+  return drift ? driftLeagues(x, ALL_LEAGUE_IDS.filter((id) => x.active[id]), true) : x;
 }
 
 /** Herkunft eines Europapokal-Teilnehmers: deutsche und englische Klubs sind markiert. */
@@ -12578,6 +12677,7 @@ export default function Tabellenrechner() {
   const [euMd, setEuMd] = useState({ cl: 0, el: 0, ecl: 0 });
   const [modal, setModal] = useState(null);
   const [evDrift, setEvDrift] = useState(true);
+  const [seasonRun, setSeasonRun] = useState(null);
   const [m3, setM3] = useState(null);
   const [kstack, setKstack] = useState([]);
   const [editor, setEditor] = useState(null);
@@ -12940,68 +13040,7 @@ export default function Tabellenrechner() {
   };
 
   const applyPromotion = (duelA, duelB, aufsteiger, played) => {
-    setData((d0) => {
-      // Die Regionalligen laufen unsichtbar im Hintergrund: offene Spiele werden vor dem Saisonwechsel ausgewürfelt
-      // (der Dialog hat sie schon gespielt, damit die Auswahl der Aufsteiger zur Tabelle passt).
-      const d = played
-        ? { ...d0, active: { ...d0.active, ...Object.fromEntries(DE_RL.map((l) => [l.id, played.active[l.id]])) } }
-        : playLeagues(d0, DE_RL.map((l) => l.id));
-      const archives = [...PRO_IDS].reverse().map((id) => archive(d, id));
-      const t = {};
-      const rows = {};
-      const strengthOf = {};
-      const squadOf = {};
-      LEAGUE_IDS.forEach((id) => {
-        const s = d.active[id];
-        s.teams.forEach((name, i) => {
-          strengthOf[name] = Number(s.strengths[i]) || 30;
-          squadOf[name] = s.squads[i];
-        });
-        rows[id] = computeTable(s.teams, makeFixtures(s.teams.length, s.seed), s.results);
-        t[id] = rows[id].map((r) => r.name);
-      });
-
-      // Europapokal: deutsche Plätze aus der Endtabelle, beendete Wettbewerbe wandern in die Historie.
-      const euroQ = euroQualifiers(t.bl1, cupChampionName(d));
-      const euroHist = [];
-      EURO_COMPS.forEach((c) => {
-        const r = d.euro && d.euro.runs[c.id];
-        if (r && euroChampion(r)) euroHist.push(euroArchive(c.id, r));
-      });
-      const history = [...archives, ...euroHist, ...d.history];
-
-      const stay1 = duelA === "up" ? t.bl2[2] : t.bl1[15];
-      const down1 = duelA === "up" ? t.bl1[15] : t.bl2[2];
-      const stay2 = duelB === "up" ? t.bl3[2] : t.bl2[15];
-      const down2 = duelB === "up" ? t.bl2[15] : t.bl3[2];
-
-      const low = deLowMoves(rows, t.bl3.slice(16), aufsteiger);
-      const lists = {
-        bl1: [...t.bl1.slice(0, 15), t.bl2[0], t.bl2[1], stay1],
-        bl2: [...t.bl2.slice(3, 15), t.bl1[16], t.bl1[17], down1, t.bl3[0], t.bl3[1], stay2],
-        bl3: [...t.bl3.slice(3, 16), t.bl2[16], t.bl2[17], down2, ...low.promoted],
-        ...low.lists,
-      };
-      const st = (names) => names.map((n) => strengthOf[n] || 30);
-      const sq = (names) => names.map((n) => squadOf[n] || makeSquad(n, strengthOf[n] || 30));
-      const active = { ...d.active };
-      LEAGUE_IDS.forEach((id) => {
-        const names = lists[id];
-        active[id] = newSeason(names, st(names), nextLabel(d.active[id].label), shiftYear(d.active[id].start, 1), sq(names));
-      });
-
-      return {
-        ...d,
-        cup: d.cup,
-        history,
-        euro: {
-          teams: Object.fromEntries(Object.entries(euroApplyQualifiers(d.euro.teams, euroQ)).map(([id, list]) => [
-            id, list])),
-          runs: { cl: null, el: null, ecl: null },
-        },
-        active,
-      };
-    });
+    setData((d0) => promotionPure(d0, duelA, duelB, aufsteiger, played));
     setMd(ZERO_MD);
     setModal(null);
   };
@@ -13289,20 +13328,47 @@ export default function Tabellenrechner() {
 
   /** Wirklich alles: Deutschland mit DFB-Pokal und Europapokal, danach alle anderen Länder samt Pokalen, eigene Ligen und eigene Pokale. */
   const playEverything = () => {
-    const played = playAllCompetitions(data);
-    const plan = autoPromotionPlan(played);
-    setData(() => played);
-    applyPromotion(plan.duelA, plan.duelB);
-    setData((d) => {
-      const x = playAllOthers({ ...d, cup: null });
-      // Neue Stärken (±5) für alle Klubs aller Ligen, wie der Knopf „Neue Stärken“, nur in einem Zug.
-      return evDrift ? driftLeagues(x, ALL_LEAGUE_IDS.filter((id) => x.active[id]), true) : x;
-    });
-    setMd((m) => ({ ...ZERO_MD, ...Object.fromEntries(Object.keys(m).map((k) => [k, 0])) }));
+    setData((d) => playWholeSeason(d, evDrift));
+    setMd(() => ({ ...ZERO_MD, ...Object.fromEntries(Object.keys(md).map((k) => [k, 0])) }));
     setCupRound(0);
     setOpenHist(null);
     setModal(null);
     setTab("hist");
+  };
+
+  /** Mehrere Saisons hintereinander (alles wie „Alles durchspielen“), Saison für Saison mit Fortschrittsanzeige; gespeichert wird einmal am Ende. */
+  const playSeasons = (n) => {
+    const drift = evDrift;
+    let cur = data;
+    let i = 0;
+    const startLen = (data.history || []).length;
+    setSeasonRun({ done: 0, total: n });
+    const step = () => {
+      if (i >= n) {
+        const neu = cur.history.length - startLen;
+        let final = cur;
+        if (n > 5) {
+          // Stufenweise verkürzen, bis der Stand sicher in den Browserspeicher (ca. 5 MB) passt.
+          for (const behalten of [5, 3, 1, 0]) {
+            final = { ...cur, history: compactBatchHistory(cur.history, neu, behalten) };
+            if (JSON.stringify(final).length < 4000000) break;
+          }
+        }
+        setData(() => final);
+        setMd(() => ({ ...ZERO_MD, ...Object.fromEntries(Object.keys(md).map((k) => [k, 0])) }));
+        setCupRound(0);
+        setOpenHist(null);
+        setSeasonRun(null);
+        setModal(null);
+        setTab("hist");
+        return;
+      }
+      cur = playWholeSeason(cur, drift);
+      i++;
+      setSeasonRun({ done: i, total: n });
+      setTimeout(step, 0);
+    };
+    setTimeout(step, 30);
   };
 
   /** Alle Wettbewerbe zu Ende spielen, ins Archiv legen und die nächste Saison beginnen. */
@@ -14288,9 +14354,22 @@ export default function Tabellenrechner() {
             danach neue Stärken für alle Klubs aller Ligen würfeln (je höchstens ±5, wie „Neue Stärken“)
           </label>
           <p>Das lässt sich nicht rückgängig machen. Vorher unter Historie „Sichern“ eine Kopie anlegen.</p>
+          <div className="lr-pl-sec"><span>Mehrere Saisons hintereinander</span></div>
+          <p className="lr-hint" style={{ margin: "0 0 6px" }}>Bei mehr als 5 Saisons bleiben die letzten 5 vollständig in der Historie, ältere werden verkürzt (Meister, erste drei Plätze, Finale), damit der Browserspeicher reicht.</p>
+          <div className="lr-cu-new" id="seasons-bar">
+            {[5, 10, 20, 30, 40, 50, 100].map((n) => (
+              <button key={n} className="lr-btn lr-btn-sm" id={`seasons-${n}`} disabled={!!seasonRun} onClick={() => playSeasons(n)}>{n} Saisons</button>
+            ))}
+          </div>
+          {seasonRun && (
+            <div id="seasons-progress">
+              <div className="lr-live-track" style={{ height: 8, background: "var(--line)", borderRadius: 4, overflow: "hidden" }}><div style={{ width: `${(seasonRun.done / seasonRun.total) * 100}%`, height: "100%", background: "var(--accent)" }} /></div>
+              <p className="lr-hint">Saison {seasonRun.done} von {seasonRun.total} gespielt … bitte warten.</p>
+            </div>
+          )}
           <div className="lr-modal-foot">
-            <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
-            <button className="lr-btn lr-btn-p" id="everything-go" onClick={playEverything}>Alles durchspielen</button>
+            <button className="lr-btn" disabled={!!seasonRun} onClick={() => setModal(null)}>Abbrechen</button>
+            <button className="lr-btn lr-btn-p" id="everything-go" disabled={!!seasonRun} onClick={playEverything}>Alles durchspielen</button>
           </div>
         </Modal>
       )}
@@ -20275,7 +20354,11 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
             </button>
             {isOpen && (
               <div className="lr-hist-body" style={accentVars(accent)}>
-                {isEuro && h.table ? (
+                {h.compact && <p className="lr-hint" style={{ marginTop: 0 }}>Verkürzter Eintrag: von dieser Saison sind nur Meister, die ersten drei Plätze bzw. das Finale gespeichert (lange Simulation).</p>}
+                {h.compact && Array.isArray(h.table) && (
+                  <ol className="lr-mini-tbl">{h.table.map((r) => <li key={r.name}><Logo name={r.name} />{r.name}<small>{r.pkt} {isEuro ? "Pkt." : "Punkte"}</small></li>)}</ol>
+                )}
+                {isEuro && h.table && !h.compact ? (
                   <div style={{ marginBottom: 14 }}>
                     <div className="lr-duel-h">Tabelle der Ligaphase</div>
                     <Table rows={h.table} leagueId="eu" compact />
@@ -20307,7 +20390,7 @@ function Historie({ history, open, setOpen, onExport, onBackup, onReset, onPromo
                     ))}
                   </div>
                 ) : (
-                  <Table rows={h.table} leagueId={h.leagueId} compact />
+                  h.compact ? null : <Table rows={h.table} leagueId={h.leagueId} compact />
                 )}
                 {h.type === "league" && h.unbeaten && h.unbeaten.length ? (
                   <div className="lr-duel-h" style={{ marginTop: 12 }}>
