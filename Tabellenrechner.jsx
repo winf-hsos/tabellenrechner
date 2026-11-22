@@ -12497,6 +12497,45 @@ function playLeaguesTo(d, ids, n) {
   return changed ? { ...d, active } : d;
 }
 
+/** Eigene Pokale: jeden Pokal mit genug Mannschaften auslosen (falls noch nicht gestartet), zu Ende spielen und in die Historie legen. */
+function playCustomCups(d) {
+  let out = d;
+  (d.cups || []).filter((c) => !c.gone).forEach((c0) => {
+    let cur = out.cups.find((x) => x.id === c0.id);
+    if (!cur.run) {
+      if (!cupSummary(cur.teams, cur.format, cur.groupAssign).ok) return;
+      cur = { ...cur, run: cupStart(out, cur) };
+    }
+    const run = cupSimAll(cupCtx(out), cur.run, cur.format, out);
+    if (run.phase !== "done") return;
+    const done = { ...cur, run };
+    const entry = cupArchive(out, done);
+    out = { ...out, history: [entry, ...out.history], cups: out.cups.map((x) => (x.id === cur.id ? { ...done, run: null, edition: done.edition + 1 } : x)) };
+  });
+  return out;
+}
+
+/** Eigene Ligen: offene Spiele auswürfeln, Tabellen in die Historie legen, nächste Saison beginnen. */
+function playCustomLeagues(d, ids) {
+  if (!ids.length) return d;
+  const p = playLeagues(d, ids);
+  const archives = [...ids].reverse().map((id) => archiveSeason(p, id));
+  const active = { ...p.active };
+  ids.forEach((id) => { const s = p.active[id]; active[id] = newSeason(s.teams, s.strengths, nextLabel(s.label), shiftYear(s.start, 1), s.squads); });
+  return { ...p, history: [...archives, ...p.history], active };
+}
+
+/** Alle Ligen und Pokale außerhalb Deutschlands (England, Spanien, Italien, Frankreich, weitere Länder, eigene Ligen und Pokale) zu Ende spielen und abschließen. */
+function playAllOthers(d) {
+  let x = englishSeasonEnd(playFaCup(playEnglishLeagues(d)));
+  x = spanishSeasonEnd(playCopa(playLeagues(x, ES_IDS)));
+  x = italianSeasonEnd(playCoppa(playLeagues(x, IT_IDS)));
+  x = frenchSeasonEnd(playCoupe(playLeagues(x, FR_IDS)));
+  WORLD.forEach((c) => { x = worldSeasonEnd(playWorldCup(playLeagues(x, c.leagues.map((l) => l.id)), c), c); });
+  x = playCustomLeagues(x, [...COUNTRY.cu.ids].filter((id) => x.active[id]));
+  return playCustomCups(x);
+}
+
 /** Herkunft eines Europapokal-Teilnehmers: deutsche und englische Klubs sind markiert. */
 const euroTagOf = (t) => (t && t.de ? "DE" : t && (t.en || PL_NAMES.has(t.name)) ? "EN" : t && (t.es || ES_NAMES.has(t.name)) ? "ES" : t && (t.it || IT_NAMES.has(t.name)) ? "IT" : t && (t.fr || FR_NAMES.has(t.name)) ? "FR" : t ? ((WORLD.find((c) => t[c.key] || c.names.has(t.name)) || {}).key || "").toUpperCase() || null : null);
 function CTag({ t }) {
@@ -13247,6 +13286,20 @@ export default function Tabellenrechner() {
     setTab("hist");
   };
 
+  /** Wirklich alles: Deutschland mit DFB-Pokal und Europapokal, danach alle anderen Länder samt Pokalen, eigene Ligen und eigene Pokale. */
+  const playEverything = () => {
+    const played = playAllCompetitions(data);
+    const plan = autoPromotionPlan(played);
+    setData(() => played);
+    applyPromotion(plan.duelA, plan.duelB);
+    setData((d) => playAllOthers({ ...d, cup: null }));
+    setMd((m) => ({ ...ZERO_MD, ...Object.fromEntries(Object.keys(m).map((k) => [k, 0])) }));
+    setCupRound(0);
+    setOpenHist(null);
+    setModal(null);
+    setTab("hist");
+  };
+
   /** Alle Wettbewerbe zu Ende spielen, ins Archiv legen und die nächste Saison beginnen. */
   const playAll = () => {
     const played = playAllCompetitions(data);
@@ -13379,6 +13432,8 @@ export default function Tabellenrechner() {
                 title="Stärken aller Ligen auf die Werte von EA FC 27 setzen">EA FC 27</button>}
               {section !== "nt" && <button className="lr-btn lr-btn-sm" id="newstr-open" onClick={() => setModal({ type: "newstr" })}
                 title="Neue Stärken für alle Klubs dieses Abschnitts bestimmen (höchstens ±5)">Neue Stärken</button>}
+              {section !== "nt" && <button className="lr-btn lr-btn-sm" id="everything-open" onClick={() => setModal({ type: "everything" })}
+                title="Alle Ligen und Pokale aller Länder, die Europapokale, eigene Ligen und Pokale zu Ende spielen und in die Historie legen">Alles durchspielen</button>}
               {section !== "nt" && <button className="lr-btn lr-btn-sm" id="playall-open" onClick={() => setModal({ type: "playall" })}
                 title="Alle Wettbewerbe zu Ende spielen und in die Historie legen">Saison durchspielen</button>}
               <button className="lr-btn lr-btn-sm" id="reset-open" onClick={() => setModal({ type: "reset" })}>Zurücksetzen</button>
@@ -14210,6 +14265,23 @@ export default function Tabellenrechner() {
           <div className="lr-modal-foot">
             <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
             <button className="lr-btn lr-btn-p" id="playall-go" onClick={section === "cu" ? playAllCu : section === "en" ? playAllEn : section === "es" ? playAllEs : section === "it" ? playAllIt : section === "fr" ? playAllFr : COUNTRY[section].world ? () => playAllWorld(COUNTRY[section].world) : playAll}>Alles durchspielen</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal && modal.type === "everything" && (
+        <Modal onClose={() => setModal(null)}>
+          <h2>Alles durchspielen</h2>
+          <p>
+            Alle noch offenen Spiele <b>aller</b> Ligen und Pokale werden ausgewürfelt (eingetragene Ergebnisse bleiben): Bundesliga bis 3. Liga mit DFB-Pokal
+            und den drei Europapokalen, England, Spanien, Italien, Frankreich und alle weiteren Länder mit ihren Pokalen, außerdem alle eigenen Ligen und
+            eigenen Pokale. Alles kommt in die Historie, danach beginnt überall die nächste Saison mit Auf- und Abstieg und unveränderten Stärken.
+            Länderspiel-Turniere bleiben unberührt.
+          </p>
+          <p>Das lässt sich nicht rückgängig machen. Vorher unter Historie „Sichern“ eine Kopie anlegen.</p>
+          <div className="lr-modal-foot">
+            <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
+            <button className="lr-btn lr-btn-p" id="everything-go" onClick={playEverything}>Alles durchspielen</button>
           </div>
         </Modal>
       )}
