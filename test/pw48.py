@@ -18,7 +18,10 @@ with sync_playwright() as p:
     pg.fill("#cup-new-name", "Testpokal"); pg.locator("#cup-new-go").click(); pg.wait_for_selector("#cup-add-all")
     pg.locator("#cup-add-all").click(); pg.wait_for_timeout(500)
     pg.locator("#sec-de").click(); pg.wait_for_selector("#everything-open")
-    pg.locator("#everything-open").click(); pg.wait_for_selector("#everything-go"); pg.locator("#everything-go").click()
+    d0 = state(pg)
+    pg.locator("#everything-open").click(); pg.wait_for_selector("#everything-go")
+    ok(pg.locator("#everything-drift").is_checked(), "Haken „neue Stärken“ ist vorbelegt")
+    pg.locator("#everything-go").click()
     pg.wait_for_function("() => JSON.parse(localStorage.getItem('ligarechner:v2') || '{}').history && JSON.parse(localStorage.getItem('ligarechner:v2')).history.length > 20", timeout=90000)
     d = state(pg)
     ids = [h["leagueId"] for h in d["history"]]
@@ -32,6 +35,14 @@ with sync_playwright() as p:
     ok(labels == {"2027/28"}, f"überall beginnt 2027/28: {labels}")
     ok(all(len(s["results"]) == 0 for s in d["active"].values()), "neue Saisons ohne Ergebnisse")
     ok(d["euro"]["runs"] is not None and all(not r or not r.get("results") for r in d["euro"]["runs"].values()) , "Europapokal-Läufe beendet/abgelegt")
+    # Stärken haben sich um höchstens 5 verändert, bei vielen Klubs überhaupt
+    diffs = []
+    for lid in ("bl1", "pl", "ll", "sa", "fl1", "nl1"):
+        a, c = d0["active"][lid], d["active"][lid]
+        old = dict(zip(a["teams"], a["strengths"]))
+        for n, v in zip(c["teams"], c["strengths"]):
+            if n in old: diffs.append(v - old[n])
+    ok(diffs and max(abs(x) for x in diffs) <= 6 and sum(1 for x in diffs if x) > len(diffs) * 0.4, f"neue Stärken: {sum(1 for x in diffs if x)}/{len(diffs)} Klubs verändert, größte Änderung {max(abs(x) for x in diffs)}")
     ok(not perr, f"keine JS-Fehler {perr[:2]}")
     b.close()
 print("Fehler:", errs)

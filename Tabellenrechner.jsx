@@ -12577,6 +12577,7 @@ export default function Tabellenrechner() {
   const [euPh, setEuPh] = useState({ cl: 0, el: 0, ecl: 0 });
   const [euMd, setEuMd] = useState({ cl: 0, el: 0, ecl: 0 });
   const [modal, setModal] = useState(null);
+  const [evDrift, setEvDrift] = useState(true);
   const [m3, setM3] = useState(null);
   const [kstack, setKstack] = useState([]);
   const [editor, setEditor] = useState(null);
@@ -13292,7 +13293,11 @@ export default function Tabellenrechner() {
     const plan = autoPromotionPlan(played);
     setData(() => played);
     applyPromotion(plan.duelA, plan.duelB);
-    setData((d) => playAllOthers({ ...d, cup: null }));
+    setData((d) => {
+      const x = playAllOthers({ ...d, cup: null });
+      // Neue Stärken (±5) für alle Klubs aller Ligen, wie der Knopf „Neue Stärken“, nur in einem Zug.
+      return evDrift ? driftLeagues(x, ALL_LEAGUE_IDS.filter((id) => x.active[id]), true) : x;
+    });
     setMd((m) => ({ ...ZERO_MD, ...Object.fromEntries(Object.keys(m).map((k) => [k, 0])) }));
     setCupRound(0);
     setOpenHist(null);
@@ -14278,6 +14283,10 @@ export default function Tabellenrechner() {
             eigenen Pokale. Alles kommt in die Historie, danach beginnt überall die nächste Saison mit Auf- und Abstieg und unveränderten Stärken.
             Länderspiel-Turniere bleiben unberührt.
           </p>
+          <label className="lr-prog" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <input type="checkbox" id="everything-drift" checked={evDrift} onChange={(e) => setEvDrift(e.target.checked)} />
+            danach neue Stärken für alle Klubs aller Ligen würfeln (je höchstens ±5, wie „Neue Stärken“)
+          </label>
           <p>Das lässt sich nicht rückgängig machen. Vorher unter Historie „Sichern“ eine Kopie anlegen.</p>
           <div className="lr-modal-foot">
             <button className="lr-btn" onClick={() => setModal(null)}>Abbrechen</button>
